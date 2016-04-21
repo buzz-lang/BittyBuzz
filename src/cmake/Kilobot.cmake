@@ -14,9 +14,23 @@ find_program(AVR_UPLOAD avrdude)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR avr)
 set(CMAKE_C_COMPILER ${AVR_CC})
+
+#
+# AVR variables
+#
+set(AVR_MCU "atmega328p")    # MCU for avr-gcc
+set(AVR_DEVICE "m328")       # device for avrdude -p
+set(AVR_PORT "usb")          # port for avrdude -P
+set(AVR_BOOTLOADER "0x7000") # section start for bootloader code
+
+set(AVR_CFLAGS "-std=c99 -mmcu=${AVR_MCU} -Wall -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -DF_CPU=8000000")
+# set(AVR_LDFLAGS "-Wl,-section-start=.text=0x7000")
+set(AVR_LDFLAGS "-Wl,-s -Wl,--gc-sections")
+
+#
+# BittyBuzz variables
+#
 set(BBZ_ROBOT kilobot)
-set(AVR_CFLAGS "-std=c99 -mmcu=atmega328p -Wall -gdwarf-2 -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -DF_CPU=8000000")
-set(AVR_LDFLAGS "-Wl,-section-start=.text=0x7000")
 
 #
 # CMake command to compile an executable
@@ -28,6 +42,7 @@ function(kilobot_add_executable _TARGET)
   set(_BIN_TARGET ${_TARGET}-${BBZ_ROBOT}.bin)
   set(_HEX_TARGET ${_TARGET}-${BBZ_ROBOT}.hex)
   set(_EEP_TARGET ${_TARGET}-${BBZ_ROBOT}.eep)
+  set(_MAP_TARGET ${_TARGET}-${BBZ_ROBOT}.map)
   # .elf -> .lss
   add_custom_command(OUTPUT ${_LSS_TARGET}
     COMMAND ${AVR_OBJDUMP} -d -S ${_ELF_TARGET} > ${_LSS_TARGET}
@@ -44,20 +59,29 @@ function(kilobot_add_executable _TARGET)
   add_custom_command(OUTPUT ${_BIN_TARGET}
     COMMAND ${AVR_OBJCOPY} -O binary -R .eeprom -R .fuse -R .lock -R .signature ${_ELF_TARGET} ${_BIN_TARGET}
     DEPENDS ${_ELF_TARGET})
+  # .elf -> .map
+  add_custom_command(OUTPUT ${_BIN_TARGET}
+    COMMAND ${AVR_OBJCOPY} -O binary -R .eeprom -R .fuse -R .lock -R .signature ${_ELF_TARGET} ${_BIN_TARGET}
+    DEPENDS ${_ELF_TARGET})
   # Compile .elf file
   add_executable(${_ELF_TARGET} EXCLUDE_FROM_ALL ${ARGN})
   set_target_properties(${_ELF_TARGET}
     PROPERTIES
     COMPILE_FLAGS ${AVR_CFLAGS}
-    LINK_FLAGS ${AVR_LDFLAGS})
+    LINK_FLAGS "${AVR_LDFLAGS} -Wl,-Map,${_MAP_TARGET}")
   # Make target
-  add_custom_target(${_TARGET} ALL DEPENDS ${_HEX_TARGET} ${_EEP_TARGET})
+  add_custom_target(${_TARGET} ALL DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
   set_target_properties(${_TARGET} PROPERTIES OUTPUT_NAME "${_ELF_TARGET}")
   # Uploading file
   add_custom_target(upload_${_TARGET}
-    ${AVR_UPLOAD} -p m328 -P usb -c avrispmkII -U "flash:w:${_HEX_TARGET}:i"
+    ${AVR_UPLOAD} -p m328 -P ${AVR_PORT} -c avrispmkII -U "flash:w:${_HEX_TARGET}:i"
     DEPENDS ${_HEX_TARGET}
     COMMENT "Uploading ${_HEX_TARGET} to Kilobot")
+  # Extra files to clean
+  get_directory_property(_CLEAN_FILES ADDITIONAL_MAKE_CLEAN_FILES)
+  set_directory_properties(
+    PROPERTIES
+    ADDITIONAL_MAKE_CLEAN_FILES "${_CLEAN_FILES};${_MAP_TARGET}")
 endfunction(kilobot_add_executable _TARGET)
 
 #
@@ -70,6 +94,7 @@ function(kilobot_add_library _TARGET)
   add_library(${_TARGET} STATIC ${ARGN})
   set_target_properties(${_TARGET} PROPERTIES 
     COMPILE_FLAGS ${AVR_CFLAGS}
+    LINK_FLAGS ${AVR_LDFLAGS}
     OUTPUT_NAME ${_LIB_TARGET})
 endfunction(kilobot_add_library _TARGET)
 
