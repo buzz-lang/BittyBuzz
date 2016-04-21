@@ -3,8 +3,8 @@ What is BittyBuzz?
 
 BittyBuzz is an implementation of the
 [Buzz programming language](http://the.swarming.buzz) for
-microcrontrollers. BittyBuzz is designed to fit a 64k EEPROM and work
-with as little as 2k of RAM.
+microcrontrollers. BittyBuzz is designed to fit a 32k flash memory and
+work with as little as 2k of RAM.
 
 While the BittyBuzz VM has a number of limitations with respect to the
 original Buzz VM, BittyBuzz supports 100% of the Buzz bytecode.
