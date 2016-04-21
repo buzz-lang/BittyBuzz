@@ -5,7 +5,6 @@ find_program(AVR_AR avr-ar)
 find_program(AVR_CC avr-gcc)
 find_program(AVR_OBJCOPY avr-objcopy)
 find_program(AVR_OBJDUMP avr-objdump)
-find_program(AVR_SIZE avr-size)
 find_program(AVR_STRIP avr-strip)
 find_program(AVR_UPLOAD avrdude)
 
