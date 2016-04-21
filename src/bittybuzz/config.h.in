@@ -1,0 +1,14 @@
+/*
+ * Total size of heap in bytes.
+ */
+#define BBZHEAP_SIZE @HEAP_SIZE@
+
+/*
+ * Elements per table segment.
+ */
+#define BBZHEAP_ELEMS_PER_TSEG @HEAP_ELEMS_PER_TSEG@
+
+/*
+ * Name of the robot, in case we are crosscompiling.
+ */
+#cmakedefine BBZ_ROBOT
