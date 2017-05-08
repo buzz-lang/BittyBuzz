@@ -33,18 +33,18 @@
  * A table segment.
  */
 typedef struct __attribute__((packed)) {
-   uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];   /* 8th bit: valid; other bits: obj index */
-   uint16_t values[BBZHEAP_ELEMS_PER_TSEG]; /* 8th bit: valid; other bits: obj index */
-   uint16_t mdata; /* 8th     bit: valid
-                      7th-1st bits: next segment index (0 means no next) */
+   uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];   /* 16th bit: valid; other bits: obj index */
+   uint16_t values[BBZHEAP_ELEMS_PER_TSEG]; /* 16th bit: valid; other bits: obj index */
+   uint16_t mdata; /* 16th     bit : valid
+                      15th-1st bits: next segment index (-1 means no next) */
 } bbzheap_tseg_t;
 
 /*
  * The heap structure.
  */
 typedef struct __attribute__((packed)) {
-   uint8_t* rtobj;             /* pointer to the rightmost invalid object */
-   uint8_t* ltseg;             /* pointer to the leftmost invalid object */
+   uint8_t* rtobj;             /* pointer to after the rightmost object in heap, not necessarly valid */
+   uint8_t* ltseg;             /* pointer to the leftmost table segment in heap, not necessarly valid */
    uint8_t data[BBZHEAP_SIZE]; /* data buffer */
 } bbzheap_t;
 
@@ -93,6 +93,11 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 int bbzheap_tseg_alloc(bbzheap_t* h,
                        uint16_t* s);
 
+#define NO_NEXT 0x7FFF
+#define MASK_NEXT 0x7FFF
+#define MASK_VALID_TSEG 0x8000
+#define MASK_VALID_TSEG_ELEM 0x8000
+
 /*
  * Returns a table segment located at position i within the heap.
  * @param h The heap.
@@ -106,48 +111,48 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
  * @param s The table segment.
  * @return The index of the next segment.
  */
-#define bbzheap_tseg_next_get(s) ((s)->mdata & 0x7FFF)
+#define bbzheap_tseg_next_get(s) ((s)->mdata & MASK_NEXT)
 
 /*
  * Sets the next table segment linked to the given one.
  * @param s The table segment.
  * @param n The index of the next segment.
  */
-#define bbzheap_tseg_next_set(s, n) (s)->mdata = ((s)->mdata & 0x8000) | ((n) & 0x7FFF)
+#define bbzheap_tseg_next_set(s, n) (s)->mdata = ((s)->mdata & ~MASK_NEXT) | ((n) & MASK_NEXT)
 
 /*
  * Returns 1 if the given table segment has a valid next, 0 otherwise.
  * @param s The table segment.
  * @return 1 if the given table segment has a valid next, 0 otherwise.
  */
-#define bbzheap_tseg_hasnext(s) (((s)->mdata & 0x7FFF) != 0x7FFF)
+#define bbzheap_tseg_hasnext(s) (((s)->mdata & MASK_NEXT) != NO_NEXT)
 
 /*
  * Returns non-zero if the given segment is valid (in use).
  * @param s The table segment.
  * @return non-zero if the given segment is valid (in use).
  */
-#define bbzheap_tseg_isvalid(s) ((s).mdata & 0x8000)
+#define bbzheap_tseg_isvalid(s) ((s).mdata & MASK_VALID_TSEG)
 
 /*
  * Returns non-zero if the given segment element (key or value) is valid (in use).
  * @param e The table segment element.
  * @return non-zero if the given segment element (key or value) is valid (in use).
  */
-#define bbzheap_tseg_elem_isvalid(e) ((e) & 0x8000)
+#define bbzheap_tseg_elem_isvalid(e) ((e) & MASK_VALID_TSEG_ELEM)
 
 /*
  * Returns the value of the given table segment element.
  * @param e The table segment element.
  */
-#define bbzheap_tseg_elem_get(e) ((e) & 0x7FFF)
+#define bbzheap_tseg_elem_get(e) ((e) & ~MASK_VALID_TSEG_ELEM)
 
 /*
  * Sets the value of the given table segment element, and validates the element.
  * @param e The table segment element.
  * @param x The value.
  */
-#define bbzheap_tseg_elem_set(e, x) (e) = ((x) & 0x7FFF) | 0x8000
+#define bbzheap_tseg_elem_set(e, x) (e) = ((x) & ~MASK_VALID_TSEG_ELEM) | MASK_VALID_TSEG_ELEM
 
 /*
  * Performs garbage collection on the heap.

@@ -7,7 +7,7 @@
 #define obj_makevalid(x)   (x).o.mdata |= 0x10
 #define obj_makeinvalid(x) (x).o.mdata &= 0xEF
 
-#define tseg_makevalid(s)   (s).mdata = 0xFFFF
+#define tseg_makevalid(s)   (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
 #define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
 
 #define gc_hasmark(x) ((x).o.mdata & 0x08)
@@ -45,6 +45,7 @@ int bbzheap_obj_alloc(bbzheap_t* h,
          return 1;
       }
    /* No empty slot found, must create a new one */
+   /* ...but first, make sure there is room */
    if(h->rtobj + sizeof(bbzobj_t) > h->ltseg) return 0;
    /* Set result */
    *o = (h->rtobj - h->data) / sizeof(bbzobj_t);
