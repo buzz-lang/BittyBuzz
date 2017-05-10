@@ -26,7 +26,6 @@ if("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
   message(FATAL_ERROR "You must specify a value for HEAP_ELEMS_PER_TSEG (e.g., cmake -DHEAP_ELEMS_PER_TSEG=5 ...)")
 endif("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
 configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONLY)
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} " -std=c99 -g")
 
 #
 # Descend into the subdirectories

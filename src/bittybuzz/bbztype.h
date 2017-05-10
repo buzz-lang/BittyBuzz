@@ -181,7 +181,7 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if a closure is native, 0 otherwise.
  * @param obj The object.
  */
-#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x10)
+#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)
 
 #ifdef __cplusplus
 }
