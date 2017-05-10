@@ -13,6 +13,7 @@
 #define BBZTYPE_TABLE    4
 #define BBZTYPE_CLOSURE  5
 #define BBZTYPE_USERDATA 6
+#define BBZTYPE_NCLOSURE 7
 
 /*
  * Nil type
@@ -148,7 +149,7 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if an object is closure, 0 otherwise.
  * @param obj The object.
  */
-#define bbztype_isclosure(obj) (bbztype(obj) == BBZTYPE_CLOSURE)
+#define bbztype_isclosure(obj) (bbztype(obj) & BBZTYPE_CLOSURE == BBZTYPE_CLOSURE)
 
 /*
  * Returns 1 if an object is userdata, 0 otherwise.
@@ -160,6 +161,6 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if a closure is native, 0 otherwise.
  * @param obj The object.
  */
-#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x10)
+#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)
 
 #endif
