@@ -17,7 +17,7 @@
 // Automated tests.
 // Required in all test files:
 //
-// #include <testing/testconfig.h>
+// #include "testing/testingconfig.h"
 // #ifdef BBZ_USE_AUTOMATED_TESTS
 // #define BOOST_TEST_DYN_LINK // Use Boost as a dynamic library
 // #define BOOST_TEST_MODULE <a_value>
