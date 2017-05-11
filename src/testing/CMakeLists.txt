@@ -11,6 +11,9 @@ if(NOT CMAKE_CROSSCOMPILING)
 
   add_executable(testheap testheap.c)
   target_link_libraries(testheap bittybuzz)
+
+  add_executable(testdarray testdarray.c)
+  target_link_libraries(testdarray bittybuzz)
   
 else(NOT CMAKE_CROSSCOMPILING)
   
@@ -21,6 +24,9 @@ else(NOT CMAKE_CROSSCOMPILING)
 
     kilobot_add_executable(testheap testheap.c)
     kilobot_target_link_libraries(testheap bittybuzz)
+
+    kilobot_add_executable(testdarray testdarray.c)
+    kilobot_target_link_libraries(testdarray bittybuzz)
     
   endif("${BBZ_ROBOT}" STREQUAL "kilobot")
   

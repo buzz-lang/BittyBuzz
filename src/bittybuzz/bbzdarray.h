@@ -4,6 +4,10 @@
 #include <bittybuzz/bbzheap.h>
 #include <bittybuzz/bbztype.h>
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,17 +36,17 @@ extern "C" {
     typedef int (*bbzdarray_elem_cmpp)(const bbzobj_t* a, const bbzobj_t* b);
 
     /**
-     *  @brief Sets a dynamic array's fields to their default value.
-     *  @param h A pointer to the heap.
-     *  @param d The position of the dynamic array's object allocated in
-     *           the heap.
+     *  @brief Allocate a dynamic array.
+     *  @param [in]  h A pointer to the heap.
+     *  @param [out] d A buffer for position of the dynamic array's object in
+     *                 the heap.
+     *  @return 1 for success, 0 for failure (out of memory).
      */
-    void bbzdarray_create(bbzheap_t* h,
-                         uint16_t d);
+    int bbzdarray_new(bbzheap_t* h,
+                       uint16_t* d);
 
     /**
      *  @brief Destroys a dynamic array. Invalidates all its array segment.
-     *         Does not invalidate the elements.
      *  @param h A pointer to the heap.
      *  @param d The dynamic array.
      */
@@ -105,14 +109,14 @@ extern "C" {
      *  @param d The position of the dynamic array's object in the heap.
      *  @return The size of the dynamic array.
      */
-    uint8_t bbzdarray_size(bbzheap_t* h,
+    uint16_t bbzdarray_size(bbzheap_t* h,
                            uint16_t d);
     
     /**
      *  @brief Creates a new dynamic array from the given dynamic array.
      *  @param h A pointer to the heap.
      *  @param d The dynamic array.
-     *  @param newd A new dynamic array.
+     *  @param newd A buffer for the new dynamic array.
      *  @return 1 for success, 0 for failure (out of memory)
      */
     int bbzdarray_clone(bbzheap_t* h,
@@ -121,8 +125,8 @@ extern "C" {
 
     /**
      *  @brief Erases all the elements of the dynamic array.
-     *  @param da The dynamic array.
-     *  @param cap The capacity of the array after clearing. Must be >0.
+     *  @param h A pointer to the heap.
+     *  @param d The dynamic array.
      */
     void bbzdarray_clear(bbzheap_t* h,
                          uint16_t d);
