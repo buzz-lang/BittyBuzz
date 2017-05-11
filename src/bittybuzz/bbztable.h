@@ -13,9 +13,9 @@
  * @return 1 for success, 0 for failure (index not in table)
  */
 int bbztable_get(bbzheap_t* h,
-                 uint16_t t,
-                 uint16_t k,
-                 uint16_t* v);
+                 bbzheap_idx_t t,
+                 bbzheap_idx_t k,
+                 bbzheap_idx_t* v);
 
 /*
  * Add/Edit the value corresponding to the key k in the table t from the heap h.
@@ -28,9 +28,9 @@ int bbztable_get(bbzheap_t* h,
  * @return 1 for success, 0 for failure (out of memory)
  */
 int bbztable_set(bbzheap_t* h,
-                 uint16_t t,
-                 uint16_t k,
-                 uint16_t v);
+                 bbzheap_idx_t t,
+                 bbzheap_idx_t k,
+                 bbzheap_idx_t v);
 
 /*
  * Return the count of valid keys in the table.
@@ -39,6 +39,6 @@ int bbztable_set(bbzheap_t* h,
  * @return The size of the table.
  */
 uint8_t bbztable_size(bbzheap_t* h,
-                      uint16_t t);
+                      bbzheap_idx_t t);
 
 #endif

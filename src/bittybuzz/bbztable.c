@@ -4,9 +4,9 @@
 /****************************************/
 
 int bbztable_get(bbzheap_t* h,
-                 uint16_t t,
-                 uint16_t k,
-                 uint16_t* v) {
+                 bbzheap_idx_t t,
+                 bbzheap_idx_t k,
+                 bbzheap_idx_t* v) {
    /* Get segment index */
    int16_t si = bbzheap_obj_at(h, t)->t.value;
    /* Get segment data */
@@ -34,9 +34,9 @@ int bbztable_get(bbzheap_t* h,
 /****************************************/
 
 int bbztable_set(bbzheap_t* h,
-                 uint16_t t,
-                 uint16_t k,
-                 uint16_t v) {
+                 bbzheap_idx_t t,
+                 bbzheap_idx_t k,
+                 bbzheap_idx_t v) {
    /* Search for the given key, keeping track of first free slot */
    /* Get segment index */
    int16_t si = bbzheap_obj_at(h, t)->t.value;
@@ -145,7 +145,7 @@ int bbztable_set(bbzheap_t* h,
 /****************************************/
 
 uint8_t bbztable_size(bbzheap_t* h,
-                      uint16_t t) {
+                      bbzheap_idx_t t) {
    /* Get segment index */
    int16_t si = bbzheap_obj_at(h, t)->t.value;
    /* Get segment data */

@@ -113,7 +113,7 @@ void bbzheap_gc(bbzheap_t* h,
       /* If it's a table, go through it and mark all associated objects */
       if(bbztype_istable(*bbzheap_obj_at(h, st[i]))) {
          /* Segment index in heap */
-         uint16_t si = bbzheap_obj_at(h, st[i])->t.value;
+         bbzheap_idx_t si = bbzheap_obj_at(h, st[i])->t.value;
          if(bbztype_isdarray(*bbzheap_obj_at(h, st[i]))) {
             /* Actual segment data in heap */
             bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);

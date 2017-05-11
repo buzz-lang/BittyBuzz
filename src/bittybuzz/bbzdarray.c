@@ -14,7 +14,7 @@
 /****************************************/
 
 int bbzdarray_new(bbzheap_t* h,
-                   uint16_t* d) {
+                  bbzheap_idx_t* d) {
    /* Allocation of a new array */
    bbzheap_obj_alloc(h, BBZTYPE_TABLE, d);
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, *d);
@@ -28,7 +28,7 @@ int bbzdarray_new(bbzheap_t* h,
 /****************************************/
 
 void bbzdarray_destroy(bbzheap_t* h,
-                       uint16_t d) {
+                       bbzheap_idx_t d) {
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
@@ -52,18 +52,18 @@ void bbzdarray_destroy(bbzheap_t* h,
 /****************************************/
 
 int bbzdarray_get(bbzheap_t* h,
-                  uint16_t d,
-                  uint16_t k,
-                  uint16_t* v) {
-   if (k >= bbzdarray_size(h, d)) return 0;
+                  bbzheap_idx_t d,
+                  uint16_t idx,
+                  bbzheap_idx_t* v) {
+   if (idx >= bbzdarray_size(h, d)) return 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    while (1) {
-      if (i == k / (2*BBZHEAP_ELEMS_PER_TSEG)) {
-         if (bbzheap_aseg_elem_isvalid(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
-            *v = bbzheap_aseg_elem_get(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)]);
+      if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
+         if (bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
+            *v = bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)]);
             return 1;
          }
          break;
@@ -80,25 +80,25 @@ int bbzdarray_get(bbzheap_t* h,
 /****************************************/
 
 int bbzdarray_set(bbzheap_t* h,
-                  uint16_t d,
-                  uint16_t k,
-                  uint16_t v) {
-   if (k >= bbzdarray_size(h, d)) return 0;
+                  bbzheap_idx_t d,
+                  uint16_t idx,
+                  bbzheap_idx_t v) {
+   if (idx >= bbzdarray_size(h, d)) return 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    while (1) {
-      if (i == k / (2*BBZHEAP_ELEMS_PER_TSEG)) {
-         if (bbzheap_aseg_elem_isvalid(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
+      if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
+         if (bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
             uint16_t o = v;
             if (bbzdarray_iscloned(da)) {
-               obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)])));
+               obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])));
                if (bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) {
                   bbzheap_obj_copy(h, v, o);
                }
             }
-            bbzheap_aseg_elem_set(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
+            bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
             return 1;
          }
          break;
@@ -115,24 +115,24 @@ int bbzdarray_set(bbzheap_t* h,
 /****************************************/
 
 int bbzdarray_pop(bbzheap_t* h,
-                  uint16_t d) {
-   uint16_t k = bbzdarray_size(h, d);
-   if (k == 0) return 0;
-   --k;
+                  bbzheap_idx_t d) {
+   uint16_t idx = bbzdarray_size(h, d);
+   if (idx == 0) return 0;
+   --idx;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    bbzheap_aseg_t* prevsd = NULL;
    while (1) {
-      if (i == k / (2*BBZHEAP_ELEMS_PER_TSEG)) {
-         if (bbzheap_aseg_elem_isvalid(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
+      if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
+         if (bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
             if (bbzdarray_iscloned(da)) {
-               obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)])));
+               obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])));
             }
-            sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)] &= ~MASK_VALID_SEG_ELEM;
+            sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)] &= ~MASK_VALID_SEG_ELEM;
          }
-         if (k%(2*BBZHEAP_ELEMS_PER_TSEG) == 0) {
+         if (idx%(2*BBZHEAP_ELEMS_PER_TSEG) == 0) {
             if (prevsd != NULL) {
                tseg_makeinvalid(*sd);
                bbzheap_aseg_next_set(prevsd, NO_NEXT);
@@ -153,15 +153,15 @@ int bbzdarray_pop(bbzheap_t* h,
 /****************************************/
 
 int bbzdarray_push(bbzheap_t* h,
-                   uint16_t d,
-                   uint16_t v) {
-   uint16_t k = bbzdarray_size(h, d);
+                   bbzheap_idx_t d,
+                   bbzheap_idx_t v) {
+   uint16_t idx = bbzdarray_size(h, d);
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    while (1) {
-      if (i == k / (2*BBZHEAP_ELEMS_PER_TSEG)) {
+      if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
          uint16_t o = v;
          if (bbzdarray_iscloned(da)) {
             if (bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) {
@@ -169,7 +169,7 @@ int bbzdarray_push(bbzheap_t* h,
             }
             else return 0;
          }
-         bbzheap_aseg_elem_set(sd->values[k%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
+         bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
          return 1;
       }
       if (!bbzheap_aseg_hasnext(sd)) {
@@ -188,7 +188,7 @@ int bbzdarray_push(bbzheap_t* h,
 /****************************************/
 
 uint16_t bbzdarray_size(bbzheap_t* h,
-                        uint16_t d) {
+                        bbzheap_idx_t d) {
    uint16_t size = 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t si = da->value;
@@ -211,14 +211,14 @@ uint16_t bbzdarray_size(bbzheap_t* h,
 /****************************************/
 
 int bbzdarray_clone(bbzheap_t* h,
-                    uint16_t d,
-                    uint16_t* newd) {
+                    bbzheap_idx_t d,
+                    bbzheap_idx_t* newd) {
    bbzdarray_new(h, newd);
    /* Set the bit that tells it's cloned */
    bbzdarray_mark_cloned((bbzdarray_t*)bbzheap_obj_at(h, *newd));
-   uint16_t k = bbzdarray_size(h, d);
+   uint16_t idx = bbzdarray_size(h, d);
    uint16_t v;
-   for (int i = 0; i < k; ++i) {
+   for (int i = 0; i < idx; ++i) {
       bbzdarray_get(h, d, i, &v);
       if (!bbzdarray_push(h, *newd, v)) {
          return 0;
@@ -231,7 +231,7 @@ int bbzdarray_clone(bbzheap_t* h,
 /****************************************/
 
 void bbzdarray_clear(bbzheap_t* h,
-                     uint16_t d) {
+                     bbzheap_idx_t d) {
    //TODO Optimize this function
    for (int i = bbzdarray_size(h,d); i > 0; --i) {
       bbzdarray_pop(h, d);
@@ -243,7 +243,7 @@ void bbzdarray_clear(bbzheap_t* h,
 /****************************************/
 
 void bbzdarray_foreach(bbzheap_t* h,
-                       uint16_t d,
+                       bbzheap_idx_t d,
                        bbzdarray_elem_funp fun,
                        void* params) {
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
@@ -266,9 +266,9 @@ void bbzdarray_foreach(bbzheap_t* h,
 /****************************************/
 
 uint16_t bbzdarray_find(bbzheap_t* h,
-                        uint16_t d,
+                        bbzheap_idx_t d,
                         bbzdarray_elem_cmpp cmp,
-                        uint16_t data) {
+                        bbzheap_idx_t data) {
    uint16_t pos = 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t si = da->value;

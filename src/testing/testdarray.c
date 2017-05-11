@@ -6,7 +6,7 @@ static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "tabl
 
 #define obj_isvalid(x) ((x).o.mdata & 0x10)
 
-void bbzdarray_print(bbzheap_t* h, uint16_t d) {
+void bbzdarray_print(bbzheap_t* h, bbzheap_idx_t d) {
    int size = bbzdarray_size(h, d);
    printf("Size: %d\n", size);
    printf("Elements: {");
