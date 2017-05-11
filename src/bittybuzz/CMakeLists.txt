@@ -3,7 +3,8 @@ set(BBZ_HEADERS
   bbzheap.h
   bbztable.h
   bbztype.h
-  bbzdarray.h)
+  bbzdarray.h
+  bbzvm.h)
 
 set(BBZ_SOURCES
   ${BBZ_HEADERS}
@@ -11,7 +12,8 @@ set(BBZ_SOURCES
   bbzheap.c
   bbztable.c
   bbztype.c
-  bbzdarray.c)
+  bbzdarray.c
+  bbzvm.c)
 
 if(NOT CMAKE_CROSSCOMPILING)
   add_library(bittybuzz STATIC ${BBZ_SOURCES})

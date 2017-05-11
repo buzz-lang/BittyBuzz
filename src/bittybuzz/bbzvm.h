@@ -1,9 +1,23 @@
 #ifndef BBZVM_H
 #define BBZVM_H
 
+#include <inttypes.h>
+
+#include "bbzheap.h"
+#include "bbzdarray.h"
+#include "bbztable.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+
+
+    // ======================================
+    // =       DATA TYPE DEFNINITIONS       =
+    // ======================================
+
+
 
     /**
      * @brief VM states
@@ -88,14 +102,24 @@ extern "C" {
     } bbzvm_instr;
 
     /**
+     * @brief Type for the pointer to a function which fetches bytecode data.
+     * @warning The function provider should take endianness
+     * into account if copying byte-by-byte.
+     * @param[in] offset Bytecode offset for the data to fetch.
+     * @param[in] size Size of the data to set.
+     * @return A pointer to the data to the data.
+     */
+    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
+
+    /**
      * @brief The BittyBuzz Virtual Machine.
      * 
      * Responsibilities:
      *      1) Load and run bytecode.
      */
-    struct bbzvm_s {
+    typedef struct __attribute__((packed)) {
         /** @brief Bytecode content */
-        const uint8_t* bcode;
+        bbzvm_bcode_fetch_fun bcode_fetch_fun;
         /** @brief Size of the loaded bytecode */
         uint16_t bcode_size;
         /** @brief Program counter */
@@ -114,6 +138,8 @@ extern "C" {
         // TODO
         /** @brief Heap content */
         bbzheap_t heap;
+        /** @brief Singleton bbznil_t */
+        bbzheap_idx_t nil;
         /** @brief Registered functions */
         bbzheap_idx_t flist;
         /* List of known swarms */
@@ -136,8 +162,8 @@ extern "C" {
         bbzvm_state state;
         /** @brief Current VM error */
         bbzvm_error error;
-        /** @brief Current VM error message */
-        char* errormsg; // TODO Remove this ?
+        /* Current VM error message */
+        // TODO
         /** @brief Robot id */
         uint16_t robot;
         /* Random number generator state */
@@ -146,12 +172,22 @@ extern "C" {
         // TODO
     } bbzvm_t;
 
+    typedef int (*bbzvm_funp)(bbzvm_t* vm);
+
+
+
+    // ======================================
+    // =  GENERAL VM FUNCTION DEFNINITIONS  =
+    // ======================================
+
+
+
     /**
      * @brief Sets up a VM.
      * @param robot The robot id.
      * @return The VM.
      */
-    bbzvm_t bbzvm_construct(uint16_t robot);
+    void bbzvm_construct(bbzvm_t* vm, uint16_t robot);
 
     /**
      * @brief Destroys the VM.
@@ -168,14 +204,16 @@ extern "C" {
     void bbzvm_seterror(bbzvm_t* vm, bbzvm_error errcode);
 
     /**
-     * @brief Sets the bytecode in the VM.
+     * @brief Sets the bytecode function in the VM.
      * @warning The passed buffer should not be deleted until the VM is done with it.
-     * @param vm The VM.
-     * @param bcode_size The size (in bytes) of the bytecode.
-     * @param bcode The bytecode buffer.
+     * @warning The function provider should take endianness
+     * into account if copying byte-by-byte.
+     * @param[in,out] vm The VM.
+     * @param[in] bcode_fetch_fun The function to call to read bytecode data.
+     * @param[in] bcode_size The size (in bytes) of the bytecode.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    int bbzvm_set_bcode(bbzvm_t* vm, const uint8_t* bcode, uint32_t bcode_size);
+    int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t bcode_size);
 
     /**
      * @brief Processes the input message queue.
@@ -287,7 +325,7 @@ extern "C" {
      * @param v The variable.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_push(bbzvm_t* vm, bbzobj_t v);
+    bbzvm_state bbzvm_push(bbzvm_t* vm, bbzheap_idx_t v);
 
     /**
      * @brief Pushes a userdata on the stack.
@@ -424,9 +462,22 @@ extern "C" {
      */
     bbzvm_state bbzvm_ret1(bbzvm_t* vm);
 
+
+
     // ======================================
     // =      MISC FUNCTIONS AND MACROS     =
     // ======================================
+
+    /**
+     * Returns the size of the stack.
+     * The most recently pushed element in the stack is at size - 1.
+     * @param vm The VM.
+     * @return The size of the VM's current stack.
+     */
+     __attribute__((always_inline)) inline
+    uint16_t bbzvm_stack_size(bbzvm_t* vm) {
+        return bbzdarray_size(&vm->heap, vm->stack);
+    }
 
     /**
      * @brief Returns the heap index of the element at given stack position,
@@ -436,22 +487,11 @@ extern "C" {
      * @param[in] idx The stack index.
      * @return The heap index of the element at given stack index.
      */
-    __attribute__((always_inline))
+    __attribute__((always_inline)) inline
     bbzheap_idx_t bbzvm_stack_at(bbzvm_t* vm, uint16_t idx) {
         bbzheap_idx_t ret = 0x7FFF;
         bbzdarray_get(&vm->heap, vm->stack, bbzvm_stack_size(vm) - idx, &ret);
         return ret;
-    }
-
-    /**
-     * Returns the size of the stack.
-     * The most recently pushed element in the stack is at size - 1.
-     * @param vm The VM.
-     * @return The size of the VM's current stack.
-     */
-     __attribute__((always_inline))
-    uint16_t bbzvm_stack_size(bbzvm_t* vm) {
-        return bbzdarray_size(vm->stack);
     }
 
 
@@ -465,7 +505,7 @@ extern "C" {
      */
     #define bbzvm_stack_assert(vm, idx)                                 \
         if (bbzvm_stack_size(vm) - (idx) <= 0) {                        \
-            bbzvm_seterror(m, BBZVM_ERROR_STACK);                       \
+            bbzvm_seterror(vm, BBZVM_ERROR_STACK);                      \
             return (vm)->state;                                         \
         }
     
@@ -474,15 +514,30 @@ extern "C" {
      * If the type is wrong, it updates the VM state and exits the current function.
      * This function is designed to be used within int-returning functions such as
      * BuzzVM hook functions or bbzvm_step().
-     * @param vm The VM data.
-     * @param idx The stack index, where 0 is the stack top and >0 goes down the stack.
-     * @param tpe The type to check
+     * @param[in,out] vm The VM data.
+     * @param[in] idx The stack index, where 0 is the stack top and >0 goes down the stack.
+     * @param[in] tpe The type to check
      */
     #define bbzvm_type_assert(vm, idx, tpe)                             \
-        if(bbzvm_stack_at(vm, idx)->o.type != tpe) {                    \
-            bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                       \
-            return (vm)->state;                                         \
+        {                                                               \
+            bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
+                                         bbzvm_stack_at(vm, idx));      \
+            if(bbztype(*o) != tpe) {                                    \
+                bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
+                return BBZVM_ERROR_TYPE;                                \
+            }                                                           \
         }
+    
+    /*
+     * Terminates the current Buzz script.
+     * This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * @param[in,out] vm The VM data.
+     */
+    #define bbzvm_done(vm)                                              \
+        (vm)->state = BBZVM_STATE_DONE;                                 \
+        return BBZVM_STATE_DONE;
+
 
 #ifdef __cplusplus
 }

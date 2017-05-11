@@ -170,7 +170,7 @@ extern "C" {
  *  @param v A buffer for the pointer to the value. 
  *  @return The last element in the dynamic array.
  */
-#define buzzdarray_last(h, d, v) buzzdarray_get(h, d, buzzdarray_size(h, d)-1, v)
+#define bbzdarray_last(h, d, v) bbzdarray_get(h, d, bbzdarray_size(h, d)-1, v)
 
 /**
  *  @brief Returns <tt>true</tt> if the dynamic array is empty.
@@ -178,6 +178,6 @@ extern "C" {
  *  @param d The dynamic array.
  *  @return <tt>true</tt> if the dynamic array is empty.
  */
-#define buzzdarray_isempty(h, d) (buzzdarray_size(h, d) == 0)
+#define bbzdarray_isempty(h, d) (bbzdarray_size(h, d) == 0)
 
 #endif
