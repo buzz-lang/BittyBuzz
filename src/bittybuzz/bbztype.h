@@ -13,6 +13,7 @@
 #define BBZTYPE_TABLE    4
 #define BBZTYPE_CLOSURE  5
 #define BBZTYPE_USERDATA 6
+#define BBZTYPE_NCLOSURE 7
 
 /*
  * Nil type
@@ -52,6 +53,15 @@ typedef struct __attribute__((packed)) {
    uint8_t mdata;
    uint16_t value; /* The index of the first segment in the heap */
 } bbztable_t;
+
+/*
+ * Dynamic Array
+ */
+typedef struct __attribute__((packed)) {
+   uint8_t mdata;  /* 3rd bit: 1 if is dynamic array,
+                      2nd bit: 1 if elements need invalidation on array destroy */
+   uint16_t value; /* The index of the first segment in the heap */
+} bbzdarray_t;
 
 /*
  * Closure
@@ -143,6 +153,12 @@ int bbztype_cmp(const bbzobj_t* a,
  * @param obj The object.
  */
 #define bbztype_istable(obj) (bbztype(obj) == BBZTYPE_TABLE)
+
+/*
+ * Returns 1 if an object is dynamic array, 0 otherwise.
+ * @param obj The object.
+ */
+#define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).o.mdata & 0x04))
 
 /*
  * Returns 1 if an object is closure, 0 otherwise.

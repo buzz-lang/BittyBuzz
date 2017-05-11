@@ -113,19 +113,35 @@ void bbzheap_gc(bbzheap_t* h,
       /* If it's a table, go through it and mark all associated objects */
       if(bbztype_istable(*bbzheap_obj_at(h, st[i]))) {
          /* Segment index in heap */
-         bbzheap_idx_t si = bbzheap_obj_at(h, st[i])->t.value;
-         /* Actual segment data in heap */
-         bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
-         /* Go through the segments */
-         while(1) {
-            for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
-               if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
-                  gc_mark(*bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->keys[j])));
-                  gc_mark(*bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->values[j])));
-               }
-            if(!bbzheap_tseg_hasnext(sd)) break;
-            si = bbzheap_tseg_next_get(sd);
-            sd = bbzheap_tseg_at(h, si);
+         uint16_t si = bbzheap_obj_at(h, st[i])->t.value;
+         if(bbztype_isdarray(*bbzheap_obj_at(h, st[i]))) {
+            /* Actual segment data in heap */
+            bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
+            /* Go through the segments */
+            while(1) {
+               for(int j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
+                  if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
+                     gc_mark(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[j])));
+                  }
+               if(!bbzheap_aseg_hasnext(sd)) break;
+               si = bbzheap_aseg_next_get(sd);
+               sd = bbzheap_aseg_at(h, si);
+            }
+         }
+         else {
+            /* Actual segment data in heap */
+            bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
+            /* Go through the segments */
+            while(1) {
+               for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
+                  if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
+                     gc_mark(*bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->keys[j])));
+                     gc_mark(*bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->values[j])));
+                  }
+               if(!bbzheap_tseg_hasnext(sd)) break;
+               si = bbzheap_tseg_next_get(sd);
+               sd = bbzheap_tseg_at(h, si);
+            }
          }
       }
    }
