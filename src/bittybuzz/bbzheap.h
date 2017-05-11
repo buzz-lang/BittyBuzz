@@ -48,6 +48,13 @@ typedef struct __attribute__((packed)) {
    uint8_t data[BBZHEAP_SIZE]; /* data buffer */
 } bbzheap_t;
 
+/**
+ * @brief Type for a heap index.
+ * This can be considered to be a custom pointer
+ * to a heap-allocated element.
+ */
+typedef uint16_t bbzheap_idx_t;
+
 /*
  * Clears the heap.
  * Sets the entire heap to zero.
@@ -66,7 +73,7 @@ void bbzheap_clear(bbzheap_t* h);
  */
 int bbzheap_obj_alloc(bbzheap_t* h,
                       int t,
-                      uint16_t* o);
+                      bbzheap_idx_t* o);
 
 /*
  * Returns a pointer located at position i within the heap.
@@ -91,7 +98,7 @@ int bbzheap_obj_alloc(bbzheap_t* h,
  * @return 1 for success, 0 for failure (out of memory)
  */
 int bbzheap_tseg_alloc(bbzheap_t* h,
-                       uint16_t* s);
+                       bbzheap_idx_t* s);
 
 #define NO_NEXT 0x7FFF
 #define MASK_NEXT 0x7FFF
@@ -161,7 +168,7 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
  * @param sz The stack size (number of elements in the stack).
  */
 void bbzheap_gc(bbzheap_t* h,
-                uint16_t* st,
+                bbzheap_idx_t* st,
                 int sz);
 
 #endif

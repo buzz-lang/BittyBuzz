@@ -28,7 +28,7 @@ void bbzheap_clear(bbzheap_t* h) {
 
 int bbzheap_obj_alloc(bbzheap_t* h,
                       int t,
-                      uint16_t* o) {
+                      bbzheap_idx_t* o) {
    /* Look for empty slot */
    for(int i = (h->rtobj - h->data) / sizeof(bbzobj_t) - 1;
        i >= 0;
@@ -61,7 +61,7 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 /****************************************/
 
 int bbzheap_tseg_alloc(bbzheap_t* h,
-                       uint16_t* s) {
+                       bbzheap_idx_t* s) {
    /* Look for empty slot */
    for(int i = (h->data + BBZHEAP_SIZE - h->ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;
@@ -101,7 +101,7 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 /****************************************/
 
 void bbzheap_gc(bbzheap_t* h,
-                uint16_t* st,
+                bbzheap_idx_t* st,
                 int sz) {
    /* Set all gc bits to zero */
    for(int i = (h->rtobj - h->data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
@@ -113,7 +113,7 @@ void bbzheap_gc(bbzheap_t* h,
       /* If it's a table, go through it and mark all associated objects */
       if(bbztype_istable(*bbzheap_obj_at(h, st[i]))) {
          /* Segment index in heap */
-         uint16_t si = bbzheap_obj_at(h, st[i])->t.value;
+         bbzheap_idx_t si = bbzheap_obj_at(h, st[i])->t.value;
          /* Actual segment data in heap */
          bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
          /* Go through the segments */
@@ -137,7 +137,7 @@ void bbzheap_gc(bbzheap_t* h,
          /* If it's a table, invalidate its segments too */
          if(bbztype_istable(*bbzheap_obj_at(h, i))) {
             /* Segment index in heap */
-            uint16_t si = bbzheap_obj_at(h, i)->t.value;
+            bbzheap_idx_t si = bbzheap_obj_at(h, i)->t.value;
             /* Actual segment data in heap */
             bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
             /* Go through the segments and invalidate them all */
