@@ -2,6 +2,15 @@ project(bittybuzz)
 cmake_minimum_required(VERSION 2.8.12)
 
 #
+# Global options
+#
+
+option(ENABLE_AUTOMATED_TESTING
+  "Enables the use of the Boost Unit Test Framework.
+   Only considered when compiling for PC."
+  OFF)
+
+#
 # Add these directories to the paths
 #
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})

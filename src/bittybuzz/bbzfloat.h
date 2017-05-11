@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /*
  * 16-bit floating-point type
  * https://en.wikipedia.org/wiki/Half-precision_floating-point_format
@@ -142,5 +146,9 @@ int bbzfloat_isinf(bbzfloat x);
  * @return The result.
  */
 int bbzfloat_isnan(bbzfloat x);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

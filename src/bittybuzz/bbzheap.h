@@ -29,6 +29,10 @@
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/config.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /*
  * A table segment.
  */
@@ -252,5 +256,9 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 void bbzheap_gc(bbzheap_t* h,
                 bbzheap_idx_t* st,
                 int sz);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

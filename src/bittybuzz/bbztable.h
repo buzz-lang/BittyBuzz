@@ -3,6 +3,11 @@
 
 #include <bittybuzz/bbzheap.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+
 /*
  * Search the value associated with the key k in the table t from the heap h.
  * Set as output the value of v, the found value corresponding to the key k.
@@ -40,5 +45,9 @@ int bbztable_set(bbzheap_t* h,
  */
 uint8_t bbztable_size(bbzheap_t* h,
                       bbzheap_idx_t t);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

@@ -5,6 +5,10 @@
 
 typedef bbzringbuf_t bbzobjringbuf_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /*
  * Erases all the elements in the ring buffer.
  * @param rb The ring buffer.
@@ -111,5 +115,9 @@ typedef bbzringbuf_t bbzobjringbuf_t;
  * @param val The value.
  */
 #define bbzobjringbuf_append_userdata(rb, val)
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

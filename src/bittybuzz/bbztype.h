@@ -3,6 +3,10 @@
 
 #include <bittybuzz/bbzfloat.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /*
  * Object types in KiloBuzz
  */
@@ -177,5 +181,9 @@ int bbztype_cmp(const bbzobj_t* a,
  * @param obj The object.
  */
 #define bbzclosure_isnative(obj) ((obj).c.mdata & 0x10)
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

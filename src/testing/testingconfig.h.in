@@ -1,0 +1,60 @@
+#ifndef TESTING_CONFIG_H
+#define TESTING_CONFIG_H
+
+/*
+ * Whether we are using automated tests.
+ */
+#cmakedefine BBZ_USE_AUTOMATED_TESTS
+
+
+// --------------------------------------------------
+// Configure depending on whether tests are automated
+// --------------------------------------------------
+
+#ifdef BBZ_USE_AUTOMATED_TESTS
+
+
+// Automated tests.
+// Required in all test files:
+//
+// #include <testing/testconfig.h>
+// #ifdef BBZ_USE_AUTOMATED_TESTS
+// #define BOOST_TEST_DYN_LINK // Use Boost as a dynamic library
+// #define BOOST_TEST_MODULE <a_value>
+// #include <boost/test/unit_test.hpp>
+// #endif // BBZ_USE_AUTOMATED_TESTS
+
+#define TEST(name) BOOST_AUTO_TEST_CASE(name)
+#define ASSERT(expr) BOOST_CHECK(expr)
+#define ASSERT_EQUAL(lhs, rhs) BOOST_CHECK_EQUAL(lhs, rhs)
+#define TEST_END()
+
+
+#else // BBZ_USE_AUTOMATED_TESTS
+
+
+static uint16_t error_count = 0;
+#define TEST(name) int main()
+#define ASSERT(expr)                                                    \
+    {                                                                   \
+        uint8_t eval = expr;                                            \
+        if (!eval) {                                                    \
+            printf("check " #expr " failed");                           \
+            ++error_count;                                              \
+        }                                                               \
+    }
+#define ASSERT_EQUAL(lhs, rhs) ASSERT(lhs == rhs)
+#define TEST_END()                                                      \
+    if (error_count > 0) {                                              \
+        printf("\n\n*** %" PRIu16 " failures detected in test file \""  \
+               __FILE__ "\"\n", error_count);                           \
+    }                                                                   \
+    else {                                                              \
+        printf("\n\n*** No errors detected\n");                         \
+    }
+
+
+#endif // BBZ_USE_AUTOMATED_TESTS
+
+
+#endif // !TESTING_CONFIG_H

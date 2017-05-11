@@ -3,6 +3,10 @@
 
 #include <bittybuzz/bbztype.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 typedef struct {
    uint8_t* buffer;    // pointer to linear buffer
    uint8_t  elsize;    // size of individual element
@@ -74,5 +78,9 @@ typedef struct {
  * @return The internal index of the newly created slot.
  */
 uint8_t bbzringbuf_makeslot(bbzringbuf_t* rb);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif

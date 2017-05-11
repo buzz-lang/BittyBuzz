@@ -1,6 +1,10 @@
 #ifndef BBZVSTIG
 #define BBZVSTIG
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 typedef struct {
    bbzobj_t key;
    bbzobj_t value;
@@ -35,5 +39,9 @@ typedef struct {
  * @return The size of the virtual stigmergy structure.
  */
 #define bbzvstig_size(vs) ((vs).size)
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif
