@@ -14,8 +14,6 @@ int bbzdarray_new(bbzheap_t* h,
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, *d);
    /* Set the bit that tells it's a dynamic array */
    da->mdata |= 0x04;
-   /* Allocate a new array segment */
-   bbzheap_aseg_alloc(h, &(da->value));
 }
 
 /****************************************/
@@ -158,10 +156,8 @@ int bbzdarray_push(bbzheap_t* h,
       if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
          uint16_t o = v;
          if (bbzdarray_iscloned(da)) {
-            if (bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) {
-               bbzheap_obj_copy(h, v, o);
-            }
-            else return 0;
+            if(!bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) return 0;
+            bbzheap_obj_copy(h, v, o);
          }
          bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
          return 1;
@@ -214,9 +210,7 @@ int bbzdarray_clone(bbzheap_t* h,
    uint16_t v;
    for (int i = 0; i < idx; ++i) {
       bbzdarray_get(h, d, i, &v);
-      if (!bbzdarray_push(h, *newd, v)) {
-         return 0;
-      }
+      if (!bbzdarray_push(h, *newd, v)) return 0;
    }
    return 1;
 }

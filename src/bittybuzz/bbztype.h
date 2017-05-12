@@ -74,7 +74,8 @@ typedef struct __attribute__((packed)) {
    uint8_t mdata; /* contains 'native' flag as 5th topmost bit */
    struct {
       int8_t ref; /* jump address or function id */
-      // TODO activation record
+      uint8_t actrec; /* position in the heap of the activation record array.
+                         A value of 0xFF means it uses the default activation record of the VM */
    } value;
 } bbzclosure_t;
 
@@ -168,7 +169,7 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if an object is closure, 0 otherwise.
  * @param obj The object.
  */
-#define bbztype_isclosure(obj) (bbztype(obj) == BBZTYPE_CLOSURE)
+#define bbztype_isclosure(obj) (bbztype(obj) & BBZTYPE_CLOSURE == BBZTYPE_CLOSURE)
 
 /*
  * Returns 1 if an object is userdata, 0 otherwise.
@@ -180,7 +181,7 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if a closure is native, 0 otherwise.
  * @param obj The object.
  */
-#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x10)
+#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)
 
 #ifdef __cplusplus
 }

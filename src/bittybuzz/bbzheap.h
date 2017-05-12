@@ -294,3 +294,5 @@ void bbzheap_gc(bbzheap_t* h,
 #endif // __cplusplus
 
 #endif
+
+#include <bittybuzz/bbzdarray.h>

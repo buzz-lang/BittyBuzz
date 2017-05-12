@@ -8,6 +8,8 @@
 #define gc_mark(x)    (x).o.mdata |= 0x08
 #define gc_unmark(x)  (x).o.mdata &= 0xF7
 
+#define RESERVED_ACTREC_MAX 0xFE
+
 /****************************************/
 /****************************************/
 
@@ -48,6 +50,15 @@ int bbzheap_obj_alloc(bbzheap_t* h,
    bbztype_cast(*((bbzobj_t*)h->rtobj), t);
    /* Make room */
    h->rtobj += sizeof(bbzobj_t);
+   /* Take care of special initialisations */
+   if (t == BBZTYPE_TABLE) {
+      bbztable_t* x = &bbzheap_obj_at(h, *o)->t;
+      if(!bbzheap_tseg_alloc(h, &(x->value))) return 0;
+   }
+   else if (bbztype_isclosure(*bbzheap_obj_at(h, *o))) {
+      bbzclosure_t* x = (bbzclosure_t*)bbzheap_obj_at(h, *o);
+      x->value.actrec = 0xFF; // Default activation record
+   }
    return 1;
 }
 
