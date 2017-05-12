@@ -93,11 +93,11 @@ static uint16_t error_count = 0;
     if (error_count > 0) {                                              \
         fprintf(stderr, "\n\n*** %" PRIu16 " failures detected in test file \""  \
                __FILE__ "\"\n", error_count);                           \
-        return 0;                                                       \
+        return 1;                                                       \
     }                                                                   \
     else {                                                              \
         fprintf(stderr, "\n\n*** No errors detected\n");                \
-        return 1;                                                       \
+        return 0;                                                       \
     }
 
 

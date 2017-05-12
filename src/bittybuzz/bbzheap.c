@@ -4,12 +4,6 @@
 /****************************************/
 /****************************************/
 
-#define obj_makevalid(x)   (x).o.mdata |= 0x10
-#define obj_makeinvalid(x) (x).o.mdata &= 0xEF
-
-#define tseg_makevalid(s)   (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
-#define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
-
 #define gc_hasmark(x) ((x).o.mdata & 0x08)
 #define gc_mark(x)    (x).o.mdata |= 0x08
 #define gc_unmark(x)  (x).o.mdata &= 0xF7

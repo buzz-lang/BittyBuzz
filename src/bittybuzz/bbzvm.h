@@ -106,7 +106,8 @@ extern "C" {
      * @warning The function provider should take endianness
      * into account if copying byte-by-byte.
      * @param[in] offset Bytecode offset for the data to fetch.
-     * @param[in] size Size of the data to set.
+     * @param[in] size Size of the data to set. The VM will at most
+     * try to read 4 bytes (uint32_t).
      * @return A pointer to the data to the data.
      */
     typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
@@ -118,7 +119,7 @@ extern "C" {
      *      1) Load and run bytecode.
      */
     typedef struct __attribute__((packed)) {
-        /** @brief Bytecode content */
+        /** @brief Bytecode fetcher function */
         bbzvm_bcode_fetch_fun bcode_fetch_fun;
         /** @brief Size of the loaded bytecode */
         uint16_t bcode_size;
@@ -469,6 +470,17 @@ extern "C" {
     // ======================================
 
     /**
+     * @brief Fetches the object at the given index in the VM's heap.
+     * @param[in] vm The VM.
+     * @param[in] idx Index of the object on the VM's heap.
+     * @return A pointer to the fetched object.
+     */
+    __attribute__((always_inline)) inline
+    bbzobj_t* bbzvm_obj_at(const bbzvm_t* vm, bbzheap_idx_t idx) {
+        return bbzheap_obj_at(&vm->heap, idx);
+    }
+
+    /**
      * Returns the size of the stack.
      * The most recently pushed element in the stack is at size - 1.
      * @param vm The VM.
@@ -496,15 +508,15 @@ extern "C" {
 
 
     /**
-     * Checks whether the given stack idx is valid.
-     * If the idx is not valid, it updates the VM state.
+     * Checks whether the given stack's size is >= to the passed size.
+     * If the size is not valid, it updates the VM state.
      * This macro is designed to be used within int-returning functions such as
      * BuzzVM hook functions or bbzvm_step().
      * @param vm The VM.
-     * @param idx The stack index, where 0 is the stack top and >0 goes down the stack.
+     * @param size The stack index, where 0 is the stack top and >0 goes down the stack.
      */
-    #define bbzvm_stack_assert(vm, idx)                                 \
-        if (bbzvm_stack_size(vm) - (idx) <= 0) {                        \
+    #define bbzvm_stack_assert(vm, size)                                 \
+        if (bbzvm_stack_size(vm) < (size)) {                        \
             bbzvm_seterror(vm, BBZVM_ERROR_STACK);                      \
             return (vm)->state;                                         \
         }
@@ -524,7 +536,7 @@ extern "C" {
                                          bbzvm_stack_at(vm, idx));      \
             if(bbztype(*o) != tpe) {                                    \
                 bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
-                return BBZVM_ERROR_TYPE;                                \
+                return BBZVM_STATE_ERROR;                               \
             }                                                           \
         }
     

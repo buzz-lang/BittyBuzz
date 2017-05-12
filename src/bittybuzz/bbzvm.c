@@ -35,6 +35,8 @@ void bbzvm_construct(bbzvm_t* vm, uint16_t robot) {
     vm->bcode_fetch_fun = NULL;
     vm->bcode_size = 0;
     vm->pc = 0;
+    vm->state = BBZVM_STATE_NOCODE;
+    vm->error = BBZVM_ERROR_NONE;
 
     // Setup the heap
     bbzheap_clear(&vm->heap);
@@ -101,7 +103,7 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
 /****************************************/
 /****************************************/
 
-#define assert_pc(IDX) if((IDX) < 0 || (IDX) >= vm->bcode_size) { bbzvm_seterror(vm, BBZVM_ERROR_PC); return BBZVM_ERROR_PC; }
+#define assert_pc(IDX) if((IDX) < 0 || (IDX) >= vm->bcode_size) { bbzvm_seterror(vm, BBZVM_ERROR_PC); return BBZVM_STATE_ERROR; }
 
 #define inc_pc() ++vm->pc; assert_pc(vm->pc);
 
@@ -113,7 +115,18 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
  */
 __attribute__((always_inline)) inline
 void bbzvm_gc(bbzvm_t* vm) {
+    // TODO Take some of these element out of the heap.
+    bbzvm_push(vm, vm->stack);
+    bbzvm_push(vm, vm->stacks);
+    bbzvm_push(vm, vm->lsymts);
+    bbzvm_push(vm, vm->gsyms);
+    bbzvm_push(vm, vm->nil);
+    bbzvm_push(vm, vm->flist);
+    // FIXME Make stack a static array to pass it to the garbage-collector
     bbzheap_gc(&vm->heap, &vm->stack, bbzvm_stack_size(vm));
+    for (int i = 6; i > 0; --i) {
+        bbzvm_pop(vm);
+    }
 }
 
 /**
@@ -283,7 +296,8 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
         case BBZVM_INSTR_PUSHI: {
             inc_pc();
             get_arg(int32_t);
-            if(bbzvm_pushi(vm, arg) != BBZVM_STATE_READY) return vm->state;
+            uint16_t arg16 = arg;
+            if(bbzvm_pushi(vm, arg16) != BBZVM_STATE_READY) return vm->state;
             break;
         }
         case BBZVM_INSTR_PUSHS: {
@@ -333,7 +347,7 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
             inc_pc();
             get_arg(uint32_t);
             bbzvm_stack_assert(vm, 1);
-            bbzobj_t* o = bbzheap_obj_at(&vm->heap, bbzvm_stack_at(vm, 1));
+            bbzobj_t* o = bbzheap_obj_at(&vm->heap, bbzvm_stack_at(vm, 0));
             if(bbztype_isnil(*o) ||
               (bbztype_isint(*o) && o->i.value == 0)) {
                 vm->pc = arg;
@@ -346,7 +360,7 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
             inc_pc();
             get_arg(uint32_t);
             bbzvm_stack_assert(vm, 1);
-            bbzobj_t* o = bbzheap_obj_at(&vm->heap, bbzvm_stack_at(vm, 1));
+            bbzobj_t* o = bbzheap_obj_at(&vm->heap, bbzvm_stack_at(vm, 0));
             if(!bbztype_isnil(*o) &&
               (!bbztype_isint(*o) || o->i.value != 0)) {
                 vm->pc = arg;
@@ -359,12 +373,14 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
             bbzvm_seterror(vm, BBZVM_ERROR_INSTR);
             break;
     }
+    return vm->state;
 }
 
 bbzvm_state bbzvm_step(bbzvm_t* vm) {
     if(vm->state == BBZVM_STATE_READY) {
         bbzvm_gc(vm);
-        return bbzvm_exec_instr(vm);
+        bbzvm_state ret = bbzvm_exec_instr(vm);
+        return ret;
     }
     return vm->state;
 }
@@ -436,8 +452,8 @@ bbzvm_state bbzvm_pop(bbzvm_t* vm) {
 
 bbzvm_state bbzvm_dup(bbzvm_t* vm) {
     if(!bbzdarray_isempty(&vm->heap, vm->stack)) {
-        bbzheap_idx_t idx = bbzvm_stack_at(vm, 1);
-        bbzdarray_push(&vm->heap, vm->stack, idx);
+        bbzheap_idx_t idx = bbzvm_stack_at(vm, 0);
+        bbzvm_push(vm, idx);
     }
     else {
         bbzvm_seterror(vm, BBZVM_ERROR_STACK);
@@ -525,9 +541,9 @@ bbzvm_state bbzvm_tput(bbzvm_t* vm) {
     // Get value, key and table, and pop them.
     bbzvm_stack_assert(vm, 3);
     bbzvm_type_assert(vm, 3, BBZTYPE_TABLE);
-    bbzheap_idx_t v = bbzvm_stack_at(vm, 1);
-    bbzheap_idx_t k = bbzvm_stack_at(vm, 2);
-    bbzheap_idx_t t = bbzvm_stack_at(vm, 3);
+    bbzheap_idx_t v = bbzvm_stack_at(vm, 0);
+    bbzheap_idx_t k = bbzvm_stack_at(vm, 1);
+    bbzheap_idx_t t = bbzvm_stack_at(vm, 2);
     bbzvm_pop(vm);
     bbzvm_pop(vm);
     bbzvm_pop(vm);
@@ -551,8 +567,8 @@ bbzvm_state bbzvm_tget(bbzvm_t* vm) {
     // Get & pop the arguments
     bbzvm_stack_assert(vm, 2);
     bbzvm_type_assert(vm, 2, BBZTYPE_TABLE);
-    bbzheap_idx_t k = bbzvm_stack_at(vm, 1);
-    bbzheap_idx_t t = bbzvm_stack_at(vm, 2);
+    bbzheap_idx_t k = bbzvm_stack_at(vm, 0);
+    bbzheap_idx_t t = bbzvm_stack_at(vm, 1);
     bbzvm_pop(vm);
     bbzvm_pop(vm);
 
@@ -575,7 +591,7 @@ bbzvm_state bbzvm_gload(bbzvm_t* vm) {
     // Get and pop the string
     bbzvm_stack_assert(vm, 1);
     bbzvm_type_assert(vm, 1, BBZTYPE_STRING);
-    bbzheap_idx_t str = bbzvm_stack_at(vm, 1);
+    bbzheap_idx_t str = bbzvm_stack_at(vm, 0);
     bbzvm_pop(vm);
 
     // Get and push the associated value
@@ -596,8 +612,8 @@ bbzvm_state bbzvm_gstore(bbzvm_t* vm) {
     // Get and pop the arguments    
     bbzvm_stack_assert((vm), 2);
     bbzvm_type_assert((vm), 2, BBZTYPE_STRING);
-    bbzheap_idx_t str = bbzvm_stack_at((vm), 2);
-    bbzheap_idx_t o = bbzvm_stack_at((vm), 1);
+    bbzheap_idx_t str = bbzvm_stack_at((vm), 1);
+    bbzheap_idx_t o = bbzvm_stack_at((vm), 0);
     bbzvm_pop(vm);
     bbzvm_pop(vm);
 

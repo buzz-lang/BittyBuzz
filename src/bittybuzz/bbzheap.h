@@ -257,6 +257,38 @@ void bbzheap_gc(bbzheap_t* h,
                 bbzheap_idx_t* st,
                 int sz);
 
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ * 
+ * Marks an object as currently in use, i.e., "allocated".
+ * @pararm[in,out] obj The object to mark.
+ */
+#define obj_makevalid(obj)   (obj).o.mdata |= 0x10
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ * 
+ * Marks an object as no longer in use, i.e., "not allocated".
+ * @pararm[in,out] obj The object to mark.
+ */
+#define obj_makeinvalid(obj) (obj).o.mdata &= 0xEF
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ * 
+ * Marks a segment as currently in use, i.e., "allocated".
+ * @pararm[in,out] obj The object to mark.
+ */
+#define tseg_makevalid(s) (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ * 
+ * Marks a segment as no longer in use, i.e., "not allocated".
+ * @pararm[in,out] obj The object to mark.
+ */
+#define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
