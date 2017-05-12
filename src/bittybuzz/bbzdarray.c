@@ -10,10 +10,11 @@
 int bbzdarray_new(bbzheap_t* h,
                   bbzheap_idx_t* d) {
    /* Allocation of a new array */
-   bbzheap_obj_alloc(h, BBZTYPE_TABLE, d);
+   if (!bbzheap_obj_alloc(h, BBZTYPE_TABLE, d)) return 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, *d);
    /* Set the bit that tells it's a dynamic array */
    da->mdata |= 0x04;
+   return 1;
 }
 
 /****************************************/

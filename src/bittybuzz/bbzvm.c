@@ -43,6 +43,8 @@ void bbzvm_construct(bbzvm_t* vm, uint16_t robot) {
 
     // Allocate singleton objects
     bbzheap_obj_alloc(&vm->heap, BBZTYPE_NIL, &vm->nil);
+    bbzdarray_new(&vm->heap, &vm->dflt_actrec);
+    bbzdarray_push(&vm->heap, vm->dflt_actrec, vm->nil);
     
     // Create various arrays
     bbzdarray_new(&vm->heap, &vm->stack);
@@ -121,10 +123,11 @@ void bbzvm_gc(bbzvm_t* vm) {
     bbzvm_push(vm, vm->lsymts);
     bbzvm_push(vm, vm->gsyms);
     bbzvm_push(vm, vm->nil);
+    bbzvm_push(vm, vm->dflt_actrec);
     bbzvm_push(vm, vm->flist);
     // FIXME Make stack a static array to pass it to the garbage-collector
     bbzheap_gc(&vm->heap, &vm->stack, bbzvm_stack_size(vm));
-    for (int i = 6; i > 0; --i) {
+    for (int i = 7; i > 0; --i) {
         bbzvm_pop(vm);
     }
 }

@@ -141,6 +141,8 @@ extern "C" {
         bbzheap_t heap;
         /** @brief Singleton bbznil_t */
         bbzheap_idx_t nil;
+        /** @brief Singleton bbzdarray_t for the default activations record */
+        bbzheap_idx_t dflt_actrec;
         /** @brief Registered functions */
         bbzheap_idx_t flist;
         /* List of known swarms */
