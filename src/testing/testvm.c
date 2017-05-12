@@ -11,7 +11,7 @@
 
 FILE* fbcode;
 uint16_t fsize;
-uint8_t buf[4];
+uint8_t buf[16];
 
 const uint8_t* testBcode(uint16_t offset, uint8_t size) {
     if (offset + size - 2 >= fsize) {
@@ -101,12 +101,11 @@ TEST(vm) {
     bbzvm_construct(vm, robot);
 
     ASSERT_EQUAL(vm->pc, 0);
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm, vm->stack)));
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm, vm->stacks)));
     ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm, vm->lsymts)));
     ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm, vm->flist)));
     ASSERT(bbztype_istable (*bbzvm_obj_at(vm, vm->gsyms)));
     ASSERT(bbztype_isnil   (*bbzvm_obj_at(vm, vm->nil)));
+    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm, vm->dflt_actrec)));
     ASSERT_EQUAL(vm->state, BBZVM_STATE_NOCODE);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(vm->robot, robot);
@@ -131,17 +130,21 @@ TEST(vm) {
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 0);
     ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 1);
+    ASSERT_EQUAL(*testBcode(vm->pc, 1), BBZVM_INSTR_NOP);
 
     // -------------------
     // - Test bbzvm_step -
     // -------------------
 
     // 1) Open instruction test file
+    fclose(fbcode);
     fbcode = fopen("ressources/1_InstrTest.bo", "rb");
     REQUIRE(fbcode != NULL);
     fseek(fbcode, 0, SEEK_END);
     fsize = ftell(fbcode);
     fseek(fbcode, 0, SEEK_SET);
+
+    vm->pc = 0;
 
     // 2) Nop
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_NOP);
@@ -283,7 +286,7 @@ TEST(vm) {
 
     // 14) Empty the stack
     while (bbzvm_stack_size(vm) != 0) {
-        bbzdarray_pop(&vm->heap, vm->stack);
+        bbzvm_pop(vm);
     }
 
     // ---- Test failing operations ----

@@ -169,7 +169,7 @@ int bbztype_cmp(const bbzobj_t* a,
  * Returns 1 if an object is closure, 0 otherwise.
  * @param obj The object.
  */
-#define bbztype_isclosure(obj) (bbztype(obj) & BBZTYPE_CLOSURE == BBZTYPE_CLOSURE)
+#define bbztype_isclosure(obj) ((bbztype(obj) & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)
 
 /*
  * Returns 1 if an object is userdata, 0 otherwise.

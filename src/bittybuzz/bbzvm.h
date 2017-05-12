@@ -107,7 +107,7 @@ extern "C" {
      * into account if copying byte-by-byte.
      * @param[in] offset Bytecode offset for the data to fetch.
      * @param[in] size Size of the data to set. The VM will at most
-     * try to read 4 bytes (uint32_t).
+     * try to read 4 bytes (uint32_t). FIXME WRONG!!!
      * @return A pointer to the data to the data.
      */
     typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
@@ -126,9 +126,9 @@ extern "C" {
         /** @brief Program counter */
         int16_t pc;
         /** @brief Current stack content */
-        bbzheap_idx_t stack;
-        /** @brief Stack list */
-        bbzheap_idx_t stacks;
+        bbzheap_idx_t stack[BBZSTACK_SIZE];
+        /** @brief Stack pointer */
+        int16_t stackptr;
         /* Current local variable table */
         // TODO
         /** @brief Local variable table list */
@@ -490,7 +490,7 @@ extern "C" {
      */
      __attribute__((always_inline)) inline
     uint16_t bbzvm_stack_size(bbzvm_t* vm) {
-        return bbzdarray_size(&vm->heap, vm->stack);
+        return vm->stackptr + 1;
     }
 
     /**
@@ -503,9 +503,7 @@ extern "C" {
      */
     __attribute__((always_inline)) inline
     bbzheap_idx_t bbzvm_stack_at(bbzvm_t* vm, uint16_t idx) {
-        bbzheap_idx_t ret = 0x7FFF;
-        bbzdarray_get(&vm->heap, vm->stack, bbzvm_stack_size(vm) - idx, &ret);
-        return ret;
+        return vm->stack[vm->stackptr - idx];
     }
 
 

@@ -8,6 +8,11 @@
  */
 #define BBZHEAP_ELEMS_PER_TSEG @HEAP_ELEMS_PER_TSEG@
 
+/**
+ * @brief Size of the stack in bytes.
+ */
+#define BBZSTACK_SIZE @STACK_SIZE@
+
 /*
  * Name of the robot, in case we are crosscompiling.
  */

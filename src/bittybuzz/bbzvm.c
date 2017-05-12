@@ -47,8 +47,6 @@ void bbzvm_construct(bbzvm_t* vm, uint16_t robot) {
     bbzdarray_push(&vm->heap, vm->dflt_actrec, vm->nil);
     
     // Create various arrays
-    bbzdarray_new(&vm->heap, &vm->stack);
-    bbzdarray_new(&vm->heap, &vm->stacks);
     bbzdarray_new(&vm->heap, &vm->lsymts);
     bbzdarray_new(&vm->heap, &vm->flist);
 
@@ -57,6 +55,9 @@ void bbzvm_construct(bbzvm_t* vm, uint16_t robot) {
     bbzheap_idx_t s;
     bbzheap_tseg_alloc(&vm->heap, &s);
     bbzheap_obj_at(&vm->heap, vm->gsyms)->t.value = s;
+
+    // Setup stack
+    vm->stackptr = -1;
 
     // TODO Reset error message
     vm->robot = robot;
@@ -82,6 +83,12 @@ void bbzvm_seterror(bbzvm_t* vm, bbzvm_error errcode) {
 /****************************************/
 /****************************************/
 
+uint16_t strlen(char* c) {
+	uint16_t len = 0;
+	while(*(c + len) != 0) ++len;
+	return len;
+}
+
 int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t bcode_size) {
     // 1) Reset the VM
     vm->state = BBZVM_STATE_READY;
@@ -94,7 +101,21 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
     vm->bcode_size = bcode_size;
 
     // 3) Register global strings
-    // TODO
+    uint16_t strCount = *vm->bcode_fetch_fun(0, sizeof(uint16_t));
+    uint16_t charCount = 0;
+    uint8_t* c;
+	bbzheap_idx_t o, o2;
+    for (int i = 0; i < strCount; ++i) {
+    	do {
+    		c = vm->bcode_fetch_fun(2+(charCount++), sizeof(uint8_t));
+    	} while(*c != 0);
+    	bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o);
+    	bbzheap_obj_alloc(&vm->heap, BBZTYPE_STRING, &o2);
+    	bbzvm_obj_at(vm, o)->i.value = i;
+    	bbzvm_obj_at(vm, o2)->s.value = i;
+    	bbztable_set(&vm->heap, vm->gsyms, o, o2);
+    }
+    vm->pc = 2 + charCount;
 
     // 4) Register Buzz's built-in functions
     // TODO
@@ -118,16 +139,13 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
 __attribute__((always_inline)) inline
 void bbzvm_gc(bbzvm_t* vm) {
     // TODO Take some of these element out of the heap.
-    bbzvm_push(vm, vm->stack);
-    bbzvm_push(vm, vm->stacks);
     bbzvm_push(vm, vm->lsymts);
     bbzvm_push(vm, vm->gsyms);
     bbzvm_push(vm, vm->nil);
     bbzvm_push(vm, vm->dflt_actrec);
     bbzvm_push(vm, vm->flist);
-    // FIXME Make stack a static array to pass it to the garbage-collector
-    bbzheap_gc(&vm->heap, &vm->stack, bbzvm_stack_size(vm));
-    for (int i = 7; i > 0; --i) {
+    bbzheap_gc(&vm->heap, vm->stack, bbzvm_stack_size(vm));
+    for (int i = 5; i > 0; --i) {
         bbzvm_pop(vm);
     }
 }
@@ -441,8 +459,8 @@ bbzvm_state bbzvm_call(bbzvm_t* vm, int isswrm) {
 /****************************************/
 
 bbzvm_state bbzvm_pop(bbzvm_t* vm) {
-    if(!bbzdarray_isempty(&vm->heap, vm->stack)) {
-        bbzdarray_pop(&vm->heap, vm->stack);
+    if(bbzvm_stack_size(vm) > 0) {
+    	--vm->stackptr;
     }
     else {
         bbzvm_seterror(vm, BBZVM_ERROR_STACK);
@@ -454,9 +472,8 @@ bbzvm_state bbzvm_pop(bbzvm_t* vm) {
 /****************************************/
 
 bbzvm_state bbzvm_dup(bbzvm_t* vm) {
-    if(!bbzdarray_isempty(&vm->heap, vm->stack)) {
-        bbzheap_idx_t idx = bbzvm_stack_at(vm, 0);
-        bbzvm_push(vm, idx);
+    if(bbzvm_stack_size(vm) > 0) {
+        bbzvm_push(vm, bbzvm_stack_at(vm, 0));
     }
     else {
         bbzvm_seterror(vm, BBZVM_ERROR_STACK);
@@ -468,7 +485,11 @@ bbzvm_state bbzvm_dup(bbzvm_t* vm) {
 /****************************************/
 
 bbzvm_state bbzvm_push(bbzvm_t* vm, bbzheap_idx_t v) {
-    bbzdarray_push(&vm->heap, vm->stack, v);
+	if (bbzvm_stack_size(vm) > BBZSTACK_SIZE) {
+		bbzvm_seterror(vm, BBZVM_ERROR_STACK);
+		return (vm)->state;
+	}
+	vm->stack[++vm->stackptr] = v;
     return vm->state;
 }
 
@@ -505,7 +526,7 @@ bbzvm_state bbzvm_pushc(bbzvm_t* vm, int32_t rfrnc, int32_t nat) {
 bbzvm_state bbzvm_pushi(bbzvm_t* vm, int16_t v) {
     bbzheap_idx_t o;
     bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o);
-    bbzheap_obj_at(&vm->heap, o)->i.value = v;
+    bbzvm_obj_at(vm, o)->i.value = v;
     bbzvm_push(vm, o);
     return vm->state;
 }
