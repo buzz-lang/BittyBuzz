@@ -36,10 +36,10 @@ function(add_test_executables robot_name)
     foreach(test_source ${test_sources})
         get_filename_component(test_excutable ${test_source} NAME_WE)
         
-        if ("${BBZ_ROBOT}" STREQUAL "kilobot")
+        if ("${BBZ_ROBOT}" STREQUAL "")
             add_executable(${test_excutable} ${test_source})
             target_link_libraries(${test_excutable} bittybuzz ${TESTING_EXTRA_LIBS})
-        elseif ()
+        elseif ("${BBZ_ROBOT}" STREQUAL "kilobot")
             kilobot_add_executable(${test_excutable} ${test_source})
             kilobot_target_link_libraries(${test_excutable} bittybuzz ${TESTING_EXTRA_LIBS})
         endif()
@@ -63,6 +63,7 @@ endfunction()
 # =              CMAKE SCRIPT              =
 # ==========================================
 
+configure_automated_testing()
 add_test_executables("${BBZ_ROBOT}")
 copy_test_ressources()
 

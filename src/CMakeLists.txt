@@ -33,6 +33,7 @@ set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} " -std=c99 -g")
 #
 add_subdirectory(bittybuzz)
 #add_subdirectory(kilolib)
+# TODO Make tests work on the kilobot?
 if (NOT CMAKE_CROSSCOMPILING)
   add_subdirectory(testing)
 endif()

@@ -11,9 +11,10 @@
 // Configure depending on whether tests are automated
 // --------------------------------------------------
 
-#ifdef BBZ_USE_AUTOMATED_TESTS
-
 #include <stdio.h>
+#include <inttypes.h>
+
+#ifdef BBZ_USE_AUTOMATED_TESTS
 
 
 // Automated tests.
