@@ -86,12 +86,14 @@ int main() {
    }
    uint16_t s1;
    for(int i = 0; i < 3; ++i) {
-      if(bbzheap_obj_alloc(&heap, BBZTYPE_TABLE, &o))
+      if(bbzheap_obj_alloc(&heap, BBZTYPE_TABLE, &o)) {
          printf("Allocated table object at position %" PRIu16 "\n", o);
+         printf("Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(&heap, o)->t.value);
+      }
       else {
          printf("Allocation error\n");
          break;
-      }
+      }/*
       if(bbzheap_tseg_alloc(&heap, &s1)) {
          printf("Allocated table segment at position %" PRIu16 "\n", s1);
          bbzheap_obj_at(&heap, o)->t.value = s1;
@@ -99,7 +101,7 @@ int main() {
       else {
          printf("Allocation error\n");
          break;
-      }
+      }*/
       bbzheap_print(&heap);
    }   
    printf("Garbage collection\n");

@@ -9,18 +9,18 @@ static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "tabl
 void bbzdarray_print(bbzheap_t* h, bbzheap_idx_t d) {
    int size = bbzdarray_size(h, d);
    printf("Size: %d\n", size);
-   printf("Elements: {");
-   /* Prints in the format: {arrayPos: type<heapPos:[intValue]>, ...}*/
+   printf("Elements: [\n");
+   /* Prints in the format: [arrayPos: type<heapPos:{intValue}>, ...]*/
    uint16_t v;
    for (int i = 0; i < size-1; ++i) {
       bbzdarray_get(h, d, i, &v);
-      printf("%d: %s<%d:[%d]>, ",i,bbztype_desc[bbztype(*bbzheap_obj_at(h, v))],v,((bbzint_t*)bbzheap_obj_at(h, v))->value);
+      printf("\t#%d: %s<%d:{%d}>,\n",i,bbztype_desc[bbztype(*bbzheap_obj_at(h, v))],v,((bbzint_t*)bbzheap_obj_at(h, v))->value);
    }
    if (size > 0) {
       bbzdarray_get(h, d, size-1, &v);
-      printf("%d: %s<%d:[%d]>",size-1,bbztype_desc[bbztype(*bbzheap_obj_at(h, v))],v,((bbzint_t*)bbzheap_obj_at(h, v))->value);
+      printf("\t#%d: %s<%d:{%d}>\n",size-1,bbztype_desc[bbztype(*bbzheap_obj_at(h, v))],v,((bbzint_t*)bbzheap_obj_at(h, v))->value);
    }
-   printf("}\n");
+   printf("]\n");
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
@@ -28,7 +28,7 @@ void bbzdarray_print(bbzheap_t* h, bbzheap_idx_t d) {
    while(bbzheap_aseg_hasnext(sd)) {
       si = bbzheap_aseg_next_get(sd);
       sd = bbzheap_aseg_at(h, si);
-      //if (!bbzheap_aseg_isvalid(*sd) || !bbzheap_aseg_elem_isvalid(sd->values[0])) break;
+      if (!bbzheap_aseg_isvalid(*sd) || !bbzheap_aseg_elem_isvalid(sd->values[0])) break;
       printf(", %d:(%04x;%s)",si,bbzheap_aseg_next_get(sd),bbzheap_aseg_hasnext(sd)?"yes":"no");
    }
    printf("]\n");
@@ -81,6 +81,10 @@ void bbzheap_print(bbzheap_t* h) {
       }
    }
    printf("\n");
+}
+
+void foreach(bbzheap_t* h, uint16_t darray, uint16_t pos, void* params) {
+   ((bbzint_t*)bbzheap_obj_at(h, pos))->value += 20;
 }
 
 int main() {
@@ -162,6 +166,19 @@ int main() {
    bbzdarray_print(&heap, darray2);
    printf("\n");
    
+   printf("+=-=-=-=-=-= bbzdarray_foreach [add 20 to each value] =-=-=-=-=-=+\n");
+   bbzdarray_foreach(&heap, darray, foreach, NULL);
+   bbzdarray_print(&heap, darray);
+   printf("\n");
+   
+   printf("+=-=-=-=-=-=-=-=- bbzdarray_destroy -=-=-=-=-=-=-=-=+\n");
+   printf("+= (Should be different for cloned and not cloned) =+\n");
+   printf("++ Heap before:\n");
+   bbzheap_print(&heap);
+   printf("++ Destroying arrays...\n");
+   bbzdarray_destroy(&heap, darray);
+   bbzdarray_destroy(&heap, darray2);
+   printf("++ Heap after:\n");
    bbzheap_print(&heap);
    
    return 0;
