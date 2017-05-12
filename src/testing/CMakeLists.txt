@@ -1,60 +1,70 @@
-
-# Enable automated testing when not crosscompiling
-if (ENABLE_AUTOMATED_TESTING)
-
-  if (NOT CMAKE_CROSSCOMPILING)
-    include(CTest)
-    find_package(Boost COMPONENTS unit_test_framework)
-
-    if (${Boost_FOUND})
-      set(BBZ_USE_AUTOMATED_TESTS 1)
-      include_directories(${Boost_INCLUDE_DIRS})
-      
-      set(TESTING_EXTRA_LIBS ${TESTING_EXTRA_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES})
-      # TODO Use file globs
-      set_source_files_properties(testfloat.c  PROPERTIES LANGUAGE "CXX")
-      set_source_files_properties(testheap.c   PROPERTIES LANGUAGE "CXX")
-      set_source_files_properties(testdarray.c PROPERTIES LANGUAGE "CXX")
-    endif (${Boost_FOUND})
-  endif (NOT CMAKE_CROSSCOMPILING)
-
-endif (ENABLE_AUTOMATED_TESTING)
+# ==========================================
+# =          FUNCTION DEFINITIONS          =
+# ==========================================
 
 
-if(NOT CMAKE_CROSSCOMPILING)
-  # add_executable(testringbuf
-  #   ../bittybuzz/bbzfloat.h ../bittybuzz/bbzfloat.c
-  #   ../bittybuzz/bbztype.h ../bittybuzz/bbztype.c
-  #   ../bittybuzz/bbzringbuf.h ../bittybuzz/bbzringbuf.c
-  #   ../bittybuzz/bbzobjringbuf.h
-  #   testringbuf.c)
+# Enables automated testing when not crosscompiling
+function (configure_automated_testing)
+    if (ENABLE_AUTOMATED_TESTING AND NOT CMAKE_CROSSCOMPILING)
+        # Find Boost's unit test library
+        find_package(Boost COMPONENTS unit_test_framework)
+        if (${Boost_FOUND})
+            # Include it
+            set(BBZ_USE_AUTOMATED_TESTS 1)
+            include_directories(${Boost_INCLUDE_DIRS})
+            
+            # Compile the test files as C++ and link against Boost's library
+            set(TESTING_EXTRA_LIBS ${TESTING_EXTRA_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES})
+            file(GLOB test_sources "*.c")
+            foreach(test_source ${test_sources})
+                set_source_files_properties(${test_source} PROPERTIES LANGUAGE "CXX")
+            endforeach()
+        endif (${Boost_FOUND})
+    endif()
+endfunction()
 
-  add_executable(testfloat testfloat.c)
-  target_link_libraries(testfloat bittybuzz ${TESTING_EXTRA_LIBS})
 
-  add_executable(testheap testheap.c)
-  target_link_libraries(testheap bittybuzz ${TESTING_EXTRA_LIBS})
+# Adds all executables in the testing directory,
+# taking the robot type into account.
+function(add_test_executables robot_name)
+    file(GLOB test_sources "*.c")
 
-  add_executable(testdarray testdarray.c)
-  target_link_libraries(testdarray bittybuzz ${TESTING_EXTRA_LIBS})
-  
-else(NOT CMAKE_CROSSCOMPILING)
-  
-  if("${BBZ_ROBOT}" STREQUAL "kilobot")
+    if (robot_name)
+        set(prefix "${robot_name}_")
+    endif()
+
+    foreach(test_source ${test_sources})
+        get_filename_component(test_excutable ${test_source} NAME_WE)
+        
+        if ("${BBZ_ROBOT}" STREQUAL "kilobot")
+            add_executable(${test_excutable} ${test_source})
+            target_link_libraries(${test_excutable} bittybuzz ${TESTING_EXTRA_LIBS})
+        elseif ()
+            kilobot_add_executable(${test_excutable} ${test_source})
+            kilobot_target_link_libraries(${test_excutable} bittybuzz ${TESTING_EXTRA_LIBS})
+        endif()
+    endforeach()
+endfunction()
+
+
+# Copies all files under ./ressources/ to the binary directory
+# so that they can be found by the test executables.
+function (copy_test_ressources)
+    # Find files under the directory.
+    file(GLOB files "ressources/*")
     
-    kilobot_add_executable(testfloat testfloat.c)
-    kilobot_target_link_libraries(testfloat bittybuzz)
+    # Copy those files to a new ressource directory.
+    file(COPY ${files} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ressources")
+endfunction()
 
-    kilobot_add_executable(testheap testheap.c)
-    kilobot_target_link_libraries(testheap bittybuzz)
 
-    kilobot_add_executable(testdarray testdarray.c)
-    kilobot_target_link_libraries(testdarray bittybuzz)
-    
-  endif("${BBZ_ROBOT}" STREQUAL "kilobot")
-  
-endif(NOT CMAKE_CROSSCOMPILING)
 
+# ==========================================
+# =              CMAKE SCRIPT              =
+# ==========================================
+
+add_test_executables("${BBZ_ROBOT}")
+copy_test_ressources()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/testingconfig.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/testingconfig.h)
+               ${CMAKE_CURRENT_BINARY_DIR}/testingconfig.h)

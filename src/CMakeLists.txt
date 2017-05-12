@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 2.8.12)
 #
 
 option(ENABLE_AUTOMATED_TESTING
-  "Enables the use of the Boost Unit Test Framework.
+  "Enables the use of the Boost Unit Test Framework, if it is found.
    Only considered when compiling for PC."
-  OFF)
+  ON)
 
 #
 # Add these directories to the paths
@@ -33,4 +33,6 @@ set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} " -std=c99 -g")
 #
 add_subdirectory(bittybuzz)
 #add_subdirectory(kilolib)
-add_subdirectory(testing)
+if (NOT CMAKE_CROSSCOMPILING)
+  add_subdirectory(testing)
+endif()
