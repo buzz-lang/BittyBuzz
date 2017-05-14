@@ -103,7 +103,7 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
     // 3) Register global strings
     uint16_t strCount = *vm->bcode_fetch_fun(0, sizeof(uint16_t));
     uint16_t charCount = 0;
-    uint8_t* c;
+    const uint8_t* c;
 	bbzheap_idx_t o, o2;
     for (int i = 0; i < strCount; ++i) {
     	do {
