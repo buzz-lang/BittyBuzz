@@ -59,27 +59,27 @@ extern "C" {
         BBZVM_INSTR_POP,        // Pop value from stack
         BBZVM_INSTR_RET0,       // Returns from closure call, see bbzvm_ret0()
         BBZVM_INSTR_RET1,       // Returns from closure call, see bbzvm_ret1()
-        BBZVM_INSTR_ADD,        // Push stack(#1) + stack(#2), pop operands
-        BBZVM_INSTR_SUB,        // Push stack(#1) - stack(#2), pop operands
-        BBZVM_INSTR_MUL,        // Push stack(#1) * stack(#2), pop operands
-        BBZVM_INSTR_DIV,        // Push stack(#1) / stack(#2), pop operands
-        BBZVM_INSTR_MOD,        // Push stack(#1) % stack(#2), pop operands
-        BBZVM_INSTR_POW,        // Push stack(#1) ^ stack(#2), pop operands
-        BBZVM_INSTR_UNM,        // Push -stack(#1), pop operand
-        BBZVM_INSTR_AND,        // Push stack(#1) & stack(#2), pop operands
-        BBZVM_INSTR_OR,         // Push stack(#1) | stack(#2), pop operands
-        BBZVM_INSTR_NOT,        // Push !stack(#1), pop operand
-        BBZVM_INSTR_EQ,         // Push stack(#1) == stack(#2), pop operands
-        BBZVM_INSTR_NEQ,        // Push stack(#1) != stack(#2), pop operands
-        BBZVM_INSTR_GT,         // Push stack(#1) > stack(#2), pop operands
-        BBZVM_INSTR_GTE,        // Push stack(#1) >= stack(#2), pop operands
-        BBZVM_INSTR_LT,         // Push stack(#1) < stack(#2), pop operands
-        BBZVM_INSTR_LTE,        // Push stack(#1) <= stack(#2), pop operands
-        BBZVM_INSTR_GLOAD,      // Push global variable corresponding to string at stack #1, pop operand
-        BBZVM_INSTR_GSTORE,     // Store stack-top value into global variable at stack #2, pop operands
+        BBZVM_INSTR_ADD,        // Push stack(#0) + stack(#1), pop operands
+        BBZVM_INSTR_SUB,        // Push stack(#0) - stack(#1), pop operands
+        BBZVM_INSTR_MUL,        // Push stack(#0) * stack(#1), pop operands
+        BBZVM_INSTR_DIV,        // Push stack(#0) / stack(#1), pop operands
+        BBZVM_INSTR_MOD,        // Push stack(#0) % stack(#1), pop operands
+        BBZVM_INSTR_POW,        // Push stack(#0) ^ stack(#1), pop operands
+        BBZVM_INSTR_UNM,        // Push -stack(#0), pop operand
+        BBZVM_INSTR_AND,        // Push stack(#0) & stack(#1), pop operands
+        BBZVM_INSTR_OR,         // Push stack(#0) | stack(#1), pop operands
+        BBZVM_INSTR_NOT,        // Push !stack(#0), pop operand
+        BBZVM_INSTR_EQ,         // Push stack(#0) == stack(#1), pop operands
+        BBZVM_INSTR_NEQ,        // Push stack(#0) != stack(#1), pop operands
+        BBZVM_INSTR_GT,         // Push stack(#0) > stack(#1), pop operands
+        BBZVM_INSTR_GTE,        // Push stack(#0) >= stack(#1), pop operands
+        BBZVM_INSTR_LT,         // Push stack(#0) < stack(#1), pop operands
+        BBZVM_INSTR_LTE,        // Push stack(#0) <= stack(#1), pop operands
+        BBZVM_INSTR_GLOAD,      // Push global variable corresponding to string at stack #0, pop operand
+        BBZVM_INSTR_GSTORE,     // Store stack-top value into global variable at stack #1, pop operands
         BBZVM_INSTR_PUSHT,      // Push empty table
-        BBZVM_INSTR_TPUT,       // Put key (stack(#2)), value (stack #1) in table (stack #3), pop key and value
-        BBZVM_INSTR_TGET,       // Push value for key (stack(#1)) in table (stack #2), pop key
+        BBZVM_INSTR_TPUT,       // Put key (stack(#1)), value (stack #0) in table (stack #2), pop key and value
+        BBZVM_INSTR_TGET,       // Push value for key (stack(#0)) in table (stack #1), pop key
         BBZVM_INSTR_CALLC,      // Calls the closure on top of the stack as a normal closure
         BBZVM_INSTR_CALLS,      // Calls the closure on top of the stack as a swarm closure
         /**
@@ -253,11 +253,11 @@ extern "C" {
     /**
      * @brief Calls a Buzz closure.
      * It expects the stack to be as follows:
-     * #1   arg1
-     * #2   arg2
+     * #0   arg1
+     * #1   arg2
      * ...
-     * #N   argN
-     * #N+1 closure
+     * #N-1   argN
+     * #N closure
      * This function pops all arguments.
      * @param vm The VM.
      * @param argc The number of arguments.
@@ -268,10 +268,10 @@ extern "C" {
     /**
      * @brief Calls a function defined in Buzz.
      * It expects the stack to be as follows:
-     * #1 arg1
-     * #2 arg2
+     * #0 arg1
+     * #1 arg2
      * ...
-     * #N argN
+     * #N-1 argN
      * This function pops all arguments.
      * @param vm The VM.
      * @param fname The function name.
@@ -292,15 +292,15 @@ extern "C" {
      * @brief Calls a closure.
      * Internally checks whether the operation is valid.
      * This function expects the stack to be as follows:
-     * #1   An integer for the number of closure parameters N
-     * #2   Closure arg1
+     * #0   An integer for the number of closure parameters N
+     * #1   Closure arg1
      * ...
-     * #1+N Closure argN
-     * #2+N The closure
+     * #N Closure argN
+     * #N+1 The closure
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * #1 An integer for the return address
+     * #0 An integer for the return address
      * @param vm The VM.
      * @param isswrm 0 for a normal closure, 1 for a swarm closure
      * @return The VM state.
@@ -399,10 +399,10 @@ extern "C" {
      * This function is designed to be used within int-returning functions such as
      * BuzzVM hook functions or bbzvm_step().
      * The stack is expected to be as follows:
-     * #1 value
-     * #2 idx
-     * #3 table
-     * This operation pops #1 and #2, leaving the table at the stack top.
+     * #0 value
+     * #1 idx
+     * #2 table
+     * This operation pops #0 and #1, leaving the table at the stack top.
      * @param vm The VM.
      */
     bbzvm_state bbzvm_tput(bbzvm_t* vm);
@@ -413,10 +413,10 @@ extern "C" {
      * This function is designed to be used within int-returning functions such as
      * BuzzVM hook functions or bbzvm_step().
      * The stack is expected to be as follows:
-     * #1 idx
-     * #2 table
-     * This operation pops #1 and pushes the value, leaving the table at
-     * stack #2. If the element for the given idx is not found, nil is
+     * #0 idx
+     * #1 table
+     * This operation pops #0 and pushes the value, leaving the table at
+     * stack #1. If the element for the given idx is not found, nil is
      * pushed as value.
      * @param vm The VM.
      */

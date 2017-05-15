@@ -180,20 +180,20 @@ TEST(vm) {
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHI);
     bbzvm_step(vm);
     ASSERT_EQUAL(bbzvm_stack_size(vm), 1);
-    ASSERT(bbztype_isint(*bbzvm_obj_at(vm, 0)));
+    bbzheap_print(&vm->heap);
+    ASSERT(bbztype_isint(*bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0))));
     bbzobj_t* o = bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0));
     ASSERT_EQUAL(o->i.value, 0x42);
 
     // 6) Dup
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_DUP);
     bbzvm_step(vm);
-    ASSERT_EQUAL(bbzvm_stack_size(vm), 1);
-    bbzobj_t* o1 = bbzvm_obj_at(vm, 0);
-    bbzheap_print(&vm->heap);
+    ASSERT_EQUAL(bbzvm_stack_size(vm), 2);
+    bbzobj_t* o1 = bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0));
     ASSERT(bbztype_isint(*o1));
     
     ASSERT_EQUAL(bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0))->i.value, 0x42);
-    ASSERT(bbztype_isint(*bbzvm_obj_at(vm, 2)));
+    ASSERT(bbztype_isint(*bbzvm_obj_at(vm, bbzvm_stack_at(vm, 1))));
     ASSERT_EQUAL(bbzvm_obj_at(vm, bbzvm_stack_at(vm, 1))->i.value, 0x42);
 
     // Save PC
