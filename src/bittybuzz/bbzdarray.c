@@ -1,9 +1,5 @@
 #include "bbzdarray.h"
 
-#define bbzdarray_mark_cloned(d) (d)->mdata |= 0x02
-#define bbzdarray_unmark_cloned(d) (d)->mdata &= ~0x02
-#define bbzdarray_iscloned(d) ((d)->mdata & 0x02)
-
 /****************************************/
 /****************************************/
 
@@ -11,9 +7,8 @@ int bbzdarray_new(bbzheap_t* h,
                   bbzheap_idx_t* d) {
    /* Allocation of a new array */
    if (!bbzheap_obj_alloc(h, BBZTYPE_TABLE, d)) return 0;
-   bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, *d);
    /* Set the bit that tells it's a dynamic array */
-   da->mdata |= 0x04;
+   bbzheap_obj_at(h, *d)->t.mdata |= 0x04;
    return 1;
 }
 
@@ -277,4 +272,39 @@ uint16_t bbzdarray_find(bbzheap_t* h,
       sd = bbzheap_aseg_at(h, si);
    }
    return pos;
+}
+
+/****************************************/
+/****************************************/
+
+int bbzdarray_lambda_alloc(bbzheap_t* h, bbzheap_idx_t d, uint8_t* l) {
+   /* Look for empty slot */
+   for(uint8_t i = 0;
+	   i < RESERVED_ACTREC_MAX;
+	   ++i)
+	  if(!bbzheap_obj_isvalid(*bbzheap_obj_at(h, i))) {
+		 /* Empty slot found */
+		 bbzobj_t* x = bbzheap_obj_at(h, i);
+		 /* Set valid bit and type */
+		 obj_makevalid(*x);
+		 bbztype_cast(*x, BBZTYPE_TABLE);
+		 /* Set the bit that tells it's a dynamic array */
+		 x->t.mdata |= 0x04;
+		 /* Set result */
+		 *l = i;
+		 /* Allocate an array segment */
+		 if(!bbzheap_aseg_alloc(h, &(x->t.value))) return 0;
+
+		 bbzdarray_mark_cloned(&x->t);
+		 uint16_t idx = bbzdarray_size(h, d);
+		 uint16_t v;
+		 for (int j = 0; j < idx; ++j) {
+		    bbzdarray_get(h, d, j, &v);
+		    if (!bbzdarray_push(h, *l, v)) return 0;
+		 }
+		 /* Success */
+		 return 1;
+	  }
+   /* No empty slot found, we're out of reserved memory! */
+   return 0;
 }

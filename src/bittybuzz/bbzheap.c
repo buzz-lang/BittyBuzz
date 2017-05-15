@@ -8,13 +8,11 @@
 #define gc_mark(x)    (x).o.mdata |= 0x08
 #define gc_unmark(x)  (x).o.mdata &= 0xF7
 
-#define RESERVED_ACTREC_MAX 0xFE
-
 /****************************************/
 /****************************************/
 
 void bbzheap_clear(bbzheap_t* h) {
-   h->rtobj = h->data;
+   h->rtobj = h->data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
    h->ltseg = h->data + BBZHEAP_SIZE;
    for(int i = BBZHEAP_SIZE-1; i >= 0; --i) h->data[i] = 0;
 }
@@ -27,7 +25,7 @@ int bbzheap_obj_alloc(bbzheap_t* h,
                       bbzheap_idx_t* o) {
    /* Look for empty slot */
    for(int i = (h->rtobj - h->data) / sizeof(bbzobj_t) - 1;
-       i >= 0;
+       i >= RESERVED_ACTREC_MAX;
        --i)
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(h, i))) {
          /* Empty slot found */
@@ -173,7 +171,7 @@ void bbzheap_gc(bbzheap_t* h,
    }
    /* Move rightmost object pointer as far left as possible */
    for(int i = (h->rtobj - h->data) / sizeof(bbzobj_t) - 1;
-       i >= 0;
+       i >= RESERVED_ACTREC_MAX;
        --i)
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(h, i)))
          h->rtobj -= sizeof(bbzobj_t);

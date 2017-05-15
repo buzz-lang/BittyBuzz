@@ -127,10 +127,12 @@ extern "C" {
         int16_t pc;
         /** @brief Current stack content */
         bbzheap_idx_t stack[BBZSTACK_SIZE];
-        /** @brief Stack pointer */
+        /** @brief Stack pointer (Index of the last valid element of the stack) */
         int16_t stackptr;
-        /* Current local variable table */
-        // TODO
+        /** @brief Block pointer (... ?) */
+        int16_t blockptr;
+        /** @brief Current local variable table */
+        bbzheap_idx_t lsyms;
         /** @brief Local variable table list */
         bbzheap_idx_t lsymts;
         /** @brief Global symbols */
@@ -263,7 +265,7 @@ extern "C" {
      * @param argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_closure_call(bbzvm_t* vm, uint32_t argc);
+    bbzvm_state bbzvm_closure_call(bbzvm_t* vm, uint16_t argc);
 
     /**
      * @brief Calls a function defined in Buzz.
@@ -274,11 +276,11 @@ extern "C" {
      * #N-1 argN
      * This function pops all arguments.
      * @param vm The VM.
-     * @param fname The function name.
+     * @param fname The function name (bbzheap_idx_t pointing to a bbzstring_t).
      * @param argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_function_call(bbzvm_t* vm, const char* fname, uint32_t argc);
+    bbzvm_state bbzvm_function_call(bbzvm_t* vm, bbzheap_idx_t fname, uint32_t argc);
 
     /**
      * @brief Registers a function in the VM.
@@ -286,7 +288,7 @@ extern "C" {
      * @param funp The function pointer to register.
      * @return The function id.
      */
-    uint32_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp);
+    uint16_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp);
 
     /**
      * @brief Calls a closure.
@@ -369,10 +371,9 @@ extern "C" {
      * @param vm The VM.
      * @param rfrnc The closure reference.
      * @param nat 1 if the closure in native, 0 if not
-     * @param v The value.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushc(bbzvm_t* vm, int32_t rfrnc, int32_t nat);
+    bbzvm_state bbzvm_pushc(bbzvm_t* vm, int16_t rfrnc, int16_t nat);
 
     /**
      * @brief Pushes a string on the stack.
@@ -391,7 +392,7 @@ extern "C" {
      * @param addr The closure address.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushl(bbzvm_t* vm, int32_t addr);
+    bbzvm_state bbzvm_pushl(bbzvm_t* vm, int16_t addr);
 
     /**
      * @brief Stores a (idx,value) pair in a table.
@@ -534,7 +535,9 @@ extern "C" {
         {                                                               \
             bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
                                          bbzvm_stack_at(vm, idx));      \
-            if(bbztype(*o) != tpe) {                                    \
+            if (bbztype(*o) != tpe                                      \
+    			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)        \
+    			&& !bbztype_isclosure(*o)) {                       \
                 bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
                 return BBZVM_STATE_ERROR;                               \
             }                                                           \
@@ -549,6 +552,42 @@ extern "C" {
     #define bbzvm_done(vm)                                              \
         (vm)->state = BBZVM_STATE_DONE;                                 \
         return BBZVM_STATE_DONE;
+
+    /**
+     * Calls a normal closure.
+     * Internally checks whether the operation is valid.
+     * This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * This function expects the stack to be as follows:
+     * #1   An integer for the number of closure parameters N
+     * #2   Closure arg1
+     * ...
+     * #1+N Closure argN
+     * #2+N The closure
+     * This function pushes a new stack and a new local variable table filled with the
+     * activation record entries and the closure arguments. In addition, it leaves the stack
+     * beneath as follows:
+     * #1 An integer for the return address
+     */
+    #define bbzvm_callc(vm) bbzvm_call(vm, 0)
+
+    /**
+     * Calls a swarm closure.
+     * Internally checks whether the operation is valid.
+     * This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * This function expects the stack to be as follows:
+     * #1   An integer for the number of closure parameters N
+     * #2   Closure arg1
+     * ...
+     * #1+N Closure argN
+     * #2+N The closure
+     * This function pushes a new stack and a new local variable table filled with the
+     * activation record entries and the closure arguments. In addition, it leaves the stack
+     * beneath as follows:
+     * #1 An integer for the return address
+     */
+    #define bbzvm_calls(vm) bbzvm_call(vm, 1)
 
 
 #ifdef __cplusplus

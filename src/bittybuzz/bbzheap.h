@@ -289,6 +289,8 @@ void bbzheap_gc(bbzheap_t* h,
  */
 #define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
 
+#define RESERVED_ACTREC_MAX 0x20
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus
