@@ -39,6 +39,14 @@ int bbztype_cmp(const bbzobj_t* a,
       if(x > y) return  1;
       return 0;
    }
+   /* If operands are strings, perform equality comparison */
+   if(bbztype_isstring(*a) && bbztype_isstring(*b)) {
+      uint16_t x = a->s.value;
+      uint16_t y = b->s.value;
+      if(x < y) return -1;
+      if(x > y) return  1;
+      return 0;
+   }
    /* Other cases are TODO */
    return 0;
 }

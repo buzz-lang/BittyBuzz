@@ -8,6 +8,14 @@
 #define NULL 0
 #endif
 
+#define bbzdarray_mark_cloned(d) (d)->mdata |= 0x02
+#define bbzdarray_unmark_cloned(d) (d)->mdata &= ~0x02
+#define bbzdarray_iscloned(d) ((d)->mdata & 0x02)
+
+#define bbzdarray_mark_swarm(d) (d)->mdata |= 0x01
+#define bbzdarray_unmark_swarm(d) (d)->mdata &= ~0x01
+#define bbzdarray_isswarm(d) ((d)->mdata & 0x01)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -158,6 +166,17 @@ extern "C" {
                             bbzheap_idx_t d,
                             bbzdarray_elem_cmpp cmp,
                             bbzheap_idx_t data);
+
+    /**
+     * @brief Allocates space for a lambda closure on the heap.
+     * Sets as output the value of l, a buffer for the index of the allocated closure.
+     * The value of l is not checked for NULL, so make sure it's a valid pointer.
+     * @param h The heap.
+     * @param d Dynamic array from which we will copy data.
+     * @param l A buffer for the index of the allocated closure.
+     * @return 1 for success, 0 for failure (out of memory)
+     */
+    int bbzdarray_lambda_alloc(bbzheap_t* h, bbzheap_idx_t d, uint8_t* l);
 
 #ifdef __cplusplus
 }

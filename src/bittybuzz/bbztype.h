@@ -71,7 +71,7 @@ typedef struct __attribute__((packed)) {
  * Closure
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /* contains 'native' flag as 5th topmost bit */
+   uint8_t mdata; /* contains 'native' flag as 7th topmost bit */
    struct {
       int8_t ref; /* jump address or function id */
       uint8_t actrec; /* position in the heap of the activation record array.
