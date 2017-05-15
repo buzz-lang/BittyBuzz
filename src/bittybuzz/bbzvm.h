@@ -792,6 +792,43 @@ extern "C" {
      */
     bbzvm_state bbzvm_lstore(bbzvm_t* vm, uint16_t idx);
 
+    /**
+     * @brief Sets the program counter to jump to a specificed bytecode offset.
+     * @details This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * @see BBZVM_INSTR_JUMP
+     * @param[in,out] vm The VM.
+     * @param[in] offset The offset to jump to.
+     * @return The updated VM state.
+     */
+    bbzvm_state bbzvm_jump(bbzvm_t* vm, uint16_t offset);
+
+    /**
+     * @brief Sets the program counter to jump to a specificed bytecode
+     * offset, if stack top is zero.
+     * @details This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * @note A nil object is considered zero.
+     * @see BBZVM_INSTR_JUMPZ
+     * @param[in,out] vm The VM.
+     * @param[in] offset The offset to jump to.
+     * @return The updated VM state.
+     */
+    bbzvm_state bbzvm_jumpz(bbzvm_t* vm, uint16_t offset);
+
+    /**
+     * @brief Sets the program counter to jump to a specificed bytecode
+     * offset, if stack top is not zero.
+     * @details This function is designed to be used within int-returning functions such as
+     * BuzzVM hook functions or buzzvm_step().
+     * @note A nil object is considered zero.
+     * @see BBZVM_INSTR_JUMPNZ
+     * @param[in,out] vm The VM.
+     * @param[in] offset The offset to jump to.
+     * @return The updated VM state.
+     */
+    bbzvm_state bbzvm_jumpnz(bbzvm_t* vm, uint16_t offset);
+
 
 
     // ======================================
@@ -842,8 +879,8 @@ extern "C" {
      * @param vm The VM.
      * @param size The stack index, where 0 is the stack top and >0 goes down the stack.
      */
-    #define bbzvm_stack_assert(vm, size)                                 \
-        if (bbzvm_stack_size(vm) < (size)) {                        \
+    #define bbzvm_stack_assert(vm, size)                                \
+        if (bbzvm_stack_size(vm) < (size)) {                            \
             bbzvm_seterror(vm, BBZVM_ERROR_STACK);                      \
             return (vm)->state;                                         \
         }
