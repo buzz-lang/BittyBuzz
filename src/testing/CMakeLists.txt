@@ -10,11 +10,11 @@ function (configure_automated_testing)
         find_package(Boost COMPONENTS unit_test_framework)
         if (${Boost_FOUND})
             # Include it
-            set(BBZ_USE_AUTOMATED_TESTS 1)
+            set(BBZ_USE_AUTOMATED_TESTS 1 PARENT_SCOPE)
             include_directories(${Boost_INCLUDE_DIRS})
             
             # Compile the test files as C++ and link against Boost's library
-            set(TESTING_EXTRA_LIBS ${TESTING_EXTRA_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES})
+            set(TESTING_EXTRA_LIBS ${TESTING_EXTRA_LIBS} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARIES} PARENT_SCOPE)
             file(GLOB test_sources "*.c")
             foreach(test_source ${test_sources})
                 set_source_files_properties(${test_source} PROPERTIES LANGUAGE "CXX")
@@ -28,10 +28,6 @@ endfunction()
 # taking the robot type into account.
 function(add_test_executables robot_name)
     file(GLOB test_sources "*.c")
-
-    if (robot_name)
-        set(prefix "${robot_name}_")
-    endif()
 
     foreach(test_source ${test_sources})
         get_filename_component(test_excutable ${test_source} NAME_WE)
