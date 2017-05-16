@@ -20,7 +20,7 @@ Type these commands:
     $ cd bittybuzz
     $ mkdir build
     $ cd build
-    $ cmake -DHEAP_SIZE=1024 -DHEAP_ELEMS_PER_TSEG=5 ../src/
+    $ cmake -DHEAP_SIZE=1024 -DHEAP_ELEMS_PER_TSEG=5 -DSTACK_SIZE=256 ../src/
 
 For the Kilobot
 ---------------
@@ -33,5 +33,5 @@ Type these commands:
     $ cd bittybuzz
     $ mkdir build_kilobot
     $ cd build_kilobot
-    $ cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Kilobot.cmake -DHEAP_SIZE=1024 -DHEAP_ELEMS_PER_TSEG=5 ../src/
+    $ cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Kilobot.cmake -DHEAP_SIZE=1024 -DHEAP_ELEMS_PER_TSEG=5 -DSTACK_SIZE=256 ../src/
     $ make
