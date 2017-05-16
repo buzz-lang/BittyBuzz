@@ -813,7 +813,7 @@ uint16_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp) {
 	/* Allocate a bbzuserdata_t for function comparison */
 	bbzheap_idx_t objbuf;
 	bbzheap_obj_alloc(&vm->heap, BBZTYPE_USERDATA, &objbuf); // FIXME Possible "out of memory"
-	bbzvm_obj_at(vm, objbuf)->u.value = funp;
+	bbzvm_obj_at(vm, objbuf)->u.value = (void*)funp;
     uint16_t fpos = bbzdarray_find(&vm->heap, vm->flist, bbzvm_function_cmp, objbuf);
     /* If the function isn't in the list yet, ... */
     if (fpos == bbzdarray_size(&vm->heap, vm->flist)) {
