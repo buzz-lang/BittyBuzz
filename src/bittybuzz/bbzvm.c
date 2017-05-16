@@ -693,7 +693,9 @@ bbzvm_state bbzvm_pusht(bbzvm_t* vm) {
 /****************************************/
 
 bbzvm_state bbzvm_lload(bbzvm_t* vm, uint16_t idx) {
-    // TODO
+    bbzheap_idx_t id;
+    bbzdarray_get(&vm->heap, vm->lsyms, idx, &id);
+    bbzvm_push(vm, id);
     return vm->state;
 }
 
@@ -701,7 +703,12 @@ bbzvm_state bbzvm_lload(bbzvm_t* vm, uint16_t idx) {
 /****************************************/
 
 bbzvm_state bbzvm_lstore(bbzvm_t* vm, uint16_t idx) {
-    // TODO
+    bbzheap_idx_t o = bbzvm_stack_at(vm, 0);
+    uint16_t size = bbzdarray_size(&vm->heap, vm->lsyms);
+    while (size++ < idx) {
+        bbzdarray_push(&vm->heap, vm->lsyms, vm->nil);
+    }
+    bbzdarray_set(&vm->heap, vm->lsyms, idx, o);
     return vm->state;
 }
 
