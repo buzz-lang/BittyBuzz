@@ -132,17 +132,20 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t
  * @param[in|out] vm The VM.
  */
 __attribute__((always_inline)) inline
-void bbzvm_gc(bbzvm_t* vm) {
+uint8_t bbzvm_gc(bbzvm_t* vm) {
     // TODO Take some of these element out of the heap.
+    if (BBZSTACK_SIZE - bbzvm_stack_size(vm) < 6) return 0;
+    bbzvm_push(vm, vm->lsyms);
     bbzvm_push(vm, vm->lsymts);
     bbzvm_push(vm, vm->gsyms);
     bbzvm_push(vm, vm->nil);
     bbzvm_push(vm, vm->dflt_actrec);
     bbzvm_push(vm, vm->flist);
     bbzheap_gc(&vm->heap, vm->stack, bbzvm_stack_size(vm));
-    for (int i = 5; i > 0; --i) {
+    for (int i = 6; i > 0; --i) {
         bbzvm_pop(vm);
     }
+    return 1;
 }
 
 /**
@@ -358,7 +361,10 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
 
 bbzvm_state bbzvm_step(bbzvm_t* vm) {
     if(vm->state == BBZVM_STATE_READY) {
-        bbzvm_gc(vm);
+        if(!bbzvm_gc(vm)) {
+            bbzvm_seterror(vm, BBZVM_ERROR_STACK);
+            return BBZVM_STATE_ERROR;
+        }
         bbzvm_state ret = bbzvm_exec_instr(vm);
         return ret;
     }

@@ -183,6 +183,8 @@ TEST(vm) {
     fsize = ftell(fbcode);
     fseek(fbcode, 0, SEEK_SET);
 
+    bbzvm_set_bcode(vm, &testBcode, fsize);
+
     vm->pc = 0;
 
     // 2) Nop
@@ -417,6 +419,7 @@ TEST(vm) {
             BBZVM_INSTR_PUSHCN, BBZVM_INSTR_PUSHCC,  BBZVM_INSTR_PUSHL, BBZVM_INSTR_LLOAD, LAST_INSTR
         };
 
+        // FIXME The program counter doesn't increment when a STACK_ERROR occurred. You have to take that into account.
         uint16_t i = 0;
         bbzvm_instr curr_instr = failing_instr[i++];
         while(curr_instr != LAST_INSTR) {
