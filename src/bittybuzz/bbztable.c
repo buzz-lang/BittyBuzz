@@ -15,10 +15,10 @@ int bbztable_get(bbzheap_t* h,
    while(1) {
       /* Go through valid keys in the segment */
       for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-         if(bbztype_cmp(bbzheap_obj_at(h, sd->keys[i]),
+         if(bbztype_cmp(bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->keys[i])),
                         bbzheap_obj_at(h, k)) == 0) {
             /* Key found */
-            *v = sd->values[i];
+            *v = bbzheap_tseg_elem_get(sd->values[i]);
             return 1;
          }
       }

@@ -6,6 +6,8 @@
 #endif // BBZ_USE_AUTOMATED_TESTS
 
 #include <stdio.h>
+#include <bittybuzz/bbztype.h>
+#include <bittybuzz/bbzvm.h>
 
 #include "bittybuzz/bbzvm.c"
 
@@ -59,7 +61,7 @@ const uint8_t* testBcode(uint16_t offset, uint8_t size) {
      }
  }
 
-static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata" };
+static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
 
 #define obj_isvalid(x) ((x).o.mdata & 0x10)
 
@@ -81,6 +83,8 @@ void bbzheap_print(bbzheap_t* h) {
          switch(bbztype(*bbzheap_obj_at(h, i))) {
             case BBZTYPE_NIL:
                break;
+            case BBZTYPE_STRING: // fallthrough
+            case BBZTYPE_CLOSURE: // fallthrough
             case BBZTYPE_INT:
                printf(" %d", bbzheap_obj_at(h, i)->i.value);
                break;
@@ -89,6 +93,9 @@ void bbzheap_print(bbzheap_t* h) {
                break;
             case BBZTYPE_TABLE:
                printf(" %" PRIu16, bbzheap_obj_at(h, i)->t.value);
+               break;
+            case BBZTYPE_USERDATA:
+               printf(" %" PRIu16, bbzheap_obj_at(h, i)->u.value);
                break;
          }
          printf("\n");
@@ -143,6 +150,20 @@ bbzvm_error get_last_error() {
      vm->error = BBZVM_ERROR_NONE;
  }
 
+/**
+ * @brief Function used for testing C closures.
+ * @param vm The current VM.
+ * @return The state of the VM.
+ */
+int printIntVal(bbzvm_t* vm) {
+    bbzheap_idx_t idx;
+    bbzvm_lload(vm, 1);
+    idx = bbzvm_stack_at(vm, 0);
+    printf("#%02x: (%s) %d\n", idx, bbztype_desc[bbztype(*bbzvm_obj_at(vm,idx))], bbzvm_obj_at(vm,idx)->i.value);
+    bbzvm_pop(vm);
+    return bbzvm_ret0(vm);
+}
+
     // ======================================
     // =             UNIT TEST              =
     // ======================================
@@ -191,7 +212,7 @@ TEST(vm) {
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 0);
     ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 1);
-    ASSERT_EQUAL(*testBcode(vm->pc, 1), BBZVM_INSTR_NOP);
+    ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------
     // - Test bbzvm_step -
@@ -205,7 +226,7 @@ TEST(vm) {
     fsize = ftell(fbcode);
     fseek(fbcode, 0, SEEK_SET);
 
-    bbzvm_set_bcode(vm, &testBcode, fsize);
+    vm->bcode_size = fsize;
 
     vm->pc = 0;
 
@@ -463,6 +484,53 @@ TEST(vm) {
     // -----------------------
     // - Test bbzvm_destruct -
     // -----------------------
+
+    bbzvm_destruct(vm);
+
+    // -----------------
+    // - Closure tests -
+    // -----------------
+
+    // - Set up -
+    bbzvm_construct(vm, robot);
+    bbzvm_set_error_notifier(vm, &set_last_error);
+
+    // 1) Open bytecode file.
+    fclose(fbcode);
+    fbcode = fopen("ressources/3_test1.bo", "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    fseek(fbcode, 0, SEEK_SET);
+
+    // A) Set the bytecode in the VM.
+    bbzvm_set_bcode(vm, &testBcode, fsize);
+
+    ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 5);
+
+    // B) Register C closure
+    uint16_t funcid = bbzvm_function_register(vm, printIntVal);
+
+    ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 1);
+    bbzheap_idx_t c;
+    bbzdarray_get(&vm->heap, vm->flist, funcid, &c);
+    ASSERT_EQUAL(bbztype(*bbzvm_obj_at(vm, c)), BBZTYPE_USERDATA);
+    ASSERT_EQUAL(bbzvm_obj_at(vm, c)->u.value, printIntVal);
+
+    // C) Call registered C closure
+    REQUIRE(bbzdarray_size(&vm->heap, vm->flist) >= 1);
+    bbzvm_pushs(vm, funcid);
+    bbzvm_pushi(vm, 123);
+    bbzvm_function_call(vm, funcid, 1);
+    bbzvm_pop(vm);
+    ASSERT_EQUAL(bbzvm_stack_size(vm), 0);
+
+    // D) Execute the rest of the script
+    while(bbzvm_step(vm) == BBZVM_STATE_READY);
+    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    bbzvm_pushs(vm, 4);
+    bbzvm_gload(vm);
+    ASSERT_EQUAL(bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0))->i.value, 63);
 
     bbzvm_destruct(vm);
 

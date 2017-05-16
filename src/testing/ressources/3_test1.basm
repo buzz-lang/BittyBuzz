@@ -1,0 +1,40 @@
+!5
+'printIntVal
+'id
+'x
+'func
+'y
+
+	pushs 3
+	pushcn @__label_1
+	gstore
+	nop
+
+@__label_0
+	pushs 2	|1,2,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushi 1	|1,4,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	gstore	|1,5,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushs 4	|6,2,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushs 3	|6,8,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	gload	|6,8,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushi 42	|6,9,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushi 21	|6,13,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushi 2	|6,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	callc	|6,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	gstore	|6,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushs 0	|8,11,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	gload	|8,11,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushs 4	|8,13,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	gload	|8,13,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	pushi 1	|8,14,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	callc	|8,14,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+
+@__exitpoint
+	done
+
+@__label_1
+	lload 1	|3,13,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	lload 2	|3,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	add	|3,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	ret1	|3,16,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz
+	ret0	|4,1,/home/user1/Documents/Stage/Buzz/build/buzz/3_test1.bzz

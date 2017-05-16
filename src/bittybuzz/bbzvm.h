@@ -107,7 +107,7 @@ extern "C" {
      * into account if copying byte-by-byte.
      * @param[in] offset Bytecode offset for the data to fetch.
      * @param[in] size Size of the data to set. The VM will at most
-     * try to read 4 bytes (uint32_t). FIXME No, only reads 1 byte at a time.
+     * try to read 4 bytes (uint32_t).
      * @return A pointer to the data to the data.
      */
     typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
@@ -195,7 +195,7 @@ extern "C" {
 
 
     // ======================================
-    // =  GENERAL VM FUNCTION DEFNINITIONS  =
+    // =  GENERAL VM FUNCTION DEFINITIONS   =
     // ======================================
 
 
@@ -231,7 +231,7 @@ extern "C" {
      * @param[in] bcode_size The size (in bytes) of the bytecode.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t bcode_size);
+    int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
 
     /**
      * @brief Sets the error notifier.

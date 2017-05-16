@@ -47,6 +47,13 @@ int bbztype_cmp(const bbzobj_t* a,
       if(x > y) return  1;
       return 0;
    }
+   if(bbztype_isuserdata(*a) && bbztype_isuserdata(*b)) {
+      int x = (int)a->u.value;
+      int y = (int)b->u.value;
+      if(x < y) return -1;
+      if(x > y) return  1;
+      return 0;
+   }
    /* Other cases are TODO */
    return 0;
 }
