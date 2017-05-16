@@ -16,6 +16,7 @@
 FILE* fbcode;
 uint16_t fsize;
 uint8_t buf[16];
+bbzvm_error last_error;
 
 /**
  * @brief Fetches bytecode from a FILE.
@@ -116,6 +117,24 @@ void bbzheap_print(bbzheap_t* h) {
 }
 
 /**
+ * @brief Sets the error code.
+ * @param[in] errcode The error type.
+ */
+void set_last_error(bbzvm_error errcode) {
+    last_error = errcode;
+}
+
+/**
+ * @brief Gets and clears the error code.
+ * @return The error type.
+ */
+bbzvm_error get_last_error() {
+    bbzvm_error e = last_error;
+    last_error = BBZVM_ERROR_NONE;
+    return e;
+}
+
+/**
  * @brief Resets the VM's state and error.
  * @param[in,out] vm The VM.
  */
@@ -148,6 +167,9 @@ TEST(vm) {
     ASSERT_EQUAL(vm->state, BBZVM_STATE_NOCODE);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(vm->robot, robot);
+
+    // Also set the error notifier.
+    bbzvm_set_error_notifier(vm, &set_last_error);
 
     // ------------------------
     // - Test bbzvm_set_bcode -
@@ -376,6 +398,7 @@ TEST(vm) {
     // 16) Perform some basic operations when stack is empty
     {
         REQUIRE(bbzvm_stack_size(vm) == 0);
+        ASSERT_EQUAL(get_last_error(), BBZVM_ERROR_NONE);
 
         const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
         bbzvm_instr failing_instr[] = {
@@ -400,6 +423,7 @@ TEST(vm) {
             bbzvm_reset_state(vm);
             curr_instr = failing_instr[i++];
             oldPc = vm->pc;
+            ASSERT_EQUAL(get_last_error(), BBZVM_ERROR_STACK);
         }
     }
 

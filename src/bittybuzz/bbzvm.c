@@ -37,6 +37,7 @@ void bbzvm_construct(bbzvm_t* vm, uint16_t robot) {
     vm->pc = 0;
     vm->state = BBZVM_STATE_NOCODE;
     vm->error = BBZVM_ERROR_NONE;
+    vm->error_notifier_fun = NULL;
 
     // Setup the heap
     bbzheap_clear(&vm->heap);
@@ -77,8 +78,13 @@ void bbzvm_destruct(bbzvm_t* vm) {
 /****************************************/
 
 void bbzvm_seterror(bbzvm_t* vm, bbzvm_error errcode) {
+    // Set the error
     vm->state = BBZVM_STATE_ERROR;
     vm->error = errcode;
+    // Call the user's notifier function.
+    if (vm->error_notifier_fun) {
+        (*vm->error_notifier_fun)(errcode);
+    }
 }
 
 /****************************************/

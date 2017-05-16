@@ -113,6 +113,17 @@ extern "C" {
     typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
 
     /**
+     * @brief Type for the pointer to a function that is called whenever the
+     * VM meets an error.
+     * @details This function may perform operations based on the type of the
+     * errors that occur. Typically, this involves notifying the outside world
+     * that an error has occurred (such as stopping the actuators and sending a
+     * signal), or handling the error manually.
+     * @param[in] errcode The type of the error that occurred.
+     */
+    typedef void (*bbzvm_error_notifier_fun)(bbzvm_error errcode);
+
+    /**
      * @brief The BittyBuzz Virtual Machine.
      * 
      * @details Responsibilities:
@@ -167,6 +178,8 @@ extern "C" {
         bbzvm_state state;
         /** @brief Current VM error */
         bbzvm_error error;
+        /** @brief Error notifier. */
+        bbzvm_error_notifier_fun error_notifier_fun;
         /* Current VM error message */
         // TODO
         /** @brief Robot id */
@@ -219,6 +232,17 @@ extern "C" {
      * @return 0 if everything OK, a non-zero value in case of error
      */
     int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint32_t bcode_size);
+
+    /**
+     * @brief Sets the error notifier.
+     * @see bbzvm_error_notifier_fun
+     * @param[in,out] vm The VM.
+     * @param[in]
+     */
+     __attribute__((always_inline)) inline
+    void bbzvm_set_error_notifier(bbzvm_t* vm, bbzvm_error_notifier_fun error_notifier_fun) {
+        vm->error_notifier_fun = error_notifier_fun;
+    }
 
     /**
      * @brief Processes the input message queue.
