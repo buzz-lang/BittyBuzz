@@ -5,14 +5,14 @@
 extern "C" {
 #endif // __cplusplus
 
-typedef struct {
+typedef struct __attribute__((packed)) {
    bbzobj_t key;
    bbzobj_t value;
    uint8_t timestamp;
    uint8_t robot;
 } bbzvstig_elem_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
    bbzvstig_elem_t* data;
    uint8_t capacity;
    uint8_t size;

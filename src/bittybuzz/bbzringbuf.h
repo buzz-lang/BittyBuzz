@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-typedef struct {
+typedef struct __attribute__((packed)) {
    uint8_t* buffer;    // pointer to linear buffer
    uint8_t  elsize;    // size of individual element
    uint8_t  capacity;  // buffer capacity
