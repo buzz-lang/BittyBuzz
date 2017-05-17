@@ -95,7 +95,7 @@ void bbzheap_print(bbzheap_t* h) {
                printf(" %" PRIu16, bbzheap_obj_at(h, i)->t.value);
                break;
             case BBZTYPE_USERDATA:
-               printf(" %" PRIu16, bbzheap_obj_at(h, i)->u.value);
+               printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(h, i)->u.value);
                break;
          }
          printf("\n");
