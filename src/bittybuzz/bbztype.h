@@ -19,47 +19,47 @@ extern "C" {
 #define BBZTYPE_USERDATA 6
 #define BBZTYPE_NCLOSURE 7
 
-/*
- * Nil type
+/**
+ * @brief Nil type
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
 } bbznil_t;
 
-/*
- * 16-bit signed integer
+/**
+ * @brief 16-bit signed integer
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
    int16_t value;
 } bbzint_t;
 
-/*
- * Float
+/**
+ * @brief Float
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
    bbzfloat value;
 } bbzfloat_t;
 
-/*
- * String
+/**
+ * @brief String
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
    uint16_t value; /* The string id */
 } bbzstring_t;
 
-/*
- * Table
+/**
+ * @brief Table
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
    uint16_t value; /* The index of the first segment in the heap */
 } bbztable_t;
 
-/*
- * Dynamic Array
+/**
+ * @brief Dynamic Array
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;  /* 3rd bit: 1 if is dynamic array,
@@ -67,8 +67,8 @@ typedef struct __attribute__((packed)) {
    uint16_t value; /* The index of the first segment in the heap */
 } bbzdarray_t;
 
-/*
- * Closure
+/**
+ * @brief Closure
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata; /* contains 'native' flag as 7th topmost bit */
@@ -79,16 +79,16 @@ typedef struct __attribute__((packed)) {
    } value;
 } bbzclosure_t;
 
-/*
- * User data
+/**
+ * @brief User data
  */
 typedef struct __attribute__((packed)) {
    uint8_t mdata;
    void* value;
 } bbzuserdata_t;
 
-/*
- * A handle for a object
+/**
+ * @brief A handle for a object
  */
 typedef union __attribute__((packed)) {
    struct {
@@ -106,8 +106,8 @@ typedef union __attribute__((packed)) {
    bbzuserdata_t u;  /* as user data */
 } bbzobj_t;
 
-/*
- * Compares two objects.
+/**
+ * @brief Compares two objects.
  * @param a The first object to compare.
  * @param b The second object to compare.
  * @return -1 if a<b, 0 if a==b, 1 if a>b
@@ -115,70 +115,70 @@ typedef union __attribute__((packed)) {
 int bbztype_cmp(const bbzobj_t* a,
                 const bbzobj_t* b);
 
-/*
- * Returns the type of an object.
+/**
+ * @brief Returns the type of an object.
  * @param obj The object.
  */
 #define bbztype(obj) ((obj).o.mdata >> 5)
 
-/*
- * Casts an object into a different type.
+/**
+ * @brief Casts an object into a different type.
  * The cast is done without checking type compatibility.
  * @param obj  The object.
  * @param type The type.
  */
 #define bbztype_cast(obj, type) (obj).o.mdata = (((obj).o.mdata & 0x1F) | (type << 5))
 
-/*
- * Returns 1 if an object is nil, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is nil, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isnil(obj) (bbztype(obj) == BBZTYPE_NIL)
 
-/*
- * Returns 1 if an object is int, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is int, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isint(obj) (bbztype(obj) == BBZTYPE_INT)
 
-/*
- * Returns 1 if an object is float, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is float, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isfloat(obj) (bbztype(obj) == BBZTYPE_FLOAT)
 
-/*
- * Returns 1 if an object is string, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is string, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isstring(obj) (bbztype(obj) == BBZTYPE_STRING)
 
-/*
- * Returns 1 if an object is table, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is table, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_istable(obj) (bbztype(obj) == BBZTYPE_TABLE)
 
-/*
- * Returns 1 if an object is dynamic array, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is dynamic array, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).o.mdata & 0x04))
 
-/*
- * Returns 1 if an object is closure, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is closure, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isclosure(obj) ((bbztype(obj) & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)
 
-/*
- * Returns 1 if an object is userdata, 0 otherwise.
+/**
+ * @brief Returns 1 if an object is userdata, 0 otherwise.
  * @param obj The object.
  */
 #define bbztype_isuserdata(obj) (bbztype(obj) == BBZTYPE_USERDATA)
 
-/*
- * Returns 1 if a closure is native, 0 otherwise.
+/**
+ * @brief Returns 1 if a closure is native, 0 otherwise.
  * @param obj The object.
  */
 #define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)

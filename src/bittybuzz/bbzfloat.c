@@ -3,8 +3,8 @@
 /****************************************/
 /****************************************/
 
-/*
- * The sign bit is 0 for plus, 1 for minus.
+/**
+ * @brief The sign bit is 0 for plus, 1 for minus.
  *
  * The other bits work as follows:
  *

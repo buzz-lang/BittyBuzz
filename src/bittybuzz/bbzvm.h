@@ -1,3 +1,9 @@
+/**
+ * @file bbzvm.h
+ * @brief Definition of the BittyBuzz Virtual Machine,
+ *  as well as of other types required by it.
+ */
+
 #ifndef BBZVM_H
 #define BBZVM_H
 
@@ -929,8 +935,8 @@ extern "C" {
             bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
                                          bbzvm_stack_at(vm, idx));      \
             if (bbztype(*o) != tpe                                      \
-    			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)        \
-    			&& !bbztype_isclosure(*o)) {                       \
+    			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
+    			&& !bbztype_isclosure(*o)) {                            \
                 bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
                 return BBZVM_STATE_ERROR;                               \
             }                                                           \

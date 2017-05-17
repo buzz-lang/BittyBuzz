@@ -1,8 +1,8 @@
 #ifndef TESTING_CONFIG_H
 #define TESTING_CONFIG_H
 
-/*
- * Whether we are using automated tests.
+/**
+ * @brief Whether we are using automated tests.
  */
 #cmakedefine BBZ_USE_AUTOMATED_TESTS
 
