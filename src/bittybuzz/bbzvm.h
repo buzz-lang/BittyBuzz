@@ -102,6 +102,11 @@ extern "C" {
     } bbzvm_instr;
 
     /**
+     * @brief Type for the ID of a robot.
+     */
+    typedef uint16_t bbzvm_rid_t;
+
+    /**
      * @brief Type for the pointer to a function which fetches bytecode data.
      * @warning The function provider should take endianness
      * into account if copying byte-by-byte.
@@ -182,8 +187,8 @@ extern "C" {
         bbzvm_error_notifier_fun error_notifier_fun;
         /* Current VM error message */
         // TODO
-        /** @brief Robot id */
-        uint16_t robot;
+        /** @brief This robot's id */
+        bbzvm_rid_t robot;
         /* Random number generator state */
         // TODO
         /* Random number generator index */
@@ -205,7 +210,7 @@ extern "C" {
      * @param robot The robot id.
      * @return The VM.
      */
-    void bbzvm_construct(bbzvm_t* vm, uint16_t robot);
+    void bbzvm_construct(bbzvm_t* vm, bbzvm_rid_t robot);
 
     /**
      * @brief Destroys the VM.
