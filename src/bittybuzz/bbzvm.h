@@ -290,7 +290,7 @@ extern "C" {
      * @param[in,out] vm The VM data.
      * @return The updated state of the VM.
      */
-     __attribute((always_inline)) inline
+     __attribute__((always_inline)) inline
     bbzvm_state bbzvm_done(bbzvm_t* vm) {
         (vm)->state = BBZVM_STATE_DONE;
         return BBZVM_STATE_DONE;
