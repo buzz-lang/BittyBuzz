@@ -93,7 +93,6 @@ typedef uint16_t bbzheap_idx_t;
 /**
  * @brief Clears the heap.
  * Sets the entire heap to zero.
- * @param[in,out] h The heap.
  */
 void bbzheap_clear();
 
