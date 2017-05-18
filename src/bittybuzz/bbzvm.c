@@ -140,7 +140,7 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t
  * @brief Runs the VM's garbage collector.
  * @param[in|out] vm The VM.
  */
-__attribute__((always_inline)) inline
+__attribute__((always_inline)) static inline
 uint8_t bbzvm_gc(bbzvm_t* vm) {
     // TODO Take some of these element out of the heap.
     if (BBZSTACK_SIZE - bbzvm_stack_size(vm) < 6) return 0;
@@ -161,7 +161,7 @@ uint8_t bbzvm_gc(bbzvm_t* vm) {
  * @brief Executes a single Buzz instruction.
  * @param[in,out] vm The VM.
  */
-__attribute__((always_inline)) inline
+__attribute__((always_inline)) static inline
 bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
     uint16_t instrOffset = vm->pc; // Save PC in case of error or DONE.
 

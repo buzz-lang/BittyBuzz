@@ -255,7 +255,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @param[in] error_notifier_fun Function recieving the error notification.
      */
-     __attribute__((always_inline)) inline
+     __attribute__((always_inline)) static inline
     void bbzvm_set_error_notifier(bbzvm_t* vm, bbzvm_error_notifier_fun error_notifier_fun) {
         vm->error_notifier_fun = error_notifier_fun;
     }
@@ -301,7 +301,7 @@ extern "C" {
      * @param[in,out] vm The VM data.
      * @return The updated state of the VM.
      */
-     __attribute__((always_inline)) inline
+     __attribute__((always_inline)) static inline
     bbzvm_state bbzvm_done(bbzvm_t* vm) {
         (vm)->state = BBZVM_STATE_DONE;
         return BBZVM_STATE_DONE;
@@ -669,7 +669,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated VM state.
      */
-     __attribute__((always_inline)) inline
+     __attribute__((always_inline)) static inline
     bbzvm_state bbzvm_callc(bbzvm_t* vm) {
         return bbzvm_call(vm, 0);
     }
@@ -696,7 +696,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated VM state.
      */
-     __attribute__((always_inline)) inline
+     __attribute__((always_inline)) static inline
     bbzvm_state bbzvm_calls(bbzvm_t* vm) {
         return bbzvm_call(vm, 1);
     }
@@ -760,7 +760,7 @@ extern "C" {
      * @param[in] addr The closure address.
      * @return The VM state.
      */
-    __attribute__((always_inline)) inline
+    __attribute__((always_inline)) static inline
     bbzvm_state bbzvm_pushcn(bbzvm_t* vm, int32_t addr) {
         return bbzvm_pushc(vm, addr, 1);
     }
@@ -779,7 +779,7 @@ extern "C" {
      * @param[in] cid The closure id.
      * @return The updated VM state.
      */
-    __attribute__((always_inline)) inline
+    __attribute__((always_inline)) static inline
     bbzvm_state bbzvm_pushcc(bbzvm_t* vm, int32_t cid) {
         return bbzvm_pushc(vm, cid, 0);
     }
@@ -880,7 +880,7 @@ extern "C" {
      * @param[in] idx Index of the object on the VM's heap.
      * @return A pointer to the fetched object.
      */
-    __attribute__((always_inline)) inline
+    __attribute__((always_inline)) static inline
     bbzobj_t* bbzvm_obj_at(const bbzvm_t* vm, bbzheap_idx_t idx) {
         return bbzheap_obj_at(&vm->heap, idx);
     }
@@ -891,7 +891,7 @@ extern "C" {
      * @param[in] vm The VM.
      * @return The size of the VM's current stack.
      */
-     __attribute__((always_inline)) inline
+     __attribute__((always_inline)) static inline
     uint16_t bbzvm_stack_size(const bbzvm_t* vm) {
         return vm->stackptr + 1;
     }
@@ -904,7 +904,7 @@ extern "C" {
      * @param[in] idx The stack index.
      * @return The heap index of the element at given stack index.
      */
-    __attribute__((always_inline)) inline
+    __attribute__((always_inline)) static inline
     bbzheap_idx_t bbzvm_stack_at(bbzvm_t* vm, uint16_t idx) {
         return vm->stack[vm->stackptr - idx];
     }

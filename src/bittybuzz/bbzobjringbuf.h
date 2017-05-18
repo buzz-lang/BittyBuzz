@@ -24,7 +24,7 @@ extern "C" {
  * @brief Erases all the elements in the ring buffer.
  * @param[in,out] rb The ring buffer.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_clear(bbzobjringbuf_t* rb) { bbzringbuf_clear(rb); }
 
 /**
@@ -33,7 +33,7 @@ void bbzobjringbuf_clear(bbzobjringbuf_t* rb) { bbzringbuf_clear(rb); }
  * @param[in] buf The pointer to the linear buffer.
  * @param[in] cap The capacity of the ring buffer.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_construct(bbzobjringbuf_t* rb, bbzobj_t* buf, uint8_t cap) { bbzringbuf_construct(rb, (uint8_t*)buf, sizeof(bbzheap_idx_t), cap); }
 
 /**
@@ -41,7 +41,7 @@ void bbzobjringbuf_construct(bbzobjringbuf_t* rb, bbzobj_t* buf, uint8_t cap) { 
  * The capacity is the maximum number of elements the ring buffer can store.
  * @param[in] rb The ring buffer.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 uint8_t bbzobjringbuf_capacity(const bbzobjringbuf_t* rb) { return bbzringbuf_capacity(rb); }
 
 /**
@@ -50,7 +50,7 @@ uint8_t bbzobjringbuf_capacity(const bbzobjringbuf_t* rb) { return bbzringbuf_ca
  * @param[in] rb The ring buffer.
  * @return The number of elements inside the ring buffer.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 uint8_t bbzobjringbuf_size(const bbzobjringbuf_t* rb) { return bbzringbuf_size(rb); }
 
 /**
@@ -58,7 +58,7 @@ uint8_t bbzobjringbuf_size(const bbzobjringbuf_t* rb) { return bbzringbuf_size(r
  * @param[in] rb The ring buffer.
  * @return 1 if the buffer is full, 0 otherwise.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 uint8_t bbzobjringbuf_full(const bbzobjringbuf_t* rb) { return bbzringbuf_full(rb); }
 
 /**
@@ -69,7 +69,7 @@ uint8_t bbzobjringbuf_full(const bbzobjringbuf_t* rb) { return bbzringbuf_full(r
  * @param[in] idx The index.
  * @return A pointer to the object starting at given index.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 bbzobj_t* bbzobjringbuf_at(const bbzobjringbuf_t* rb, uint8_t idx) { return (bbzobj_t*)bbzringbuf_at(rb, idx); }
 
 /**
@@ -79,7 +79,7 @@ bbzobj_t* bbzobjringbuf_at(const bbzobjringbuf_t* rb, uint8_t idx) { return (bbz
  * @param[in] idx The internal index.
  * @return A pointer to the object starting at given internal index.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 bbzobj_t* bbzobjringbuf_rawat(const bbzobjringbuf_t* rb, uint8_t idx) { return (bbzobj_t*)bbzringbuf_rawat(rb, idx); }
 
 /**
@@ -88,14 +88,14 @@ bbzobj_t* bbzobjringbuf_rawat(const bbzobjringbuf_t* rb, uint8_t idx) { return (
  * @param[in,out] rb  The ring buffer.
  * @return The index of the newly created slot.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 uint8_t bbzobjringbuf_makeslot(bbzobjringbuf_t* rb) { return bbzringbuf_makeslot(rb); }
 
 /**
  * @brief Appends a nil object to the ring buffer.
  * @param[in,out] rb  The ring buffer.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_nil(bbzobjringbuf_t* rb) { uint8_t slot = bbzobjringbuf_makeslot(rb); /* TODO */ }
 
 /**
@@ -103,7 +103,7 @@ void bbzobjringbuf_append_nil(bbzobjringbuf_t* rb) { uint8_t slot = bbzobjringbu
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_int(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); bbztype_cast(*bbzobjringbuf_rawat(rb, slot), BBZTYPE_INT); bbzobjringbuf_rawat(rb, slot)->i.value = val; }
 
 /**
@@ -111,7 +111,7 @@ void bbzobjringbuf_append_int(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t 
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_float(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); /* TODO */ }
 
 /**
@@ -119,7 +119,7 @@ void bbzobjringbuf_append_float(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_string(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); /* TODO */ }
 
 /**
@@ -127,7 +127,7 @@ void bbzobjringbuf_append_string(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_table(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); /* TODO */ }
 
 /**
@@ -135,7 +135,7 @@ void bbzobjringbuf_append_table(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_closure(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); /* TODO */ }
 
 /**
@@ -143,7 +143,7 @@ void bbzobjringbuf_append_closure(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint
  * @param[in,out] rb  The ring buffer.
  * @param[in] val The value.
  */
- __attribute__((always_inline)) inline
+ __attribute__((always_inline)) static inline
 void bbzobjringbuf_append_userdata(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); /* TODO */ }
 
 #ifdef __cplusplus
