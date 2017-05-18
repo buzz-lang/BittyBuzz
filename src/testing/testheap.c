@@ -115,15 +115,15 @@ int main() {
    for(int i = 0; i < 5; ++i) {
       for(int j = 0; j < 2; ++j) {
          printf("Adding (#%d, #%d) to the table\n", i, (i+1));
-         if(!bbztable_set(&vm->heap, 7, i, (i+1)))
+         if(!bbztable_set(7, i, (i+1)))
             printf("Error inserting (#%d, #%d) in table\n", i, (i+1));
          else
             bbzheap_print();
       }
    }
-   int sz = bbztable_size(&vm->heap, 7);
+   int sz = bbztable_size(7);
    printf("Table #7 size = %d\n", sz);
-   sz = bbztable_size(&vm->heap, 8);
+   sz = bbztable_size(8);
    printf("Table #8 size = %d\n", sz);
    printf("Garbage collection\n");
    uint16_t stack3[2] = { 7, 8 };
@@ -136,7 +136,7 @@ int main() {
    }
    for(int i = 0; i < 4; ++i) {
       printf("Adding (#%d, #%d) to the table\n", i, o);
-      if(!bbztable_set(&vm->heap, 7, i, o))
+      if(!bbztable_set(7, i, o))
          printf("Error inserting (#%d, #%d) in table\n", i, o);
       else
          bbzheap_print();

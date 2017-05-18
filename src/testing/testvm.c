@@ -212,7 +212,7 @@ TEST(bbzvm) {
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(bbzdarray_size(vm->flist), 0);
-    ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 1);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 1);
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------
@@ -507,7 +507,7 @@ TEST(bbzvm) {
     // A) Set the bytecode in the VM.
     bbzvm_set_bcode(&testBcode, fsize);
 
-    ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 5);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 5);
 
     // B) Register C closure
     uint16_t funcid = bbzvm_function_register(printIntVal);

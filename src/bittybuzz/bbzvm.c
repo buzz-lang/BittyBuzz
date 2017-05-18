@@ -114,7 +114,7 @@ int bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size) 
     	bbzheap_obj_alloc(BBZTYPE_INT, &o2);
     	bbzvm_obj_at(o)->s.value = i;
     	bbzvm_obj_at(o2)->i.value = i;
-    	bbztable_set(&vm->heap, vm->gsyms, o, o2);
+    	bbztable_set(vm->gsyms, o, o2);
     }
     vm->pc = charCount + sizeof(uint16_t);
 
@@ -1038,7 +1038,7 @@ bbzvm_state bbzvm_tput() {
         // TODO Clone the object and add the table to its activation record.
     }
     else {
-        bbztable_set(&vm->heap, t, k, v);
+        bbztable_set(t, k, v);
     }
 
     return BBZVM_STATE_READY;
@@ -1058,7 +1058,7 @@ bbzvm_state bbzvm_tget() {
 
     // Get the value and push it
     bbzheap_idx_t idx;
-    if(bbztable_get(&vm->heap, t, k, &idx)){
+    if(bbztable_get(t, k, &idx)){
         bbzvm_push(idx);
     }
     else {
@@ -1080,7 +1080,7 @@ bbzvm_state bbzvm_gload() {
 
     // Get and push the associated value
     bbzheap_idx_t o;
-    if(bbztable_get(&vm->heap, vm->gsyms, str, &o)) {
+    if(bbztable_get(vm->gsyms, str, &o)) {
         bbzvm_push(o);
     }
     else {
@@ -1102,7 +1102,7 @@ bbzvm_state bbzvm_gstore() {
     bbzvm_pop();
 
     // Store the value
-    bbztable_set(&vm->heap, vm->gsyms, str, o);
+    bbztable_set(vm->gsyms, str, o);
     return BBZVM_STATE_READY;
 }
 
