@@ -7,12 +7,16 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Buffer implemented to seamlessly loop on itself,
+ * allowing for O(1) push and pop for queues.
+ */
 typedef struct __attribute__((packed)) {
-   uint8_t* buffer;    // pointer to linear buffer
-   uint8_t  elsize;    // size of individual element
-   uint8_t  capacity;  // buffer capacity
-   uint8_t  datastart; // data start index
-   uint8_t  dataend;   // data end index
+   uint8_t* buffer;    /**< @brief Pointer to linear buffer */
+   uint8_t  elsize;    /**< @brief Size of individual element */
+   uint8_t  capacity;  /**< @brief Buffer capacity */
+   uint8_t  datastart; /**< @brief Data start index */
+   uint8_t  dataend;   /**< @brief Data end index */
 } bbzringbuf_t;
 
 /**

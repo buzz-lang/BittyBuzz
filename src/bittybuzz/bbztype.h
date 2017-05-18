@@ -23,22 +23,22 @@ extern "C" {
  * @brief Nil type
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
+   uint8_t mdata; /**< @brief Object metadata. */
 } bbznil_t;
 
 /**
  * @brief 16-bit signed integer
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
-   int16_t value;
+   uint8_t mdata; /**< @brief Object metadata. */
+   int16_t value; /**< @brief Integer's value. */
 } bbzint_t;
 
 /**
  * @brief Float
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
+   uint8_t mdata; /**< @brief Object metadata. */
    bbzfloat value;
 } bbzfloat_t;
 
@@ -46,36 +46,54 @@ typedef struct __attribute__((packed)) {
  * @brief String
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
-   uint16_t value; /* The string id */
+   uint8_t mdata;  /**< @brief Object metadata. */
+   uint16_t value; /**< @brief The string id */
 } bbzstring_t;
 
 /**
  * @brief Table
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
-   uint16_t value; /* The index of the first segment in the heap */
+   uint8_t mdata;  /**< @brief Object metadata. */
+   uint16_t value; /**< @brief The index of the first segment in the heap */
 } bbztable_t;
 
 /**
  * @brief Dynamic Array
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;  /* 3rd bit: 1 if is dynamic array,
-                      2nd bit: 1 if elements need invalidation on array destroy */
-   uint16_t value; /* The index of the first segment in the heap */
+   /**
+    * @brief Object metadata.
+    * @details 3rd bit: 1 if is dynamic array,
+    * 2nd bit: 1 if elements need invalidation on array destroy
+    */
+   uint8_t mdata;
+   /**
+    * @brief Index of the first segment in the heap.
+    */
+   uint16_t value;
 } bbzdarray_t;
 
 /**
  * @brief Closure
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /* contains 'native' flag as 7th topmost bit */
+   /**
+    * @brief Object metadata.
+    * @details 7th topmost bit: 'native' flag.
+    */
+   uint8_t mdata;
    struct {
-      int8_t ref; /* jump address or function id */
-      uint8_t actrec; /* position in the heap of the activation record array.
-                         A value of 0xFF means it uses the default activation record of the VM */
+      /**
+       * @brief Location of the closure.
+       * @details Jump address (C closure) or function id (native closure).
+       */
+      int8_t ref;
+      /**
+       * @brief Position in the heap of the activation record array.
+       * @details A value of 0xFF means it uses the default activation record of the VM.
+       */
+      uint8_t actrec;
    } value;
 } bbzclosure_t;
 
@@ -83,8 +101,8 @@ typedef struct __attribute__((packed)) {
  * @brief User data
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;
-   void* value;
+   uint8_t mdata; /**< @brief Object metadata. */
+   void* value;   /**< @brief User value. */
 } bbzuserdata_t;
 
 /**
@@ -92,18 +110,21 @@ typedef struct __attribute__((packed)) {
  */
 typedef union __attribute__((packed)) {
    struct {
-      uint8_t mdata; /* object metadata
-                        8th,7th,6th bit for type
-                        5th         bit for valid in heap
-                        4th         bit for garbage collection */
-   }             o;  /* as a generic object */
-   bbznil_t      n;  /* as nil */
-   bbzint_t      i;  /* as integer */
-   bbzfloat_t    f;  /* as floating-point */
-   bbzstring_t   s;  /* as string */
-   bbztable_t    t;  /* as table */
-   bbzclosure_t  c;  /* as closure */
-   bbzuserdata_t u;  /* as user data */
+      /**
+       * @brief Object metadata.
+       * @details 8th,7th,6th bit for type
+       * 5th bit for valid in heap
+       * 4th bit for garbage collection
+       */
+      uint8_t mdata; 
+   }             o; /**< @brief Generic object */
+   bbznil_t      n; /**< @brief Nil object */
+   bbzint_t      i; /**< @brief Integer object */
+   bbzfloat_t    f; /**< @brief Floating-point object */
+   bbzstring_t   s; /**< @brief String object */
+   bbztable_t    t; /**< @brief Table object */
+   bbzclosure_t  c; /**< @brief Closure object */
+   bbzuserdata_t u; /**< @brief Data object */
 } bbzobj_t;
 
 /**

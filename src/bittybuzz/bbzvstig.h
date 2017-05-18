@@ -5,17 +5,23 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Virtual stigmergy element.
+ */
 typedef struct __attribute__((packed)) {
-   bbzobj_t key;
-   bbzobj_t value;
-   uint8_t timestamp;
-   uint8_t robot;
+   bbzobj_t key;      /**< @brief Element's key. */
+   bbzobj_t value;    /**< @brief Element's current value. */
+   uint8_t timestamp; /**< @brief Timestamp (Lamport clock) since last update of the value. */
+   uint8_t robot;     /**< @brief Robot ID. */
 } bbzvstig_elem_t;
 
+/**
+ * @brief Virtual stigmergy.
+ */
 typedef struct __attribute__((packed)) {
-   bbzvstig_elem_t* data;
-   uint8_t capacity;
-   uint8_t size;
+   bbzvstig_elem_t* data; /**< @brief Stigmergy elements. */
+   uint8_t capacity;      /**< @brief Allocated stigmergy element capacity. */
+   uint8_t size;          /**< @brief Number of stigmergy elements. */
 } bbzvstig_t;
 
 /**
