@@ -202,11 +202,17 @@ extern "C" {
     } bbzvm_t;
 
     /**
+     * @brief Pointer to the VM.
+     * @note The user is responsible for creating and setting this value.
+     */
+    extern bbzvm_t* vm;
+
+    /**
      * @brief Type for the pointer to a C-closure.
      * @param[in] vm The VM.
      * @return The updated VM state.
      */
-    typedef int (*bbzvm_funp)(bbzvm_t* vm);
+    typedef int (*bbzvm_funp)();
 
 
 
@@ -221,13 +227,13 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @param[in] robot The robot id.
      */
-    void bbzvm_construct(bbzvm_t* vm, bbzvm_rid_t robot);
+    void bbzvm_construct(bbzvm_rid_t robot);
 
     /**
      * @brief Destroys the VM.
      * @param[in,out] vm The VM.
      */
-    void bbzvm_destruct(bbzvm_t* vm);
+    void bbzvm_destruct();
 
     /**
      * @brief Sets the error state of the VM.
@@ -235,7 +241,7 @@ extern "C" {
      * @param[in] errcode The code of the error.
      * @see bbzvm_error
      */
-    void bbzvm_seterror(bbzvm_t* vm, bbzvm_error errcode);
+    void bbzvm_seterror(bbzvm_error errcode);
 
     /**
      * @brief Sets the bytecode function in the VM.
@@ -247,7 +253,7 @@ extern "C" {
      * @param[in] bcode_size The size (in bytes) of the bytecode.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
+    int bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
 
     /**
      * @brief Sets the error notifier.
@@ -256,7 +262,7 @@ extern "C" {
      * @param[in] error_notifier_fun Function recieving the error notification.
      */
      __attribute__((always_inline)) static inline
-    void bbzvm_set_error_notifier(bbzvm_t* vm, bbzvm_error_notifier_fun error_notifier_fun) {
+    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) {
         vm->error_notifier_fun = error_notifier_fun;
     }
 
@@ -264,13 +270,13 @@ extern "C" {
      * @brief Processes the input message queue.
      * @param[in,out] vm The VM.
      */
-    void bbzvm_process_inmsgs(bbzvm_t* vm);
+    void bbzvm_process_inmsgs();
 
     /**
      * @brief Processes the output message queue.
      * @param[in,out] vm The VM.
      */
-    void bbzvm_process_outmsgs(bbzvm_t* vm);
+    void bbzvm_process_outmsgs();
 
     /**
      * @brief Executes the next step in the bytecode, if possible.
@@ -279,14 +285,14 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_step(bbzvm_t* vm);
+    bbzvm_state bbzvm_step();
 
     /**
      * @brief Executes the script up to completion.
      * @param[in,out] vm The VM.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_execute_script(bbzvm_t* vm);
+    bbzvm_state bbzvm_execute_script();
     
 
     // ======================================
@@ -302,8 +308,8 @@ extern "C" {
      * @return The updated state of the VM.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_done(bbzvm_t* vm) {
-        (vm)->state = BBZVM_STATE_DONE;
+    bbzvm_state bbzvm_done() {
+        vm->state = BBZVM_STATE_DONE;
         return BBZVM_STATE_DONE;
     }
 
@@ -313,7 +319,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushnil(bbzvm_t* vm);
+    bbzvm_state bbzvm_pushnil();
 
     /**
      * @brief Duplicates the current stack top.
@@ -321,7 +327,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_dup(bbzvm_t* vm);
+    bbzvm_state bbzvm_dup();
 
     /**
      * @brief Pops the stack.
@@ -330,7 +336,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pop(bbzvm_t* vm);
+    bbzvm_state bbzvm_pop();
 
     /**
      * @brief Returns from a closure without setting a return value.
@@ -345,7 +351,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_ret0(bbzvm_t* vm);
+    bbzvm_state bbzvm_ret0();
 
     /**
      * @brief Returns from a closure setting a return value.
@@ -362,7 +368,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_ret1(bbzvm_t* vm);
+    bbzvm_state bbzvm_ret1();
 
     /**
      * @brief Performs an addition.
@@ -372,7 +378,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_add(bbzvm_t* vm);
+    bbzvm_state bbzvm_add();
 
     /**
      * @brief Performs an subtraction.
@@ -382,7 +388,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_sub(bbzvm_t* vm);
+    bbzvm_state bbzvm_sub();
 
     /**
      * @brief Performs an multiplication.
@@ -392,7 +398,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_mul(bbzvm_t* vm);
+    bbzvm_state bbzvm_mul();
 
     /**
      * @brief Performs an division.
@@ -402,7 +408,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_div(bbzvm_t* vm);
+    bbzvm_state bbzvm_div();
 
     /**
      * @brief Performs an subtraction.
@@ -412,7 +418,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_mod(bbzvm_t* vm);
+    bbzvm_state bbzvm_mod();
 
     /**
      * @brief Performs an subtraction.
@@ -422,7 +428,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_pow(bbzvm_t* vm);
+    bbzvm_state bbzvm_pow();
 
     /**
      * @brief Performs an subtraction.
@@ -432,7 +438,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_unm(bbzvm_t* vm);
+    bbzvm_state bbzvm_unm();
 
     /**
      * @brief Performs an subtraction.
@@ -442,7 +448,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_and(bbzvm_t* vm);
+    bbzvm_state bbzvm_and();
 
     /**
      * @brief Performs an subtraction.
@@ -452,7 +458,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_or(bbzvm_t* vm);
+    bbzvm_state bbzvm_or();
 
     /**
      * @brief Performs an subtraction.
@@ -462,7 +468,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_not(bbzvm_t* vm);
+    bbzvm_state bbzvm_not();
 
     /**
      * @brief Performs an subtraction.
@@ -472,7 +478,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_eq(bbzvm_t* vm);
+    bbzvm_state bbzvm_eq();
 
     /**
      * @brief Performs an subtraction.
@@ -482,7 +488,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_neq(bbzvm_t* vm);
+    bbzvm_state bbzvm_neq();
 
     /**
      * @brief Performs an subtraction.
@@ -492,7 +498,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_gt(bbzvm_t* vm);
+    bbzvm_state bbzvm_gt();
 
     /**
      * @brief Performs an subtraction.
@@ -502,7 +508,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_gte(bbzvm_t* vm);
+    bbzvm_state bbzvm_gte();
 
     /**
      * @brief Performs an subtraction.
@@ -512,7 +518,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_lt(bbzvm_t* vm);
+    bbzvm_state bbzvm_lt();
 
     /**
      * @brief Performs an subtraction.
@@ -522,7 +528,7 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_lte(bbzvm_t* vm);
+    bbzvm_state bbzvm_lte();
 
     /**
      * @brief Pushes the global variable located at the given stack index.
@@ -530,7 +536,7 @@ extern "C" {
      * @see BBZVM_INSTR_GLOAD
      * @param[in,out] vm The VM.
      */
-    bbzvm_state bbzvm_gload(bbzvm_t* vm);
+    bbzvm_state bbzvm_gload();
 
     /**
      * @brief Stores the object located at the stack top into the a global variable, pops operand.
@@ -538,7 +544,7 @@ extern "C" {
      * @see BBZVM_INSTR_GSTORE
      * @param[in,out] vm The VM.
      */
-    bbzvm_state bbzvm_gstore(bbzvm_t* vm);
+    bbzvm_state bbzvm_gstore();
 
 
     /**
@@ -550,7 +556,7 @@ extern "C" {
      * @see BBZVM_INSTR_PUSHT
      * @param[in,out] vm The VM.
      */
-    bbzvm_state bbzvm_pusht(bbzvm_t* vm);
+    bbzvm_state bbzvm_pusht();
 
     /**
      * @brief Stores a (idx,value) pair in a table.
@@ -567,7 +573,7 @@ extern "C" {
      * @see BBZVM_INSTR_TPUT
      * @param[in,out] vm The VM.
      */
-    bbzvm_state bbzvm_tput(bbzvm_t* vm);
+    bbzvm_state bbzvm_tput();
     
     /**
      * @brief Fetches a (idx,value) pair from a table.
@@ -585,7 +591,7 @@ extern "C" {
      * @see BBZVM_INSTR_TGET
      * @param[in,out] vm The VM.
      */
-    bbzvm_state bbzvm_tget(bbzvm_t* vm);
+    bbzvm_state bbzvm_tget();
 
 
     /**
@@ -601,7 +607,7 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_closure_call(bbzvm_t* vm, uint16_t argc);
+    bbzvm_state bbzvm_closure_call(uint16_t argc);
 
     /**
      * @brief Calls a function defined in Buzz.
@@ -616,7 +622,7 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_function_call(bbzvm_t* vm, bbzheap_idx_t fname, uint32_t argc);
+    bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint32_t argc);
 
     /**
      * @brief Registers a function in the VM.
@@ -624,7 +630,7 @@ extern "C" {
      * @param[in] funp The function pointer to register.
      * @return The function id.
      */
-    uint16_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp);
+    uint16_t bbzvm_function_register(bbzvm_funp funp);
 
     /**
      * @brief Calls a closure.
@@ -645,7 +651,7 @@ extern "C" {
      * @param[in] isswrm 0 for a normal closure, 1 for a swarm closure
      * @return The VM state.
      */
-    bbzvm_state bbzvm_call(bbzvm_t* vm, int isswrm);
+    bbzvm_state bbzvm_call(int isswrm);
 
     /**
      * @brief Calls a normal closure.
@@ -670,8 +676,8 @@ extern "C" {
      * @return The updated VM state.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_callc(bbzvm_t* vm) {
-        return bbzvm_call(vm, 0);
+    bbzvm_state bbzvm_callc() {
+        return bbzvm_call(0);
     }
 
     /**
@@ -697,8 +703,8 @@ extern "C" {
      * @return The updated VM state.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_calls(bbzvm_t* vm) {
-        return bbzvm_call(vm, 1);
+    bbzvm_state bbzvm_calls() {
+        return bbzvm_call(1);
     }
 
     /**
@@ -707,7 +713,7 @@ extern "C" {
      * @param[in] v The variable.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_push(bbzvm_t* vm, bbzheap_idx_t v);
+    bbzvm_state bbzvm_push(bbzheap_idx_t v);
 
     /**
      * @brief Pushes a float value on the stack.
@@ -716,7 +722,7 @@ extern "C" {
      * @param[in] v The value.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushf(bbzvm_t* vm, float v);
+    bbzvm_state bbzvm_pushf(float v);
 
     /**
      * @brief Pushes a 32 bit signed int value on the stack.
@@ -725,7 +731,7 @@ extern "C" {
      * @param[in] v The value.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushi(bbzvm_t* vm, int16_t v);
+    bbzvm_state bbzvm_pushi(int16_t v);
 
     /**
      * @brief Pushes a string on the stack.
@@ -734,7 +740,7 @@ extern "C" {
      * @param[in] strid The string id.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushs(bbzvm_t* vm, uint16_t strid);
+    bbzvm_state bbzvm_pushs(uint16_t strid);
 
     /**
      * @brief Pushes a closure on the stack.
@@ -747,7 +753,7 @@ extern "C" {
      * @param[in] nat 1 if the closure in native, 0 if not
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushc(bbzvm_t* vm, int16_t rfrnc, int16_t nat);
+    bbzvm_state bbzvm_pushc(int16_t rfrnc, int16_t nat);
 
     /**
      * @brief Pushes a native closure on the stack.
@@ -761,8 +767,8 @@ extern "C" {
      * @return The VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcn(bbzvm_t* vm, int32_t addr) {
-        return bbzvm_pushc(vm, addr, 1);
+    bbzvm_state bbzvm_pushcn(int32_t addr) {
+        return bbzvm_pushc(addr, 1);
     }
 
     /**
@@ -780,8 +786,8 @@ extern "C" {
      * @return The updated VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcc(bbzvm_t* vm, int32_t cid) {
-        return bbzvm_pushc(vm, cid, 0);
+    bbzvm_state bbzvm_pushcc(int32_t cid) {
+        return bbzvm_pushc(cid, 0);
     }
 
     /**
@@ -795,7 +801,7 @@ extern "C" {
      * @param[in] addr The closure address.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushl(bbzvm_t* vm, int16_t addr);
+    bbzvm_state bbzvm_pushl(int16_t addr);
 
     /**
      * @brief Pushes a userdata on the stack.
@@ -803,7 +809,7 @@ extern "C" {
      * @param[in,out] v The C pointer to the user data.
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushu(bbzvm_t* vm, void* v);
+    bbzvm_state bbzvm_pushu(void* v);
 
     /**
      * @brief Pushes the local variable located at the given stack index.
@@ -816,7 +822,7 @@ extern "C" {
      * @param[in] idx The index of the local variable to load.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_lload(bbzvm_t* vm, uint16_t idx);
+    bbzvm_state bbzvm_lload(uint16_t idx);
 
     /**
      * @brief Stores the object located at the stack top into the a local variable, pops operand.
@@ -829,7 +835,7 @@ extern "C" {
      * @param[in] idx The local variable index.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_lstore(bbzvm_t* vm, uint16_t idx);
+    bbzvm_state bbzvm_lstore(uint16_t idx);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode offset.
@@ -840,7 +846,7 @@ extern "C" {
      * @param[in] offset The offset to jump to.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jump(bbzvm_t* vm, uint16_t offset);
+    bbzvm_state bbzvm_jump(uint16_t offset);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode
@@ -853,7 +859,7 @@ extern "C" {
      * @param[in] offset The offset to jump to.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jumpz(bbzvm_t* vm, uint16_t offset);
+    bbzvm_state bbzvm_jumpz(uint16_t offset);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode
@@ -866,7 +872,7 @@ extern "C" {
      * @param[in] offset The offset to jump to.
      * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jumpnz(bbzvm_t* vm, uint16_t offset);
+    bbzvm_state bbzvm_jumpnz(uint16_t offset);
 
 
 
@@ -881,7 +887,7 @@ extern "C" {
      * @return A pointer to the fetched object.
      */
     __attribute__((always_inline)) static inline
-    bbzobj_t* bbzvm_obj_at(const bbzvm_t* vm, bbzheap_idx_t idx) {
+    bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) {
         return bbzheap_obj_at(&vm->heap, idx);
     }
 
@@ -892,7 +898,7 @@ extern "C" {
      * @return The size of the VM's current stack.
      */
      __attribute__((always_inline)) static inline
-    uint16_t bbzvm_stack_size(const bbzvm_t* vm) {
+    uint16_t bbzvm_stack_size() {
         return vm->stackptr + 1;
     }
 
@@ -905,7 +911,7 @@ extern "C" {
      * @return The heap index of the element at given stack index.
      */
     __attribute__((always_inline)) static inline
-    bbzheap_idx_t bbzvm_stack_at(bbzvm_t* vm, uint16_t idx) {
+    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) {
         return vm->stack[vm->stackptr - idx];
     }
 
@@ -918,10 +924,10 @@ extern "C" {
      * @param[in,out] vm The VM.
      * @param[in] size The stack index, where 0 is the stack top and >0 goes down the stack.
      */
-    #define bbzvm_stack_assert(vm, size)                                \
-        if (bbzvm_stack_size(vm) < (size)) {                            \
-            bbzvm_seterror(vm, BBZVM_ERROR_STACK);                      \
-            return (vm)->state;                                         \
+    #define bbzvm_stack_assert(size)                                    \
+        if (bbzvm_stack_size() < (size)) {                              \
+            bbzvm_seterror(BBZVM_ERROR_STACK);                          \
+            return vm->state;                                           \
         }
     
     /**
@@ -933,14 +939,14 @@ extern "C" {
      * @param[in] idx The stack index, where 0 is the stack top and >0 goes down the stack.
      * @param[in] tpe The type to check
      */
-    #define bbzvm_type_assert(vm, idx, tpe)                             \
+    #define bbzvm_type_assert(idx, tpe)                                 \
         {                                                               \
             bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
-                                         bbzvm_stack_at(vm, idx));      \
+                                         bbzvm_stack_at(idx));          \
             if (bbztype(*o) != tpe                                      \
     			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
     			&& !bbztype_isclosure(*o)) {                            \
-                bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
+                bbzvm_seterror(BBZVM_ERROR_TYPE);                       \
                 return BBZVM_STATE_ERROR;                               \
             }                                                           \
         }
@@ -961,7 +967,7 @@ extern "C" {
      * beneath as follows:
      * #1 An integer for the return address
      */
-    #define bbzvm_callc(vm) bbzvm_call(vm, 0)
+    #define bbzvm_callc() bbzvm_call(0)
 
     /**
      * Calls a swarm closure.
@@ -979,7 +985,7 @@ extern "C" {
      * beneath as follows:
      * #1 An integer for the return address
      */
-    #define bbzvm_calls(vm) bbzvm_call(vm, 1)
+    #define bbzvm_calls() bbzvm_call(1)
 
 
 #ifdef __cplusplus
