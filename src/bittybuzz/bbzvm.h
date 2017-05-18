@@ -223,7 +223,7 @@ extern "C" {
 
 
     /**
-     * @brief Sets up a VM.
+     * @brief Sets up the VM.
      * @param[in,out] vm The VM.
      * @param[in] robot The robot id.
      */

@@ -264,6 +264,9 @@ int bbzheap_tseg_alloc(bbzheap_idx_t* s);
  * Performs garbage collection on the heap.
  * @param[in,out] st The stack.
  * @param[in] sz The stack size (number of elements in the stack).
+ * 
+ * TODO Remove arguments and use the VM's attributes. This will also
+ * require modifications to the heap tests.
  */
 void bbzheap_gc(bbzheap_idx_t* st,
                 int sz);

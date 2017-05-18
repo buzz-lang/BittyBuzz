@@ -18,7 +18,7 @@ extern "C" {
 typedef struct __attribute__((packed)) {
    bbzobj_t key;      /**< @brief Element's key. */
    bbzobj_t value;    /**< @brief Element's current value. */
-   uint8_t timestamp; /**< @brief Timestamp (Lamport clock) since last update of the value. */
+   uint8_t timestamp; /**< @brief Timestamp (Lamport clock) of last update of the value. */
    uint8_t robot;     /**< @brief Robot ID. */
 } bbzvstig_elem_t;
 
