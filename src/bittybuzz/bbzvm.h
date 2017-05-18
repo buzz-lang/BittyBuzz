@@ -888,7 +888,7 @@ extern "C" {
      */
     __attribute__((always_inline)) static inline
     bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) {
-        return bbzheap_obj_at(&vm->heap, idx);
+        return bbzheap_obj_at(idx);
     }
 
     /**
@@ -941,8 +941,7 @@ extern "C" {
      */
     #define bbzvm_type_assert(idx, tpe)                                 \
         {                                                               \
-            bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
-                                         bbzvm_stack_at(idx));          \
+            bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(idx));          \
             if (bbztype(*o) != tpe                                      \
     			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
     			&& !bbztype_isclosure(*o)) {                            \

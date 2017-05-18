@@ -8,15 +8,15 @@ int bbztable_get(const bbzheap_t* h,
                  bbzheap_idx_t k,
                  bbzheap_idx_t* v) {
    /* Get segment index */
-   int16_t si = bbzheap_obj_at(h, t)->t.value;
+   int16_t si = bbzheap_obj_at(t)->t.value;
    /* Get segment data */
-   bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
+   bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
    /* Go through segments */
    while(1) {
       /* Go through valid keys in the segment */
       for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-         if(bbztype_cmp(bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->keys[i])),
-                        bbzheap_obj_at(h, k)) == 0) {
+         if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
+                        bbzheap_obj_at(k)) == 0) {
             /* Key found */
             *v = bbzheap_tseg_elem_get(sd->values[i]);
             return 1;
@@ -26,7 +26,7 @@ int bbztable_get(const bbzheap_t* h,
       if(!bbzheap_tseg_hasnext(sd)) return 0;
       /* Get next segment */
       si = bbzheap_tseg_next_get(sd);
-      sd = bbzheap_tseg_at(h, si);
+      sd = bbzheap_tseg_at(si);
    }
 }
 
@@ -39,9 +39,9 @@ int bbztable_set(bbzheap_t* h,
                  bbzheap_idx_t v) {
    /* Search for the given key, keeping track of first free slot */
    /* Get segment index */
-   int16_t si = bbzheap_obj_at(h, t)->t.value;
+   int16_t si = bbzheap_obj_at(t)->t.value;
    /* Get segment data */
-   bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
+   bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
    /* Free segment and slot */
    int16_t fseg = -1, fslot = -1;
    /* Target segment and slot */
@@ -57,8 +57,8 @@ int bbztable_set(bbzheap_t* h,
                fslot = i;
             }
          }
-         else if(bbztype_cmp(bbzheap_obj_at(h, bbzheap_tseg_elem_get(sd->keys[i])),
-                             bbzheap_obj_at(h, k)) == 0) {
+         else if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
+                             bbzheap_obj_at(k)) == 0) {
             /* Key found */
             seg = si;
             slot = i;
@@ -70,7 +70,7 @@ int bbztable_set(bbzheap_t* h,
       if(!bbzheap_tseg_hasnext(sd)) break;
       /* Get next segment */
       si = bbzheap_tseg_next_get(sd);
-      sd = bbzheap_tseg_at(h, si);
+      sd = bbzheap_tseg_at(si);
    }
    /* When we get here, we have three possibilities:
     * 1. We found the key;
@@ -81,24 +81,24 @@ int bbztable_set(bbzheap_t* h,
    if(seg >= 0) {
       /* 1. We found the key, change associated value */
       /* NOTE: Setting a value to nil is equivalent to erasing the element from the table */
-      if(!bbztype_isnil(*bbzheap_obj_at(h, v)))
-         bbzheap_tseg_elem_set(bbzheap_tseg_at(h, seg)->values[slot], v);
+      if(!bbztype_isnil(*bbzheap_obj_at(v)))
+         bbzheap_tseg_elem_set(bbzheap_tseg_at(seg)->values[slot], v);
       else {
          /* Setting nil, erase element */
-         bbzheap_tseg_at(h, seg)->keys[slot] = 0;
-         bbzheap_tseg_at(h, seg)->values[slot] = 0;
+         bbzheap_tseg_at(seg)->keys[slot] = 0;
+         bbzheap_tseg_at(seg)->values[slot] = 0;
          /* Is segment empty? */
          for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
             if(bbzheap_tseg_elem_isvalid(sd->keys[i])) return 1;
          }
          /* If we get here, it's because the segment is empty */
          /* Is it the first segment? */
-         if(si == bbzheap_obj_at(h, t)->t.value) {
+         if(si == bbzheap_obj_at(t)->t.value) {
             /* Yes; is it the only segment for this table? */
             if(bbzheap_tseg_hasnext(sd)) {
                /* No, there's more segments */
                /* Update the table segment index */
-               bbzheap_obj_at(h, t)->t.value = bbzheap_tseg_next_get(sd);
+               bbzheap_obj_at(t)->t.value = bbzheap_tseg_next_get(sd);
                /* Invalidate the segment */
                sd->mdata = 0;
             }
@@ -106,11 +106,11 @@ int bbztable_set(bbzheap_t* h,
          else {
             /* No, the segment is not the first */
             /* Find the preceding segment */
-            uint16_t pi = bbzheap_obj_at(h, t)->t.value;
-            bbzheap_tseg_t* pd = bbzheap_tseg_at(h, pi);
+            uint16_t pi = bbzheap_obj_at(t)->t.value;
+            bbzheap_tseg_t* pd = bbzheap_tseg_at(pi);
             while(bbzheap_tseg_next_get(pd) != si) {
                pi = bbzheap_tseg_next_get(pd);
-               pd = bbzheap_tseg_at(h, pi);
+               pd = bbzheap_tseg_at(pi);
             }
             /* Set the next of the preceding to the next of current */
             bbzheap_tseg_next_set(pd, bbzheap_tseg_next_get(sd));
@@ -120,21 +120,21 @@ int bbztable_set(bbzheap_t* h,
       }
    }
    /* Ignore setting nil on new elements */
-   else if(!bbztype_isnil(*bbzheap_obj_at(h, v))) {
+   else if(!bbztype_isnil(*bbzheap_obj_at(v))) {
       if(fseg >= 0) {
          /* 2. We did not find the key, and found an empty slot */
-         bbzheap_tseg_elem_set(bbzheap_tseg_at(h, fseg)->keys[fslot], k);
-         bbzheap_tseg_elem_set(bbzheap_tseg_at(h, fseg)->values[fslot], v);
+         bbzheap_tseg_elem_set(bbzheap_tseg_at(fseg)->keys[fslot], k);
+         bbzheap_tseg_elem_set(bbzheap_tseg_at(fseg)->values[fslot], v);
       }
       else {
          /* 3. We did not find the key, nor an empty slot */
          /* Create a new segment */
          uint16_t s;
-         if(!bbzheap_tseg_alloc(h, &s)) return 0;
+         if(!bbzheap_tseg_alloc(&s)) return 0;
          bbzheap_tseg_next_set(sd, s);
          /* Set key and value */
-         bbzheap_tseg_elem_set(bbzheap_tseg_at(h, s)->keys[0], k);
-         bbzheap_tseg_elem_set(bbzheap_tseg_at(h, s)->values[0], v);
+         bbzheap_tseg_elem_set(bbzheap_tseg_at(s)->keys[0], k);
+         bbzheap_tseg_elem_set(bbzheap_tseg_at(s)->values[0], v);
       }
    }
    /* Success */
@@ -147,9 +147,9 @@ int bbztable_set(bbzheap_t* h,
 uint8_t bbztable_size(const bbzheap_t* h,
                       bbzheap_idx_t t) {
    /* Get segment index */
-   int16_t si = bbzheap_obj_at(h, t)->t.value;
+   int16_t si = bbzheap_obj_at(t)->t.value;
    /* Get segment data */
-   bbzheap_tseg_t* sd = bbzheap_tseg_at(h, si);
+   bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
    /* Initialize size to zero */
    uint8_t sz = 0;
    /* Go through elements and segments */
@@ -161,7 +161,7 @@ uint8_t bbztable_size(const bbzheap_t* h,
       if(!bbzheap_tseg_hasnext(sd)) break;
       /* Get next segment */
       si = bbzheap_tseg_next_get(sd);
-      sd = bbzheap_tseg_at(h, si);
+      sd = bbzheap_tseg_at(si);
    }
    /* Done */
    return sz;

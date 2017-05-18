@@ -95,28 +95,25 @@ typedef uint16_t bbzheap_idx_t;
  * Sets the entire heap to zero.
  * @param[in,out] h The heap.
  */
-void bbzheap_clear(bbzheap_t* h);
+void bbzheap_clear();
 
 /**
  * @brief Allocates space for an object on the heap.
  * Sets as output the value of o, a buffer for the index of the allocated object.
  * The value of o is not checked for NULL, so make sure it's a valid pointer.
- * @param[in,out] h The heap.
  * @param[in] t The type of the object.
  * @param[out] o A buffer for the index of the allocated object.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_obj_alloc(bbzheap_t* h,
-                      int t,
+int bbzheap_obj_alloc(int t,
                       bbzheap_idx_t* o);
 
 /**
  * @brief Returns a pointer located at position i within the heap.
- * @param[in] h The heap.
  * @param[in] i The position.
  * @return A pointer to the object.
  */
-#define bbzheap_obj_at(h, i) ((bbzobj_t*)((h)->data) + (i))
+#define bbzheap_obj_at(i) ((bbzobj_t*)(vm->heap.data) + (i))
 
 /**
  * @brief Returns non-zero if the given object is valid (i.e., in use).
@@ -127,21 +124,18 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 
 /**
  *  @brief Copy the value of an object to an other object.
- *  @param [in] h A pointer to the heap.
  *  @param [in] iSrc The position of the source object.
  *  @param [in] iDest The position of the destination object.
  */
-#define bbzheap_obj_copy(h, iSrc, iDest) (*bbzheap_obj_at(h, iDest)) = (*bbzheap_obj_at(h, iSrc))
+#define bbzheap_obj_copy(iSrc, iDest) (*bbzheap_obj_at(iDest)) = (*bbzheap_obj_at(iSrc))
 
 /**
  * @brief Allocates space for a table segment on the heap.
  * Sets as output the value of s, the index of the allocated segment.
- * @param[in,out] h The heap.
  * @param[out] s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_tseg_alloc(bbzheap_t* h,
-                       bbzheap_idx_t* s);
+int bbzheap_tseg_alloc(bbzheap_idx_t* s);
 
 #define NO_NEXT 0x7FFF
 #define MASK_NEXT 0x7FFF
@@ -150,11 +144,10 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 
 /**
  * @brief Returns a table segment located at position i within the heap.
- * @param[in] h The heap.
  * @param[in] i The position.
  * @return A pointer to the table segment.
  */
-#define bbzheap_tseg_at(h, i) ((bbzheap_tseg_t*)((h)->data + BBZHEAP_SIZE) - ((i)+1))
+#define bbzheap_tseg_at(i) ((bbzheap_tseg_t*)(vm->heap.data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next table segment linked to the given one.
@@ -207,19 +200,17 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 /**
  * @brief Allocates space for an array segment on the heap.
  * Sets as output the value of s, the index of the allocated segment.
- * @param[in,out] h The heap.
  * @param[out] s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
-#define bbzheap_aseg_alloc(h, s) bbzheap_tseg_alloc(h, s)
+#define bbzheap_aseg_alloc(s) bbzheap_tseg_alloc(s)
 
 /**
  * @brief Returns an array segment located at position i within the heap.
- * @param[in] h The heap.
  * @param[in] i The position.
  * @return A pointer to the array segment.
  */
-#define bbzheap_aseg_at(h, i) ((bbzheap_aseg_t*)((h)->data + BBZHEAP_SIZE) - ((i)+1))
+#define bbzheap_aseg_at(i) ((bbzheap_aseg_t*)(vm->heap.data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next array segment linked to the given one.
@@ -271,12 +262,10 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 
 /**
  * Performs garbage collection on the heap.
- * @param[in,out] h The heap.
  * @param[in,out] st The stack.
  * @param[in] sz The stack size (number of elements in the stack).
  */
-void bbzheap_gc(bbzheap_t* h,
-                bbzheap_idx_t* st,
+void bbzheap_gc(bbzheap_idx_t* st,
                 int sz);
 
 /**

@@ -14,20 +14,20 @@ void bbzdarray_print(bbzheap_idx_t d) {
    uint16_t v;
    for (int i = 0; i < size-1; ++i) {
       bbzdarray_get(d, i, &v);
-      printf("\t#%d: %s<%d:{%d}>,\n",i,bbztype_desc[bbztype(*bbzheap_obj_at(&vm->heap, v))],v,((bbzint_t*)bbzheap_obj_at(&vm->heap, v))->value);
+      printf("\t#%d: %s<%d:{%d}>,\n",i,bbztype_desc[bbztype(*bbzheap_obj_at(v))],v,((bbzint_t*)bbzheap_obj_at(v))->value);
    }
    if (size > 0) {
       bbzdarray_get(d, size-1, &v);
-      printf("\t#%d: %s<%d:{%d}>\n",size-1,bbztype_desc[bbztype(*bbzheap_obj_at(&vm->heap, v))],v,((bbzint_t*)bbzheap_obj_at(&vm->heap, v))->value);
+      printf("\t#%d: %s<%d:{%d}>\n",size-1,bbztype_desc[bbztype(*bbzheap_obj_at(v))],v,((bbzint_t*)bbzheap_obj_at(v))->value);
    }
    printf("]\n");
-   bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(&vm->heap, d);
+   bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(d);
    uint16_t si = da->value;
-   bbzheap_aseg_t* sd = bbzheap_aseg_at(&vm->heap, si);
+   bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
    printf("aseg list: [%d:(%04x;%s)",si,bbzheap_aseg_next_get(sd),bbzheap_aseg_hasnext(sd)?"yes":"no");
    while(bbzheap_aseg_hasnext(sd)) {
       si = bbzheap_aseg_next_get(sd);
-      sd = bbzheap_aseg_at(&vm->heap, si);
+      sd = bbzheap_aseg_at(si);
       if (!bbzheap_aseg_isvalid(*sd) || !bbzheap_aseg_elem_isvalid(sd->values[0])) break;
       printf(", %d:(%04x;%s)",si,bbzheap_aseg_next_get(sd),bbzheap_aseg_hasnext(sd)?"yes":"no");
    }
@@ -40,22 +40,22 @@ void bbzheap_print() {
    printf("Max object index: %d\n", objimax);
    int objnum = 0;
    for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(&vm->heap, i))) ++objnum;
+      if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
    printf("Valid objects: %d\n", objnum);
    for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(&vm->heap, i))) {
-         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(&vm->heap, i))]);
-         switch(bbztype(*bbzheap_obj_at(&vm->heap, i))) {
+      if(obj_isvalid(*bbzheap_obj_at(i))) {
+         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(i))]);
+         switch(bbztype(*bbzheap_obj_at(i))) {
             case BBZTYPE_NIL:
                break;
             case BBZTYPE_INT:
-               printf(" %d", bbzheap_obj_at(&vm->heap, i)->i.value);
+               printf(" %d", bbzheap_obj_at(i)->i.value);
                break;
             case BBZTYPE_FLOAT:
-               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(&vm->heap, i)->f.value));
+               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(i)->f.value));
                break;
             case BBZTYPE_TABLE:
-               printf(" %" PRIu16, bbzheap_obj_at(&vm->heap, i)->t.value);
+               printf(" %" PRIu16, bbzheap_obj_at(i)->t.value);
                break;
          }
          printf("\n");
@@ -65,11 +65,11 @@ void bbzheap_print() {
    printf("Max table segment index: %d\n", tsegimax);
    int tsegnum = 0;
    for(int i = 0; i < tsegimax; ++i)
-      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(&vm->heap, i))) ++tsegnum;
+      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
    printf("Valid table segments: %d\n", tsegnum);
    bbzheap_tseg_t* seg;
    for(int i = 0; i < tsegimax; ++i) {
-      seg = bbzheap_tseg_at(&vm->heap, i);
+      seg = bbzheap_tseg_at(i);
       if(bbzheap_tseg_isvalid(*seg)) {
          printf("\t#%d: {", i);
          for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
@@ -84,7 +84,7 @@ void bbzheap_print() {
 }
 
 void foreach(uint16_t darray, uint16_t pos, void* params) {
-   ((bbzint_t*)bbzheap_obj_at(&vm->heap, pos))->value += 20;
+   ((bbzint_t*)bbzheap_obj_at(pos))->value += 20;
 }
 
 bbzvm_t* vm;
@@ -93,7 +93,7 @@ int main() {
    bbzvm_t vmObj;
    vm = &vmObj;
    
-   bbzheap_clear(&vm->heap);
+   bbzheap_clear();
    
    printf("+=-=-=-=-=-= bbzdarray_new =-=-=-=-=-=+\n");
    uint16_t darray;
@@ -103,8 +103,8 @@ int main() {
    
    printf("+=-=-=-=-=-= bbzdarray_push =-=-=-=-=-=+\n");
    uint16_t o;
-   bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o);
-   bbzint_t* io = (bbzint_t*)bbzheap_obj_at(&vm->heap, o);
+   bbzheap_obj_alloc(BBZTYPE_INT, &o);
+   bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
    io->value = 10;
    bbzdarray_push(darray, o);
    bbzdarray_print(darray);
@@ -112,13 +112,13 @@ int main() {
    
    printf("+=-=-=-=-=-= bbzdarray_find =-=-=-=-=-=+\n");
    int pos = bbzdarray_find(darray, bbztype_cmp, o);
-   printf("Position of integer %s<%d:[%d]> : %d\n", bbztype_desc[bbztype(*bbzheap_obj_at(&vm->heap, o))],o,((bbzint_t*)bbzheap_obj_at(&vm->heap, o))->value, pos);
+   printf("Position of integer %s<%d:[%d]> : %d\n", bbztype_desc[bbztype(*bbzheap_obj_at(o))],o,((bbzint_t*)bbzheap_obj_at(o))->value, pos);
    printf("\n");
    
    printf("+=-=-=-=-=-= bbzdarray_set =-=-=-=-=-=+\n");
    uint16_t o2;
-   bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o2);
-   bbzint_t* io2 = (bbzint_t*)bbzheap_obj_at(&vm->heap, o2);
+   bbzheap_obj_alloc(BBZTYPE_INT, &o2);
+   bbzint_t* io2 = (bbzint_t*)bbzheap_obj_at(o2);
    io2->value = 255;
    bbzdarray_set(darray, 0, o2);
    bbzdarray_print(darray);
@@ -132,8 +132,8 @@ int main() {
    uint16_t o3;
    bbzint_t* io3;
    for (int i = 0; i < 15; ++i) {
-      bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o3);
-      io3 = (bbzint_t*)bbzheap_obj_at(&vm->heap, o3);
+      bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+      io3 = (bbzint_t*)bbzheap_obj_at(o3);
       io3->value = i;
       bbzdarray_push(darray, o3);
    }
@@ -154,12 +154,12 @@ int main() {
    printf("\n");
    
    uint16_t stack[] = {darray};
-   bbzheap_gc(&vm->heap, stack, 1);
+   bbzheap_gc(stack, 1);
    
    printf("+=-=-=-=-=-= bbzdarray_clone =-=-=-=-=-=+\n");
    for (int i = 0; i < 22; ++i) {
-      bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o3);
-      io3 = (bbzint_t*)bbzheap_obj_at(&vm->heap, o3);
+      bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+      io3 = (bbzint_t*)bbzheap_obj_at(o3);
       io3->value = i;
       bbzdarray_push(darray, o3);
    }

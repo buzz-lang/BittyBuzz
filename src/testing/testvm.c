@@ -67,49 +67,48 @@ static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "tabl
 
 /**
  * @brief Prints the heap.
- * @param[in] h The heap to print.
  */
-void bbzheap_print(bbzheap_t* h) {
+void bbzheap_print() {
    /* Object-related stuff */
-   int objimax = (h->rtobj - h->data) / sizeof(bbzobj_t);
+   int objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
    printf("Max object index: %d\n", objimax);
    int objnum = 0;
    for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(h, i))) ++objnum;
+      if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
    printf("Valid objects: %d\n", objnum);
    for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(h, i))) {
-         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(h, i))]);
-         switch(bbztype(*bbzheap_obj_at(h, i))) {
+      if(obj_isvalid(*bbzheap_obj_at(i))) {
+         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(i))]);
+         switch(bbztype(*bbzheap_obj_at(i))) {
             case BBZTYPE_NIL:
                break;
             case BBZTYPE_STRING: // fallthrough
             case BBZTYPE_CLOSURE: // fallthrough
             case BBZTYPE_INT:
-               printf(" %d", bbzheap_obj_at(h, i)->i.value);
+               printf(" %d", bbzheap_obj_at(i)->i.value);
                break;
             case BBZTYPE_FLOAT:
-               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(h, i)->f.value));
+               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(i)->f.value));
                break;
             case BBZTYPE_TABLE:
-               printf(" %" PRIu16, bbzheap_obj_at(h, i)->t.value);
+               printf(" %" PRIu16, bbzheap_obj_at(i)->t.value);
                break;
             case BBZTYPE_USERDATA:
-               printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(h, i)->u.value);
+               printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(i)->u.value);
                break;
          }
          printf("\n");
       }
    /* Segment-related stuff */
-   int tsegimax = (h->data + BBZHEAP_SIZE - h->ltseg) / sizeof(bbzheap_tseg_t);
+   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
    printf("Max table segment index: %d\n", tsegimax);
    int tsegnum = 0;
    for(int i = 0; i < tsegimax; ++i)
-      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(h, i))) ++tsegnum;
+      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
    printf("Valid table segments: %d\n", tsegnum);
    bbzheap_tseg_t* seg;
    for(int i = 0; i < tsegimax; ++i) {
-      seg = bbzheap_tseg_at(h, i);
+      seg = bbzheap_tseg_at(i);
       if(bbzheap_tseg_isvalid(*seg)) {
          printf("\t#%d: {", i);
          for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
@@ -317,7 +316,7 @@ TEST(bbzvm) {
     // 9) Jumpz when operand is BBZTYPE_INT and its value is zero. Should jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPZ);
     bbzheap_idx_t idx;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzheap_obj_alloc(BBZTYPE_INT, &idx);
     bbzvm_obj_at(idx)->i.value = 0;
     bbzvm_push(idx);
     bbzvm_step();
@@ -330,7 +329,7 @@ TEST(bbzvm) {
 
     // 10) Jumpz when operand is BBZTYPE_INT and its value is not zero. Should not jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPZ);
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzheap_obj_alloc(BBZTYPE_INT, &idx);
     bbzvm_obj_at(idx)->i.value = -1;
     bbzvm_push(idx);
     bbzvm_step();
@@ -343,7 +342,7 @@ TEST(bbzvm) {
 
     // 11) Jumpnz when operand is BBZTYPE_INT and its value is not zero. Should jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPNZ);
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzheap_obj_alloc(BBZTYPE_INT, &idx);
     bbzvm_obj_at(idx)->i.value = -1;
     bbzvm_push(idx);
     bbzvm_step();
@@ -383,8 +382,8 @@ TEST(bbzvm) {
     {
         const int16_t LHS_INT = -21244, RHS_INT = 8384;
         bbzheap_idx_t lhs, rhs;
-        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &lhs);
-        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &rhs);
+        bbzheap_obj_alloc(BBZTYPE_INT, &lhs);
+        bbzheap_obj_alloc(BBZTYPE_INT, &rhs);
         bbzvm_obj_at(lhs)->i.value = LHS_INT;
         bbzvm_obj_at(rhs)->i.value = RHS_INT;
 
