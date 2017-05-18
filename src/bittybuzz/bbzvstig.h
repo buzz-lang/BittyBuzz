@@ -1,3 +1,10 @@
+/**
+ * @file bbztype.h
+ * @brief Implementation of BittyBuzz's Virtual Stigmergy, a structure of data
+ * shared accross a swarm of robots inspired from nest-building instects'
+ * stigmergies.
+ */
+
 #ifndef BBZVSTIG
 #define BBZVSTIG
 
@@ -26,22 +33,22 @@ typedef struct __attribute__((packed)) {
 
 /**
  * @brief Creates a virtual stigmergy structure.
- * @param vs The virtual stigmergy structure.
- * @param buf The linear buffer associated to this structure.
- * @param cap The maximum number of elements in the structure.
+ * @param[in,out] vs The virtual stigmergy structure.
+ * @param[in] buf The linear buffer associated to this structure.
+ * @param[in] cap The maximum number of elements in the structure.
  */
 #define bbzvstig_new(vs, buf, cap) (vs).data = buf; (vs).capacity = cap; (vs).size = 0;
 
 /**
  * @brief Returns the capacity of the virtual stigmergy structure.
- * @param vs The virtual stigmergy structure.
+ * @param[in] vs The virtual stigmergy structure.
  * @return The capacity of the virtual stigmergy structure.
  */
 #define bbzvstig_capacity(vs) ((vs).capacity)
 
 /**
  * @brief Returns the size of the virtual stigmergy structure.
- * @param vs The virtual stigmergy structure.
+ * @param[in] vs The virtual stigmergy structure.
  * @return The size of the virtual stigmergy structure.
  */
 #define bbzvstig_size(vs) ((vs).size)

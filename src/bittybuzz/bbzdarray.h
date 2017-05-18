@@ -1,3 +1,9 @@
+/**
+ * @file bbzdarray.h
+ * @brief Definition of dynamic arrays, which are not a feature of Buzz but,
+ * rather, a means of implementation.
+ */
+
 #ifndef BBZDARRAY
 #define BBZDARRAY
 
@@ -32,7 +38,7 @@ extern "C" {
     typedef void (*bbzdarray_elem_funp)(bbzheap_t* h, uint16_t darray, uint16_t pos, void* params);
 
     /**
-     *  @brief Function pointer to compare buzzdarray elements.
+     *  @brief Function pointer to compare bbzdarray elements.
      *
      *  int f(const bbzobj_t* a, const bbzobj_t* b)
      *
@@ -55,8 +61,8 @@ extern "C" {
 
     /**
      *  @brief Destroys a dynamic array. Invalidates all its array segment.
-     *  @param h A pointer to the heap.
-     *  @param d The dynamic array.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The dynamic array.
      */
     void bbzdarray_destroy(bbzheap_t* h,
                            bbzheap_idx_t d);
@@ -65,10 +71,10 @@ extern "C" {
      *  @brief Searchs the value associated with the key k in the dynamic array
      *         d from the heap h. Set as output the value of v, the found value
      *         corresponding to the key k.
-     *  @param h A pointer to the heap.
-     *  @param d The position of the dynamic array's object in the heap.
-     *  @param idx The index of the element to get.
-     *  @param v A buffer for the pointer to the value.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The position of the dynamic array's object in the heap.
+     *  @param[in] idx The index of the element to get.
+     *  @param[out] v A buffer for the pointer to the value.
      *  @return 1 for success, 0 for failure (index not in table)
      */
     int bbzdarray_get(bbzheap_t* h,
@@ -80,10 +86,10 @@ extern "C" {
      *  @brief Changes the value corresponding to the key k in the array d
      *         from the heap h.
      *         The key has to be in the range of the array's size.
-     *  @param h A pointer to the heap.
-     *  @param d The position of the dynamic array's object in the heap.
-     *  @param idx The index of the element to get.
-     *  @param v The value to set.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The position of the dynamic array's object in the heap.
+     *  @param[in] idx The index of the element to get.
+     *  @param[in] v The value to set.
      *  @return 1 for success, 0 for failure (index out of range)
      */
     int bbzdarray_set(bbzheap_t* h,
@@ -113,8 +119,8 @@ extern "C" {
 
     /**
      *  @brief Return the count of sequential valid values in the table.
-     *  @param h A pointer to the heap.
-     *  @param d The position of the dynamic array's object in the heap.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The position of the dynamic array's object in the heap.
      *  @return The size of the dynamic array.
      */
     uint16_t bbzdarray_size(bbzheap_t* h,
@@ -122,9 +128,9 @@ extern "C" {
     
     /**
      *  @brief Creates a new dynamic array from the given dynamic array.
-     *  @param h A pointer to the heap.
-     *  @param d The dynamic array.
-     *  @param newd A buffer for the new dynamic array.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The dynamic array.
+     *  @param[out] newd A buffer for the new dynamic array.
      *  @return 1 for success, 0 for failure (out of memory)
      */
     int bbzdarray_clone(bbzheap_t* h,
@@ -133,18 +139,18 @@ extern "C" {
 
     /**
      *  @brief Erases all the elements of the dynamic array.
-     *  @param h A pointer to the heap.
-     *  @param d The dynamic array.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The dynamic array.
      */
     void bbzdarray_clear(bbzheap_t* h,
                          bbzheap_idx_t d);
     
     /**
      *  @brief Applies a function to each element of the dynamic array.
-     *  @param h A pointer to the heap.
-     *  @param d The dynamic array.
-     *  @param fun The function to apply to each element.
-     *  @param params A data structure to pass along.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The dynamic array.
+     *  @param[in] fun The function to apply to each element.
+     *  @param[in,out] params A data structure to pass along.
      */
     void bbzdarray_foreach(bbzheap_t* h,
                            bbzheap_idx_t d,
@@ -155,10 +161,10 @@ extern "C" {
      *  @brief Finds the position of an element.
      *         If the element is not found, the returned position
      *         is equal to the darray size.
-     *  @param h A pointer to the heap.
-     *  @param d The dynamic array.
-     *  @param cmp The element comparison function.
-     *  @param data The position in the heap of the element to find.
+     *  @param[in,out] h A pointer to the heap.
+     *  @param[in] d The dynamic array.
+     *  @param[in] cmp The element comparison function.
+     *  @param[in] data The position in the heap of the element to find.
      *  @return The position of the found element, or the size of the array if
      *          not found.
      */
@@ -171,9 +177,9 @@ extern "C" {
      * @brief Allocates space for a lambda closure on the heap.
      * Sets as output the value of l, a buffer for the index of the allocated closure.
      * The value of l is not checked for NULL, so make sure it's a valid pointer.
-     * @param h The heap.
-     * @param d Dynamic array from which we will copy data.
-     * @param l A buffer for the index of the allocated closure.
+     * @param[in,out] h The heap.
+     * @param[in] d Dynamic array from which we will copy data.
+     * @param[out] l A buffer for the index of the allocated closure.
      * @return 1 for success, 0 for failure (out of memory)
      */
     int bbzdarray_lambda_alloc(bbzheap_t* h, bbzheap_idx_t d, uint8_t* l);
@@ -184,17 +190,17 @@ extern "C" {
 
 /**
  *  @brief Returns the last element in the dynamic array.
- *  @param h A pointer to the heap.
- *  @param d The dynamic array.
- *  @param v A buffer for the pointer to the value. 
+ *  @param[in] h A pointer to the heap.
+ *  @param[in] d The dynamic array.
+ *  @param[out] v A buffer for the pointer to the value.
  *  @return The last element in the dynamic array.
  */
 #define bbzdarray_last(h, d, v) bbzdarray_get(h, d, bbzdarray_size(h, d)-1, v)
 
 /**
  *  @brief Returns <tt>true</tt> if the dynamic array is empty.
- *  @param h A pointer to the heap.
- *  @param d The dynamic array.
+ *  @param[in] h A pointer to the heap.
+ *  @param[in] d The dynamic array.
  *  @return <tt>true</tt> if the dynamic array is empty.
  */
 #define bbzdarray_isempty(h, d) (bbzdarray_size(h, d) == 0)

@@ -152,7 +152,7 @@ bbzvm_error get_last_error() {
 
 /**
  * @brief Function used for testing C closures.
- * @param vm The current VM.
+ * @param[in,out] vm The current VM.
  * @return The state of the VM.
  */
 int printIntVal(bbzvm_t* vm) {

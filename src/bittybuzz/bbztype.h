@@ -1,3 +1,8 @@
+/**
+ * @file bbztype.h
+ * @brief Definition of BittyBuzz's main types.
+ */
+
 #ifndef BBZTYPE
 #define BBZTYPE
 
@@ -8,16 +13,16 @@ extern "C" {
 #endif // __cplusplus
 
 /*
- * Object types in KiloBuzz
+ * Object types in BittyBuzz
  */
-#define BBZTYPE_NIL      0
-#define BBZTYPE_INT      1
-#define BBZTYPE_FLOAT    2
-#define BBZTYPE_STRING   3
-#define BBZTYPE_TABLE    4
-#define BBZTYPE_CLOSURE  5
-#define BBZTYPE_USERDATA 6
-#define BBZTYPE_NCLOSURE 7
+#define BBZTYPE_NIL      0 /**< @brief Nil type. */
+#define BBZTYPE_INT      1 /**< @brief Integer type. */
+#define BBZTYPE_FLOAT    2 /**< @brief Float type. */
+#define BBZTYPE_STRING   3 /**< @brief String type. */
+#define BBZTYPE_TABLE    4 /**< @brief Table type. */
+#define BBZTYPE_CLOSURE  5 /**< @brief Closure type. */
+#define BBZTYPE_USERDATA 6 /**< @brief User-data type. */
+#define BBZTYPE_NCLOSURE 7 /**< @brief Native closure type. */
 
 /**
  * @brief Nil type
@@ -38,8 +43,8 @@ typedef struct __attribute__((packed)) {
  * @brief Float
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /**< @brief Object metadata. */
-   bbzfloat value;
+   uint8_t mdata;  /**< @brief Object metadata. */
+   bbzfloat value; /**< @brief Float object's value. */
 } bbzfloat_t;
 
 /**
@@ -94,7 +99,7 @@ typedef struct __attribute__((packed)) {
        * @details A value of 0xFF means it uses the default activation record of the VM.
        */
       uint8_t actrec;
-   } value;
+   } value; /**< @brief Closure object's value. */
 } bbzclosure_t;
 
 /**
@@ -129,78 +134,78 @@ typedef union __attribute__((packed)) {
 
 /**
  * @brief Compares two objects.
- * @param a The first object to compare.
- * @param b The second object to compare.
- * @return -1 if a<b, 0 if a==b, 1 if a>b
+ * @param[in] a The first object to compare.
+ * @param[in] b The second object to compare.
+ * @return <0 if a<b, 0 if a==b, >0 if a>b
  */
 int bbztype_cmp(const bbzobj_t* a,
                 const bbzobj_t* b);
 
 /**
  * @brief Returns the type of an object.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype(obj) ((obj).o.mdata >> 5)
 
 /**
  * @brief Casts an object into a different type.
  * The cast is done without checking type compatibility.
- * @param obj  The object.
- * @param type The type.
+ * @param[in,out] obj  The object.
+ * @param[in] type The type.
  */
 #define bbztype_cast(obj, type) (obj).o.mdata = (((obj).o.mdata & 0x1F) | (type << 5))
 
 /**
  * @brief Returns 1 if an object is nil, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isnil(obj) (bbztype(obj) == BBZTYPE_NIL)
 
 /**
  * @brief Returns 1 if an object is int, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isint(obj) (bbztype(obj) == BBZTYPE_INT)
 
 /**
  * @brief Returns 1 if an object is float, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isfloat(obj) (bbztype(obj) == BBZTYPE_FLOAT)
 
 /**
  * @brief Returns 1 if an object is string, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isstring(obj) (bbztype(obj) == BBZTYPE_STRING)
 
 /**
  * @brief Returns 1 if an object is table, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_istable(obj) (bbztype(obj) == BBZTYPE_TABLE)
 
 /**
  * @brief Returns 1 if an object is dynamic array, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).o.mdata & 0x04))
 
 /**
  * @brief Returns 1 if an object is closure, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isclosure(obj) ((bbztype(obj) & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)
 
 /**
  * @brief Returns 1 if an object is userdata, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbztype_isuserdata(obj) (bbztype(obj) == BBZTYPE_USERDATA)
 
 /**
  * @brief Returns 1 if a closure is native, 0 otherwise.
- * @param obj The object.
+ * @param[in] obj The object.
  */
 #define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)
 

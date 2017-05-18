@@ -1,32 +1,11 @@
+/**
+ * @file bbzheap.h
+ * @brief Definition of BittyBuzz's heap, which allows for allocation-like
+ * operations.
+ */
+
 #ifndef BBZHEAP
 #define BBZHEAP
-
-/**
- * @brief The heap structure.
- * 
- * The BittyBuzz heap is a static buffer of uint8_t, whose size is
- * decided by the developer.
- * The heap contains instances of bbzobj_t variables.
- *
- * Non-structured types such as nil, int, float, and string are stored
- * directly. Structured types such as tables and closures require more
- * information.
- *
- * The idea is that the structure is filled from left to right (i.e.,
- * increasing index values) with bbzobj_t structures. For
- * non-structured types, this is it.
- *
- * Tables are stored as follows:
- * 1. A bbzobj_t is stored left-to-right;
- * 2. The bbzobj_t refers to a data segment, which is stored
- *    right-to-left.
- * 3. Each segment is composed of 5 (key,value) elements, each
- *    composed of a (bbzobj_t,bbzobj_t) pair. Each segment also has a
- *    2-byte field which contains flags and a pointer to the next
- *    segment, if any.
- *
- * TODO: closures
- */
 
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/config.h>
@@ -76,6 +55,27 @@ typedef struct __attribute__((packed)) {
 
 /**
  * @brief The heap structure.
+ * 
+ * The BittyBuzz heap is a static buffer of uint8_t, whose size is
+ * decided by the developer.
+ * The heap contains instances of bbzobj_t variables.
+ *
+ * Non-structured types such as nil, int, float, and string are stored
+ * directly. Structured types such as tables and closures require more
+ * information.
+ *
+ * The idea is that the structure is filled from left to right (i.e.,
+ * increasing index values) with bbzobj_t structures. For
+ * non-structured types, this is it.
+ *
+ * Tables are stored as follows:
+ * 1. A bbzobj_t is stored left-to-right;
+ * 2. The bbzobj_t refers to a data segment, which is stored
+ *    right-to-left.
+ * 3. Each segment is composed of BBZHEAP_ELEMS_PER_TSEG (key,value) elements,
+ *    each composed of a (bbzobj_t,bbzobj_t) pair. Each segment also has a
+ *    2-byte field which contains flags and a pointer to the next
+ *    segment, if any.
  */
  typedef struct __attribute__((packed)) {
    uint8_t* rtobj;             /**< @brief Pointer to after the rightmost object in heap, not necessarly valid */
@@ -93,7 +93,7 @@ typedef uint16_t bbzheap_idx_t;
 /**
  * @brief Clears the heap.
  * Sets the entire heap to zero.
- * @param h The heap.
+ * @param[in,out] h The heap.
  */
 void bbzheap_clear(bbzheap_t* h);
 
@@ -101,9 +101,9 @@ void bbzheap_clear(bbzheap_t* h);
  * @brief Allocates space for an object on the heap.
  * Sets as output the value of o, a buffer for the index of the allocated object.
  * The value of o is not checked for NULL, so make sure it's a valid pointer.
- * @param h The heap.
- * @param t The type of the object.
- * @param o A buffer for the index of the allocated object.
+ * @param[in,out] h The heap.
+ * @param[in] t The type of the object.
+ * @param[out] o A buffer for the index of the allocated object.
  * @return 1 for success, 0 for failure (out of memory)
  */
 int bbzheap_obj_alloc(bbzheap_t* h,
@@ -112,15 +112,15 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 
 /**
  * @brief Returns a pointer located at position i within the heap.
- * @param h The heap.
- * @param i The position.
+ * @param[in] h The heap.
+ * @param[in] i The position.
  * @return A pointer to the object.
  */
 #define bbzheap_obj_at(h, i) ((bbzobj_t*)((h)->data) + (i))
 
 /**
  * @brief Returns non-zero if the given object is valid (i.e., in use).
- * @param x The object.
+ * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
 #define bbzheap_obj_isvalid(x) ((x).o.mdata & 0x10)
@@ -136,8 +136,8 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 /**
  * @brief Allocates space for a table segment on the heap.
  * Sets as output the value of s, the index of the allocated segment.
- * @param h The heap.
- * @param s A buffer for the pointer to the allocated segment.
+ * @param[in,out] h The heap.
+ * @param[out] s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
 int bbzheap_tseg_alloc(bbzheap_t* h,
@@ -150,130 +150,130 @@ int bbzheap_tseg_alloc(bbzheap_t* h,
 
 /**
  * @brief Returns a table segment located at position i within the heap.
- * @param h The heap.
- * @param i The position.
+ * @param[in] h The heap.
+ * @param[in] i The position.
  * @return A pointer to the table segment.
  */
 #define bbzheap_tseg_at(h, i) ((bbzheap_tseg_t*)((h)->data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next table segment linked to the given one.
- * @param s The table segment.
+ * @param[in] s The table segment.
  * @return The index of the next segment.
  */
 #define bbzheap_tseg_next_get(s) ((s)->mdata & MASK_NEXT)
 
 /**
  * @brief Sets the next table segment linked to the given one.
- * @param s The table segment.
- * @param n The index of the next segment.
+ * @param[in,out] s The table segment.
+ * @param[in] n The index of the next segment.
  */
 #define bbzheap_tseg_next_set(s, n) (s)->mdata = ((s)->mdata & ~MASK_NEXT) | ((n) & MASK_NEXT)
 
 /**
  * @brief Returns 1 if the given table segment has a valid next, 0 otherwise.
- * @param s The table segment.
+ * @param[in] s The table segment.
  * @return 1 if the given table segment has a valid next, 0 otherwise.
  */
 #define bbzheap_tseg_hasnext(s) (((s)->mdata & MASK_NEXT) != NO_NEXT)
 
 /**
  * @brief Returns non-zero if the given segment is valid (in use).
- * @param s The table segment.
+ * @param[in] s The table segment.
  * @return non-zero if the given segment is valid (in use).
  */
 #define bbzheap_tseg_isvalid(s) ((s).mdata & MASK_VALID_SEG)
 
 /**
  * @brief Returns non-zero if the given segment element (key or value) is valid (in use).
- * @param e The table segment element.
+ * @param[in] e The table segment element.
  * @return non-zero if the given segment element (key or value) is valid (in use).
  */
 #define bbzheap_tseg_elem_isvalid(e) ((e) & MASK_VALID_SEG_ELEM)
 
 /**
  * @brief Returns the value of the given table segment element.
- * @param e The table segment element.
+ * @param[in] e The table segment element.
  */
 #define bbzheap_tseg_elem_get(e) ((e) & ~MASK_VALID_SEG_ELEM)
 
 /**
  * @brief Sets the value of the given table segment element, and validates the element.
- * @param e The table segment element.
- * @param x The value.
+ * @param[in,out] e The table segment element.
+ * @param[in] x The value.
  */
 #define bbzheap_tseg_elem_set(e, x) (e) = ((x) & ~MASK_VALID_SEG_ELEM) | MASK_VALID_SEG_ELEM
 
 /**
  * @brief Allocates space for an array segment on the heap.
  * Sets as output the value of s, the index of the allocated segment.
- * @param h The heap.
- * @param s A buffer for the pointer to the allocated segment.
+ * @param[in,out] h The heap.
+ * @param[out] s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
 #define bbzheap_aseg_alloc(h, s) bbzheap_tseg_alloc(h, s)
 
 /**
  * @brief Returns an array segment located at position i within the heap.
- * @param h The heap.
- * @param i The position.
+ * @param[in] h The heap.
+ * @param[in] i The position.
  * @return A pointer to the array segment.
  */
 #define bbzheap_aseg_at(h, i) ((bbzheap_aseg_t*)((h)->data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next array segment linked to the given one.
- * @param s The array segment.
+ * @param[in] s The array segment.
  * @return The index of the next segment.
  */
 #define bbzheap_aseg_next_get(s) bbzheap_tseg_next_get(s)
 
 /**
  * @brief Sets the next array segment linked to the given one.
- * @param s The array segment.
- * @param n The index of the next segment.
+ * @param[out] s The array segment.
+ * @param[in] n The index of the next segment.
  */
 #define bbzheap_aseg_next_set(s, n) bbzheap_tseg_next_set(s, n)
 
 /**
  * @brief Returns 1 if the given array segment has a valid next, 0 otherwise.
- * @param s The array segment.
+ * @param[in] s The array segment.
  * @return 1 if the given array segment has a valid next, 0 otherwise.
  */
 #define bbzheap_aseg_hasnext(s) bbzheap_tseg_hasnext(s)
 
 /**
  * @brief Returns non-zero if the given segment is valid (in use).
- * @param s The array segment.
+ * @param[in] s The array segment.
  * @return non-zero if the given segment is valid (in use).
  */
 #define bbzheap_aseg_isvalid(s) bbzheap_tseg_isvalid(s)
 
 /**
  * @brief Returns non-zero if the given segment element is valid (in use).
- * @param e The array segment element.
+ * @param[in] e The array segment element.
  * @return non-zero if the given segment element is valid (in use).
  */
 #define bbzheap_aseg_elem_isvalid(e) bbzheap_tseg_elem_isvalid(e)
 
 /**
  * @brief Returns the value of the given array segment element.
- * @param e The array segment element.
+ * @param[in] e The array segment element.
  */
 #define bbzheap_aseg_elem_get(e) bbzheap_tseg_elem_get(e)
 
 /**
  * @brief Sets the value of the given array segment element, and validates the element.
- * @param e The array segment element.
- * @param x The value.
+ * @param[in,out] e The array segment element.
+ * @param[in] x The value.
  */
 #define bbzheap_aseg_elem_set(e, x) bbzheap_tseg_elem_set(e, x)
 
 /**
  * Performs garbage collection on the heap.
- * @param h The heap.
- * @param st The stack.
- * @param sz The stack size (number of elements in the stack).
+ * @param[in,out] h The heap.
+ * @param[in,out] st The stack.
+ * @param[in] sz The stack size (number of elements in the stack).
  */
 void bbzheap_gc(bbzheap_t* h,
                 bbzheap_idx_t* st,
@@ -283,7 +283,7 @@ void bbzheap_gc(bbzheap_t* h,
  * @brief <b>For the VM's internal use only.</b>
  * 
  * Marks an object as currently in use, i.e., "allocated".
- * @pararm[in,out] obj The object to mark.
+ * @param[in,out] obj The object to mark.
  */
 #define obj_makevalid(obj)   (obj).o.mdata |= 0x10
 
@@ -291,7 +291,7 @@ void bbzheap_gc(bbzheap_t* h,
  * @brief <b>For the VM's internal use only.</b>
  * 
  * Marks an object as no longer in use, i.e., "not allocated".
- * @pararm[in,out] obj The object to mark.
+ * @param[in,out] obj The object to mark.
  */
 #define obj_makeinvalid(obj) (obj).o.mdata &= 0xEF
 
@@ -299,7 +299,7 @@ void bbzheap_gc(bbzheap_t* h,
  * @brief <b>For the VM's internal use only.</b>
  * 
  * Marks a segment as currently in use, i.e., "allocated".
- * @pararm[in,out] obj The object to mark.
+ * @param[in,out] s The segment to mark.
  */
 #define tseg_makevalid(s) (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
 
@@ -307,7 +307,7 @@ void bbzheap_gc(bbzheap_t* h,
  * @brief <b>For the VM's internal use only.</b>
  * 
  * Marks a segment as no longer in use, i.e., "not allocated".
- * @pararm[in,out] obj The object to mark.
+ * @param[in,out] s The segment to mark.
  */
 #define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
 

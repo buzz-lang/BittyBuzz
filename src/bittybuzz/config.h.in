@@ -1,4 +1,12 @@
 /**
+ * @file config.h
+ * @brief CMake main configuration file.
+ */
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+/**
  * @brief Total size of heap in bytes.
  */
 #define BBZHEAP_SIZE @HEAP_SIZE@
@@ -17,3 +25,5 @@
  * @brief Name of the robot, in case we are crosscompiling.
  */
 #cmakedefine BBZ_ROBOT
+
+#endif // !CONFIG_H
