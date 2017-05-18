@@ -45,12 +45,12 @@ void bbzvm_construct(bbzvm_rid_t robot) {
 
     // Allocate singleton objects
     bbzheap_obj_alloc(&vm->heap, BBZTYPE_NIL, &vm->nil);
-    bbzdarray_new(&vm->heap, &vm->dflt_actrec);
-    bbzdarray_push(&vm->heap, vm->dflt_actrec, vm->nil);
+    bbzdarray_new(&vm->dflt_actrec);
+    bbzdarray_push(vm->dflt_actrec, vm->nil);
     
     // Create various arrays
-    bbzdarray_new(&vm->heap, &vm->lsymts);
-    bbzdarray_new(&vm->heap, &vm->flist);
+    bbzdarray_new(&vm->lsymts);
+    bbzdarray_new(&vm->flist);
 
     // Create global symbols table
     bbzheap_obj_alloc(&vm->heap, BBZTYPE_TABLE, &vm->gsyms);
@@ -703,7 +703,7 @@ bbzvm_state bbzvm_pusht() {
 
 bbzvm_state bbzvm_lload(uint16_t idx) {
     bbzheap_idx_t id;
-    bbzdarray_get(&vm->heap, vm->lsyms, idx, &id);
+    bbzdarray_get(vm->lsyms, idx, &id);
     bbzvm_push(id);
     return vm->state;
 }
@@ -713,11 +713,11 @@ bbzvm_state bbzvm_lload(uint16_t idx) {
 
 bbzvm_state bbzvm_lstore(uint16_t idx) {
     bbzheap_idx_t o = bbzvm_stack_at(0);
-    uint16_t size = bbzdarray_size(&vm->heap, vm->lsyms);
+    uint16_t size = bbzdarray_size(vm->lsyms);
     while (size++ < idx) {
-        bbzdarray_push(&vm->heap, vm->lsyms, vm->nil);
+        bbzdarray_push(vm->lsyms, vm->nil);
     }
-    bbzdarray_set(&vm->heap, vm->lsyms, idx, o);
+    bbzdarray_set(vm->lsyms, idx, o);
     return vm->state;
 }
 
@@ -822,11 +822,11 @@ uint16_t bbzvm_function_register(bbzvm_funp funp) {
 	bbzheap_idx_t objbuf;
 	bbzheap_obj_alloc(&vm->heap, BBZTYPE_USERDATA, &objbuf); // FIXME Possible "out of memory"
 	bbzvm_obj_at(objbuf)->u.value = (void*)funp;
-    uint16_t fpos = bbzdarray_find(&vm->heap, vm->flist, bbzvm_function_cmp, objbuf);
+    uint16_t fpos = bbzdarray_find(vm->flist, bbzvm_function_cmp, objbuf);
     /* If the function isn't in the list yet, ... */
-    if (fpos == bbzdarray_size(&vm->heap, vm->flist)) {
+    if (fpos == bbzdarray_size(vm->flist)) {
     	/* ... Add the bbzuserdata_t to the function list */
-    	bbzdarray_push(&vm->heap, vm->flist, objbuf);
+    	bbzdarray_push(vm->flist, objbuf);
     }
     else {
     	/* ... else, Free the memory used by the buffer */
@@ -856,27 +856,27 @@ bbzvm_state bbzvm_call(int isswrm) {
     bbzobj_t* c = bbzvm_obj_at(bbzvm_stack_at(argn));
     /* Make sure that that data about C closures is correct */
     if((!bbzclosure_isnative(*c)) &&
-       ((c->c.value.ref) >= bbzdarray_size(&vm->heap, vm->flist))) {
+       ((c->c.value.ref) >= bbzdarray_size(vm->flist))) {
 		bbzvm_seterror(BBZVM_ERROR_FLIST);
 		return vm->state;
 	}
     /* Create a new local symbol list copying the parent's */
     if (c->c.value.actrec == 0xFF) {
-    	bbzdarray_clone(&vm->heap, vm->dflt_actrec, &vm->lsyms);
+    	bbzdarray_clone(vm->dflt_actrec, &vm->lsyms);
     }
     else {
-    	bbzdarray_clone(&vm->heap, c->c.value.actrec, &vm->lsyms);
+    	bbzdarray_clone(c->c.value.actrec, &vm->lsyms);
     }
     if (isswrm) {
     	bbzdarray_mark_swarm((bbzdarray_t*)bbzvm_obj_at(vm->lsyms));
     }
-    bbzdarray_push(&vm->heap, vm->lsymts, vm->lsyms);
+    bbzdarray_push(vm->lsymts, vm->lsyms);
     /* Add function arguments to the local symbols */
     /* and */
     /* Get rid of the function arguments */
     int16_t i;
     for (i = argn; i > 0; --i) {
-    	bbzdarray_push(&vm->heap, vm->lsyms, bbzvm_stack_at(0));
+    	bbzdarray_push(vm->lsyms, bbzvm_stack_at(0));
     	--vm->stackptr;
     }
     --vm->stackptr; // Get rid of the closure's reference on the stack.
@@ -891,8 +891,7 @@ bbzvm_state bbzvm_call(int isswrm) {
     }
     else {
     	bbzheap_idx_t udfunc;
-    	bbzdarray_get(&vm->heap,
-    				  vm->flist,
+    	bbzdarray_get(vm->flist,
 				   	  c->c.value.ref,
 					  &udfunc);
     	((bbzvm_funp)bbzvm_obj_at(udfunc)->u.value)();
@@ -1013,7 +1012,7 @@ bbzvm_state bbzvm_pushl(int16_t addr) {
     bbzheap_obj_alloc(&vm->heap, BBZTYPE_NCLOSURE, &o);
     bbzvm_obj_at(o)->c.value.ref = addr;
     if (vm->lsyms) {
-        bbzdarray_lambda_alloc(&vm->heap, vm->lsyms, &bbzvm_obj_at(o)->c.value.actrec);
+        bbzdarray_lambda_alloc(vm->lsyms, &bbzvm_obj_at(o)->c.value.actrec);
     }
     bbzvm_push(o);
     return BBZVM_STATE_READY;
@@ -1116,11 +1115,11 @@ bbzvm_state bbzvm_ret0() {
     	//TODO pop the swarm stack.
     }
     /* Pop local symbol table */
-    bbzdarray_pop(&vm->heap, vm->lsymts);
+    bbzdarray_pop(vm->lsymts);
     /* Set local symbol table pointer */
-    bbzdarray_destroy(&vm->heap, vm->lsyms);
-    if (!bbzdarray_isempty(&vm->heap, vm->lsymts)) {
-    	bbzdarray_last(&vm->heap, vm->lsymts, &vm->lsyms);
+    bbzdarray_destroy(vm->lsyms);
+    if (!bbzdarray_isempty(vm->lsymts)) {
+    	bbzdarray_last(vm->lsymts, &vm->lsyms);
     }
     else {
     	vm->lsyms = 0;
@@ -1148,11 +1147,11 @@ bbzvm_state bbzvm_ret1() {
     	//TODO pop the swarm stack.
     }
     /* Pop local symbol table */
-    bbzdarray_pop(&vm->heap, vm->lsymts);
+    bbzdarray_pop(vm->lsymts);
     /* Set local symbol table pointer */
-    bbzdarray_destroy(&vm->heap, vm->lsyms);
-    if (!bbzdarray_isempty(&vm->heap, vm->lsymts)) {
-    	bbzdarray_last(&vm->heap, vm->lsymts, &vm->lsyms);
+    bbzdarray_destroy(vm->lsyms);
+    if (!bbzdarray_isempty(vm->lsymts)) {
+    	bbzdarray_last(vm->lsymts, &vm->lsyms);
     }
     else {
     	vm->lsyms = 0;

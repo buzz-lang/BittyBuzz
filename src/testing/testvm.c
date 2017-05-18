@@ -212,7 +212,7 @@ TEST(bbzvm) {
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-    ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 0);
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), 0);
     ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 1);
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
@@ -513,14 +513,14 @@ TEST(bbzvm) {
     // B) Register C closure
     uint16_t funcid = bbzvm_function_register(printIntVal);
 
-    ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 1);
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), 1);
     bbzheap_idx_t c;
-    bbzdarray_get(&vm->heap, vm->flist, funcid, &c);
+    bbzdarray_get(vm->flist, funcid, &c);
     ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_USERDATA);
     ASSERT_EQUAL(bbzvm_obj_at(c)->u.value, printIntVal);
 
     // C) Call registered C closure
-    REQUIRE(bbzdarray_size(&vm->heap, vm->flist) >= 1);
+    REQUIRE(bbzdarray_size(vm->flist) >= 1);
     bbzvm_pushs(funcid);
     bbzvm_pushi(123);
     bbzvm_function_call(funcid, 1);
