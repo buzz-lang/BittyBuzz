@@ -20,11 +20,17 @@ link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
 # Prepare config.h file, making sure parameters have been set
 #
 if("${HEAP_SIZE}" STREQUAL "")
-  message(FATAL_ERROR "You must specify a value for HEAP_SIZE (e.g., cmake -DHEAP_SIZE=1024 ...)")
+  message(STATUS "Using default value for HEAP_SIZE (-DHEAP_SIZE=1024)")
+  set(HEAP_SIZE 1024)
 endif("${HEAP_SIZE}" STREQUAL "")
 if("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
-  message(FATAL_ERROR "You must specify a value for HEAP_ELEMS_PER_TSEG (e.g., cmake -DHEAP_ELEMS_PER_TSEG=5 ...)")
+  message(STATUS "Using default value for HEAP_ELEMS_PER_TSEG (-DHEAP_ELEMS_PER_TSEG=5)")
+  set(HEAP_ELEMS_PER_TSEG 5)
 endif("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
+if("${STACK_SIZE}" STREQUAL "")
+  message(STATUS "Using default value for STACK_SIZE (-DSTACK_SIZE=256)")
+  set(STACK_SIZE 256)
+endif("${STACK_SIZE}" STREQUAL "")
 configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONLY)
 
 #
