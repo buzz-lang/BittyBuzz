@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
+#include <bittybuzz/bbzheap.h>
 
 #include "bittybuzz/bbzvm.c"
 
@@ -26,7 +27,7 @@ bbzvm_error last_error;
  * @param[in] size Size of the data to fetch.
  * @return A pointer to the data fetched.
  */
-const uint8_t* testBcode(uint16_t offset, uint8_t size) {
+const uint8_t* testBcode(int16_t offset, uint8_t size) {
     if (offset + size - 2 >= fsize) {
         fprintf(stderr, "Trying to read outside of bytecode. Offset: %"
                         PRIu16 ", size: %" PRIu8 ".", offset, size);
@@ -81,22 +82,25 @@ void bbzheap_print(bbzheap_t* h) {
       if(obj_isvalid(*bbzheap_obj_at(h, i))) {
          printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(h, i))]);
          switch(bbztype(*bbzheap_obj_at(h, i))) {
-            case BBZTYPE_NIL:
-               break;
-            case BBZTYPE_STRING: // fallthrough
-            case BBZTYPE_CLOSURE: // fallthrough
-            case BBZTYPE_INT:
-               printf(" %d", bbzheap_obj_at(h, i)->i.value);
-               break;
-            case BBZTYPE_FLOAT:
-               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(h, i)->f.value));
-               break;
-            case BBZTYPE_TABLE:
-               printf(" %" PRIu16, bbzheap_obj_at(h, i)->t.value);
-               break;
-            case BBZTYPE_USERDATA:
-               printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(h, i)->u.value);
-               break;
+             case BBZTYPE_NIL:
+                 break;
+             case BBZTYPE_STRING: // fallthrough
+             case BBZTYPE_INT:
+                 printf(" %d", bbzheap_obj_at(h, i)->i.value);
+                 break;
+             case BBZTYPE_FLOAT:
+                 printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(h, i)->f.value));
+                 break;
+             case BBZTYPE_TABLE:
+                 printf(" %" PRIu16, bbzheap_obj_at(h, i)->t.value);
+                 break;
+             case BBZTYPE_USERDATA:
+                 printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(h, i)->u.value);
+                 break;
+             case BBZTYPE_NCLOSURE: // fallthrough
+             case BBZTYPE_CLOSURE:
+                 printf(" %d", bbzheap_obj_at(h, i)->c.value.ref);
+                 break;
          }
          printf("\n");
       }
@@ -162,6 +166,200 @@ int printIntVal(bbzvm_t* vm) {
     printf("#%02x: (%s) %d\n", idx, bbztype_desc[bbztype(*bbzvm_obj_at(vm,idx))], bbzvm_obj_at(vm,idx)->i.value);
     bbzvm_pop(vm);
     return bbzvm_ret0(vm);
+}
+
+#define STRBUF_SIZE 32
+static char strBuf[STRBUF_SIZE+1];
+char* getString(bbzvm_t* vm, uint16_t sid) {
+    uint16_t* strcnt = (uint16_t*)vm->bcode_fetch_fun(0, sizeof(uint16_t));
+    if (sid >= *strcnt) return strBuf;
+    uint16_t charCount = 0;
+    for (uint16_t i = 0; i < sid; ++i) {
+        char c = *vm->bcode_fetch_fun((charCount++)+sizeof(uint16_t), sizeof(char));
+        while(c != 0) c = *vm->bcode_fetch_fun((charCount++)+sizeof(uint16_t), sizeof(char));
+    }
+    for (uint16_t i = 0; i < STRBUF_SIZE; ++i) {
+        strBuf[i] = *vm->bcode_fetch_fun(sizeof(uint16_t)+charCount+i, sizeof(char));
+        if (strBuf[i] == 0) break;
+    }
+    strBuf[STRBUF_SIZE] = 0;
+    return strBuf;
+}
+
+void logfunc(bbzvm_t* vm) {
+    int16_t argn = bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0))->i.value;
+    for (int16_t i = 1; i <= argn; ++i) {
+        bbzobj_t* o = bbzvm_obj_at(vm, bbzvm_stack_at(vm, i));
+        switch(bbztype(*o)) {
+            case BBZTYPE_NIL:
+                printf("nil");
+                break;
+            case BBZTYPE_INT:
+                printf("%d", o->i.value);
+                break;
+            case BBZTYPE_FLOAT:
+                printf("%f", bbzfloat_tofloat(o->f.value));
+                break;
+            case BBZTYPE_TABLE:
+                printf("%" PRIu16, o->t.value);
+                break;
+            case BBZTYPE_USERDATA:
+                printf("%" PRIXPTR, (uintptr_t)o->u.value);
+                break;
+            case BBZTYPE_STRING:
+                printf("%s", getString(vm, o->s.value));
+                break;
+            case BBZTYPE_NCLOSURE: // fallthrough
+            case BBZTYPE_CLOSURE:
+                printf("%d", o->c.value.ref);
+                break;
+        }
+    }
+    printf("\n");
+}
+
+int bbzvm_log(bbzvm_t* vm) {
+    uint16_t nArg = bbzdarray_size(&vm->heap, vm->lsyms) - 1;
+    for (uint16_t i = 0; i < nArg; ++i) {
+        bbzvm_lload(vm, nArg - i);
+    }
+    bbzvm_pushi(vm, nArg);
+    logfunc(vm);
+    return bbzvm_ret0(vm);
+}
+
+typedef enum {
+    BBZVM_SYMID_LOG = 0,
+    BBZVM_SYMID_FORWARD,
+    BBZVM_SYMID_STOP,
+    BBZVM_SYMID_TURN,
+
+    BBZVM_SYMID_ID,
+    BBZVM_SYMID_SWARM,
+    BBZVM_SYMID_CREATE,
+    BBZVM_SYMID_SELECT,
+    BBZVM_SYMID_JOIN,
+    BBZVM_SYMID_UNSELECT,
+    BBZVM_SYMID_LEAVE,
+    BBZVM_SYMID_IN,
+    BBZVM_SYMID_EXEC,
+    BBZVM_SYMID_INTERSECTION,
+    BBZVM_SYMID_UNION,
+    BBZVM_SYMID_DIFFERENCE,
+    BBZVM_SYMID_OTHERS,
+    BBZVM_SYMID_NEIGHBORS,
+    BBZVM_SYMID_DISTANCE,
+    BBZVM_SYMID_AZIMUTH,
+    BBZVM_SYMID_ELEVATION,
+    BBZVM_SYMID_FOREACH,
+    BBZVM_SYMID_MAP,
+    BBZVM_SYMID_REDUCE,
+    BBZVM_SYMID_FILTER,
+    BBZVM_SYMID_LISTEN,
+    BBZVM_SYMID_IGNORE,
+    BBZVM_SYMID_BROADCAST,
+    BBZVM_SYMID_STIGMERGY,
+    BBZVM_SYMID_PUT,
+    BBZVM_SYMID_GET,
+    BBZVM_SYMID_SIZE,
+    BBZVM_SYMID_LEFT,
+    BBZVM_SYMID_RIGHT
+} bbzvm_symid;
+
+int bbzvm_dummy(bbzvm_t* vm) {
+    return bbzvm_ret0(vm);
+}
+
+int bbzvm_dummy_int(bbzvm_t* vm) {
+    bbzvm_pushi(vm, 0);
+    return bbzvm_ret1(vm);
+}
+
+int bbzvm_register_functions(bbzvm_t* vm) {
+    if (bbzvm_function_register(vm, BBZVM_SYMID_LOG, bbzvm_log) < 0) return -1;
+    if (bbzvm_function_register(vm, BBZVM_SYMID_FORWARD, bbzvm_dummy) < 0) return -1;
+    if (bbzvm_function_register(vm, BBZVM_SYMID_STOP, bbzvm_dummy) < 0) return -1;
+    if (bbzvm_function_register(vm, BBZVM_SYMID_TURN, bbzvm_dummy) < 0) return -1;
+    return 0;
+}
+
+void bbzvm_register_gsyms(bbzvm_t* vm) {
+    // Register 'id'
+    bbzvm_pushi(vm, vm->robot);
+    bbzheap_idx_t o = bbzvm_stack_at(vm, 0);
+    bbzvm_pop(vm);
+    bbzvm_gsym_register(vm, BBZVM_SYMID_ID, o);
+
+    // Register 'swarm'
+    bbzvm_pusht(vm);
+    o = bbzvm_stack_at(vm, 0);
+    bbzvm_gsym_register(vm, BBZVM_SYMID_SWARM, o);
+    //   Register 'swarm.create'
+    bbzvm_pushs(vm, BBZVM_SYMID_CREATE);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'swarm.intersection'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_INTERSECTION);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'swarm.union'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_UNION);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'swarm.difference'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_DIFFERENCE);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+
+    bbzvm_gc(vm);
+
+    // Register neighbors
+    bbzvm_pusht(vm);
+    o = bbzvm_stack_at(vm, 0);
+    //   Register 'neighbors.foreach'
+    bbzvm_pushs(vm, BBZVM_SYMID_FOREACH);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'neighbors.map'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_MAP);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'neighbors.filter'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_FILTER);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'neighbors.listen'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_LISTEN);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'neighbors.ignore'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_IGNORE);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+    //   Register 'neighbors.broadcast'
+    bbzvm_push(vm, o);
+    bbzvm_pushs(vm, BBZVM_SYMID_BROADCAST);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+
+    bbzvm_gc(vm);
+
+    // Register stigmergy
+    bbzvm_pusht(vm);
+    o = bbzvm_stack_at(vm, 0);
+    //   Register 'stigmergy.create'
+    bbzvm_pushs(vm, BBZVM_SYMID_CREATE);
+    bbzvm_pushc(vm, bbzvm_function_register(vm, -1, bbzvm_dummy), 0);
+    bbzvm_tput(vm);
+
+    bbzvm_gc(vm);
 }
 
     // ======================================
@@ -495,7 +693,6 @@ TEST(vm) {
     bbzvm_construct(vm, robot);
     bbzvm_set_error_notifier(vm, &set_last_error);
 
-    // 1) Open bytecode file.
     fclose(fbcode);
     fbcode = fopen("ressources/3_test1.bo", "rb");
     REQUIRE(fbcode != NULL);
@@ -509,9 +706,11 @@ TEST(vm) {
     ASSERT_EQUAL(bbztable_size(&vm->heap, vm->gsyms), 5);
 
     // B) Register C closure
-    uint16_t funcid = bbzvm_function_register(vm, printIntVal);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    int16_t funcid = bbzvm_function_register(vm, 0, printIntVal);
 
-    ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 1);
+    REQUIRE(funcid >= 0);
+    ASSERT_EQUAL(bbzdarray_size(&vm->heap, vm->flist), 2);
     bbzheap_idx_t c;
     bbzdarray_get(&vm->heap, vm->flist, funcid, &c);
     ASSERT_EQUAL(bbztype(*bbzvm_obj_at(vm, c)), BBZTYPE_USERDATA);
@@ -519,13 +718,17 @@ TEST(vm) {
 
     // C) Call registered C closure
     REQUIRE(bbzdarray_size(&vm->heap, vm->flist) >= 1);
-    bbzvm_pushs(vm, funcid);
-    bbzvm_pushi(vm, 123);
-    bbzvm_function_call(vm, funcid, 1);
+    REQUIRE(bbztable_size(&vm->heap, vm->gsyms) == *(uint16_t*)vm->bcode_fetch_fun(0, 2));
+    bbzvm_pushs(vm, 0);
+    bbztable_get(&vm->heap, vm->gsyms, bbzvm_stack_at(vm, 0), &c);
     bbzvm_pop(vm);
+    REQUIRE(bbztype_isclosure(*bbzvm_obj_at(vm, c)));
+    bbzvm_pushi(vm, 123);
+    ASSERT(bbzvm_function_call(vm, 0, 1) != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(vm), 0);
 
     // D) Execute the rest of the script
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(bbzvm_step(vm) == BBZVM_STATE_READY);
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     bbzvm_pushs(vm, 4);
@@ -533,6 +736,37 @@ TEST(vm) {
     ASSERT_EQUAL(bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0))->i.value, 63);
 
     bbzvm_destruct(vm);
+
+    // --------------------------
+    // - Script execution tests -
+    // --------------------------
+
+    #if BBZHEAP_SIZE < 2048
+    #warning "test file \"testvm.c\": Running test on all features requires BBZHEAP_SIZE >= 2048 on 32 and 64 bit systems The Script Execution test will be disabled."
+    #else
+
+    bbzvm_construct(vm, robot);
+    bbzvm_set_error_notifier(vm, &set_last_error);
+
+    fclose(fbcode);
+    fbcode = fopen("ressources/4_AllFeaturesTest.bo", "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    fseek(fbcode, 0, SEEK_SET);
+
+    bbzvm_set_bcode(vm, &testBcode, fsize);
+    
+    REQUIRE(vm->state == BBZVM_STATE_READY);
+    REQUIRE(bbzvm_register_functions(vm) >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
+    bbzvm_register_gsyms(vm);
+    while (vm->state == BBZVM_STATE_READY) {
+        ASSERT(bbzvm_step(vm) != BBZVM_STATE_READY);
+        if (bbzvm_step(vm) != BBZVM_STATE_READY) break;
+    }
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_DONE);
+    ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
+    #endif
 
     TEST_END();
 }

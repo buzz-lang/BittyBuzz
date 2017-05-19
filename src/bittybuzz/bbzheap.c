@@ -20,9 +20,9 @@ void bbzheap_clear(bbzheap_t* h) {
 /****************************************/
 /****************************************/
 
-int bbzheap_obj_alloc(bbzheap_t* h,
-                      int t,
-                      bbzheap_idx_t* o) {
+uint8_t bbzheap_obj_alloc(bbzheap_t *h,
+                          uint8_t t,
+                          bbzheap_idx_t *o) {
    /* Look for empty slot */
    for(int i = (h->rtobj - h->data) / sizeof(bbzobj_t) - 1;
        i >= RESERVED_ACTREC_MAX;
@@ -35,6 +35,15 @@ int bbzheap_obj_alloc(bbzheap_t* h,
          bbztype_cast(*x, t);
          /* Set result */
          *o = i;
+         /* Take care of special initialisations */
+         if (t == BBZTYPE_TABLE) {
+             bbztable_t* x = &bbzheap_obj_at(h, *o)->t;
+             if(!bbzheap_tseg_alloc(h, &(x->value))) return 0;
+         }
+         else if (bbztype_isclosure(*bbzheap_obj_at(h, *o))) {
+             bbzclosure_t* x = (bbzclosure_t*)bbzheap_obj_at(h, *o);
+             x->value.actrec = 0xFF; // Default activation record
+         }
          /* Success */
          return 1;
       }
@@ -63,8 +72,8 @@ int bbzheap_obj_alloc(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzheap_tseg_alloc(bbzheap_t* h,
-                       bbzheap_idx_t* s) {
+uint8_t bbzheap_tseg_alloc(bbzheap_t *h,
+                           bbzheap_idx_t *s) {
    /* Look for empty slot */
    for(int i = (h->data + BBZHEAP_SIZE - h->ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;

@@ -84,7 +84,7 @@ int main() {
       bbzheap_obj_at(&heap, o)->f.value = bbzfloat_fromfloat(i);
       bbzheap_print(&heap);
    }
-   uint16_t s1;
+   //uint16_t s1;
    for(int i = 0; i < 3; ++i) {
       if(bbzheap_obj_alloc(&heap, BBZTYPE_TABLE, &o)) {
          printf("Allocated table object at position %" PRIu16 "\n", o);

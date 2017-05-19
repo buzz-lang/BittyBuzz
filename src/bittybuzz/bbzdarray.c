@@ -3,8 +3,8 @@
 /****************************************/
 /****************************************/
 
-int bbzdarray_new(bbzheap_t* h,
-                  bbzheap_idx_t* d) {
+uint8_t bbzdarray_new(bbzheap_t *h,
+                      bbzheap_idx_t *d) {
    /* Allocation of a new array */
    if (!bbzheap_obj_alloc(h, BBZTYPE_TABLE, d)) return 0;
    /* Set the bit that tells it's a dynamic array */
@@ -21,13 +21,14 @@ void bbzdarray_destroy(bbzheap_t* h,
    uint16_t si = da->value;
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    while (1) {
-      if (bbzdarray_iscloned(da)) {
+      // TODO Remove this code
+      /*if (bbzdarray_iscloned(da)) {
          for (uint16_t i = 0; i < 2*BBZHEAP_ELEMS_PER_TSEG; ++i) {
             if (bbzheap_aseg_elem_isvalid(sd->values[i])) {
                obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[i])));
             }
          }
-      }
+      }*/
       tseg_makeinvalid(*sd);
       if (!bbzheap_aseg_hasnext(sd)) break;
       si = bbzheap_aseg_next_get(sd);
@@ -39,10 +40,10 @@ void bbzdarray_destroy(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_get(bbzheap_t* h,
-                  bbzheap_idx_t d,
-                  uint16_t idx,
-                  bbzheap_idx_t* v) {
+uint8_t bbzdarray_get(bbzheap_t *h,
+                      bbzheap_idx_t d,
+                      uint16_t idx,
+                      bbzheap_idx_t *v) {
    if (idx >= bbzdarray_size(h, d)) return 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
@@ -67,10 +68,10 @@ int bbzdarray_get(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_set(bbzheap_t* h,
-                  bbzheap_idx_t d,
-                  uint16_t idx,
-                  bbzheap_idx_t v) {
+uint8_t bbzdarray_set(bbzheap_t *h,
+                      bbzheap_idx_t d,
+                      uint16_t idx,
+                      bbzheap_idx_t v) {
    if (idx >= bbzdarray_size(h, d)) return 0;
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
@@ -79,14 +80,15 @@ int bbzdarray_set(bbzheap_t* h,
    while (1) {
       if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
          if (bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
-            uint16_t o = v;
+            // TODO Remove this code
+            /*uint16_t o = v;
             if (bbzdarray_iscloned(da)) {
                obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])));
                if (bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) {
                   bbzheap_obj_copy(h, v, o);
                }
-            }
-            bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
+            }*/
+            bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], v);
             return 1;
          }
          break;
@@ -102,8 +104,8 @@ int bbzdarray_set(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_pop(bbzheap_t* h,
-                  bbzheap_idx_t d) {
+uint8_t bbzdarray_pop(bbzheap_t *h,
+                      bbzheap_idx_t d) {
    uint16_t idx = bbzdarray_size(h, d);
    if (idx == 0) return 0;
    --idx;
@@ -115,9 +117,10 @@ int bbzdarray_pop(bbzheap_t* h,
    while (1) {
       if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
          if (bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
-            if (bbzdarray_iscloned(da)) {
+            // TODO Remove this code
+            /*if (bbzdarray_iscloned(da)) {
                obj_makeinvalid(*bbzheap_obj_at(h, bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])));
-            }
+            }*/
             sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)] &= ~MASK_VALID_SEG_ELEM;
          }
          if (idx%(2*BBZHEAP_ELEMS_PER_TSEG) == 0) {
@@ -140,9 +143,9 @@ int bbzdarray_pop(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_push(bbzheap_t* h,
-                   bbzheap_idx_t d,
-                   bbzheap_idx_t v) {
+uint8_t bbzdarray_push(bbzheap_t *h,
+                       bbzheap_idx_t d,
+                       bbzheap_idx_t v) {
    uint16_t idx = bbzdarray_size(h, d);
    bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(h, d);
    uint16_t i = 0;
@@ -150,12 +153,13 @@ int bbzdarray_push(bbzheap_t* h,
    bbzheap_aseg_t* sd = bbzheap_aseg_at(h, si);
    while (1) {
       if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
-         uint16_t o = v;
-         if (bbzdarray_iscloned(da)) {
+         //uint16_t o = v;
+         // TODO Remove this code
+         /*if (bbzdarray_iscloned(da)) {
             if(!bbzheap_obj_alloc(h, BBZTYPE_NIL, &o)) return 0;
             bbzheap_obj_copy(h, v, o);
-         }
-         bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], o);
+         }*/
+         bbzheap_aseg_elem_set(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)], v);
          return 1;
       }
       if (!bbzheap_aseg_hasnext(sd)) {
@@ -196,10 +200,10 @@ uint16_t bbzdarray_size(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_clone(bbzheap_t* h,
-                    bbzheap_idx_t d,
-                    bbzheap_idx_t* newd) {
-   bbzdarray_new(h, newd);
+uint8_t bbzdarray_clone(bbzheap_t *h,
+                        bbzheap_idx_t d,
+                        bbzheap_idx_t *newd) {
+   if(!bbzdarray_new(h, newd)) return 0;
    /* Set the bit that tells it's cloned */
    bbzdarray_mark_cloned((bbzdarray_t*)bbzheap_obj_at(h, *newd));
    uint16_t idx = bbzdarray_size(h, d);
@@ -277,7 +281,7 @@ uint16_t bbzdarray_find(bbzheap_t* h,
 /****************************************/
 /****************************************/
 
-int bbzdarray_lambda_alloc(bbzheap_t* h, bbzheap_idx_t d, uint8_t* l) {
+uint8_t bbzdarray_lambda_alloc(bbzheap_t *h, bbzheap_idx_t d, uint8_t *l) {
    /* Look for empty slot */
    for(uint8_t i = 0;
 	   i < RESERVED_ACTREC_MAX;

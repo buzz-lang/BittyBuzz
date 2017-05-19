@@ -42,7 +42,8 @@ extern "C" {
         BBZVM_ERROR_FLIST,    /**< @brief Function call id out of range */
         BBZVM_ERROR_TYPE,     /**< @brief Type mismatch */
         BBZVM_ERROR_STRING,   /**< @brief Unknown string id */
-        BBZVM_ERROR_SWARM     /**< @brief Unknown swarm id */
+        BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id */
+        BBZVM_ERROR_MEM       /**< @brief Out of memory*/
     } bbzvm_error;
 
     /**
@@ -115,7 +116,7 @@ extern "C" {
      * try to read 4 bytes (uint32_t).
      * @return A pointer to the data to the data.
      */
-    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
+    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(int16_t offset, uint8_t size);
 
     /**
      * @brief Type for the pointer to a function that is called whenever the
@@ -145,11 +146,11 @@ extern "C" {
         bbzheap_idx_t stack[BBZSTACK_SIZE];
         /** @brief Stack pointer (Index of the last valid element of the stack) */
         int16_t stackptr;
-        /** @brief Block pointer (... ?) */
+        /** @brief Block pointer (Index of the previous block pointer in the stack) */
         int16_t blockptr;
         /** @brief Current local variable table */
         bbzheap_idx_t lsyms;
-        /** @brief Local variable table list */
+        /** @brief Local variable array list */
         bbzheap_idx_t lsymts;
         /** @brief Global symbols */
         bbzheap_idx_t gsyms;
@@ -612,10 +613,11 @@ extern "C" {
     /**
      * @brief Registers a function in the VM.
      * @param vm The VM.
+     * @param fnameid The symbol ID of the function's name.
      * @param funp The function pointer to register.
      * @return The function id.
      */
-    uint16_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp);
+    int16_t bbzvm_function_register(bbzvm_t *vm, int16_t fnameid, bbzvm_funp funp);
 
     /**
      * @brief Calls a closure.
@@ -859,6 +861,15 @@ extern "C" {
      */
     bbzvm_state bbzvm_jumpnz(bbzvm_t* vm, uint16_t offset);
 
+    /**
+     * @brief Register a global symbol.
+     * @param[in,out] vm The VM
+     * @param[in] sid The string ID representing the global symbol.
+     * @param[in] v The value of the global symbol.
+     * @return 1 for success, 0 for failure (out of memory).
+     */
+    uint8_t bbzvm_gsym_register(bbzvm_t* vm, uint16_t sid, bbzheap_idx_t v);
+
 
 
     // ======================================
@@ -929,11 +940,26 @@ extern "C" {
             bbzobj_t* o = bbzheap_obj_at(&vm->heap,                     \
                                          bbzvm_stack_at(vm, idx));      \
             if (bbztype(*o) != tpe                                      \
-    			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)        \
-    			&& !bbztype_isclosure(*o)) {                       \
+    			&& (!((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)       \
+    			|| !bbztype_isclosure(*o))) {                           \
                 bbzvm_seterror(vm, BBZVM_ERROR_TYPE);                   \
                 return BBZVM_STATE_ERROR;                               \
             }                                                           \
+        }
+
+    /**
+     * @brief Allocate memory on the heap. If the heap is out of memory,
+     * it updates the VM state and exits the current function.
+     * This function is designed to be used within int-returning functions such as
+     * bbzvm_push<i|nil|...>() or bbzvm_lload().
+     * @param[in,out] vm The VM data.
+     * @param[in] tpe The type to allocate.
+     * @param[out] idx A buffer for the index of the allocated object.
+     */
+    #define bbzvm_assert_mem_alloc(vm, type, idx)       \
+        if (!bbzheap_obj_alloc(&vm->heap, type, idx)) { \
+            bbzvm_seterror(vm, BBZVM_ERROR_MEM);        \
+            return BBZVM_STATE_ERROR;                     \
         }
 
     /**

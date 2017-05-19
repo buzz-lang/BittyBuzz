@@ -95,7 +95,6 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t
     vm->state = BBZVM_STATE_READY;
     vm->error = BBZVM_ERROR_NONE;
     vm->pc = 0;
-    // TODO Reset string manager
 
     // 2) Set the bytecode
     vm->bcode_fetch_fun = bcode_fetch_fun;
@@ -103,20 +102,14 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t
 
     // 3) Register global strings
     uint16_t strCount = *vm->bcode_fetch_fun(0, sizeof(uint16_t));
-    uint16_t charCount = 0;
+    vm->pc = sizeof(uint16_t);
     const uint8_t* c;
-	bbzheap_idx_t o, o2;
     for (uint16_t i = 0; i < strCount; ++i) {
     	do {
-    		c = vm->bcode_fetch_fun((charCount++)+sizeof(uint16_t), sizeof(uint8_t));
+    		c = vm->bcode_fetch_fun(vm->pc++, sizeof(uint8_t));
     	} while(*c != 0);
-    	bbzheap_obj_alloc(&vm->heap, BBZTYPE_STRING, &o);
-    	bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o2);
-    	bbzvm_obj_at(vm, o)->s.value = i;
-    	bbzvm_obj_at(vm, o2)->i.value = i;
-    	bbztable_set(&vm->heap, vm->gsyms, o, o2);
+        bbzvm_gsym_register(vm, i, vm->nil);
     }
-    vm->pc = charCount + sizeof(uint16_t);
 
     // 4) Register Buzz's built-in functions
     while(*vm->bcode_fetch_fun(vm->pc, sizeof(uint8_t)) != BBZVM_INSTR_NOP) {
@@ -132,7 +125,7 @@ int bbzvm_set_bcode(bbzvm_t* vm, bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t
 
 #define assert_pc(IDX) if((IDX) < 0 || (IDX) >= vm->bcode_size) { bbzvm_seterror(vm, BBZVM_ERROR_PC); return BBZVM_STATE_ERROR; }
 
-#define inc_pc() ++vm->pc; assert_pc(vm->pc);
+#define inc_pc() assert_pc(vm->pc); ++vm->pc;
 
 #define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg = *((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); vm->pc += sizeof(TYPE);
 
@@ -331,7 +324,7 @@ bbzvm_state bbzvm_exec_instr(bbzvm_t* vm) {
         }
         case BBZVM_INSTR_LLOAD: {
             get_arg(uint32_t);
-             bbzvm_lload(vm, arg);
+            bbzvm_lload(vm, arg);
             break;
         }
         case BBZVM_INSTR_LSTORE: {
@@ -425,7 +418,7 @@ bbzvm_state bbzvm_binary_op_arith(bbzvm_t* vm, binary_op_arith op) {
     uint8_t ok = bbztype_isint(*lhs) && bbztype_isint(*rhs);
     if (ok) {
         bbzheap_idx_t idx;
-        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+        bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &idx);
         bbzvm_obj_at(vm ,idx)->i.value = (*op)(lhs->i.value, rhs->i.value);
         bbzvm_push(vm, idx);
     }
@@ -510,7 +503,7 @@ bbzvm_state bbzvm_unm(bbzvm_t* vm) {
     uint8_t ok = bbztype_isint(*operand);
     if (ok) {
         bbzheap_idx_t idx;
-        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+        bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &idx);
         bbzvm_obj_at(vm, idx)->i.value = -operand->i.value;
         bbzvm_push(vm, idx);
     }
@@ -560,7 +553,7 @@ bbzvm_state bbzvm_binary_op_logic(bbzvm_t* vm, binary_op_logic op) {
     }
 
     bbzheap_idx_t idx;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &idx);
     bbzvm_obj_at(vm, idx)->i.value = (*op)(lhs_bool, rhs_bool);
     bbzvm_push(vm, idx);
 
@@ -592,7 +585,7 @@ bbzvm_state bbzvm_not(bbzvm_t* vm) {
     bbzobj_t* operand = bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0));
     bbzvm_pop(vm);
     bbzheap_idx_t idx;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &idx);
 	switch(bbztype(*operand)) {
         case BBZTYPE_INT: bbzvm_obj_at(vm, idx)->i.value = (operand->i.value != 0); break;
         case BBZTYPE_NIL: bbzvm_obj_at(vm, idx)->i.value = 0; break;
@@ -631,7 +624,7 @@ bbzvm_state bbzvm_binary_op_cmp(bbzvm_t* vm, binary_op_cmp op) {
     int8_t cmp = bbztype_cmp(lhs, rhs);
 
     bbzheap_idx_t idx;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &idx);
     bbzvm_obj_at(vm, idx)->i.value = (*op)(cmp);
     bbzvm_push(vm, idx);
 
@@ -693,7 +686,7 @@ bbzvm_state bbzvm_lte(bbzvm_t* vm) {
 bbzvm_state bbzvm_pusht(bbzvm_t* vm) {
     // Allocate the table
     bbzheap_idx_t idx;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_TABLE, &idx);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_TABLE, &idx);
     bbzvm_push(vm, idx);
     return vm->state;
 }
@@ -702,8 +695,10 @@ bbzvm_state bbzvm_pusht(bbzvm_t* vm) {
 /****************************************/
 
 bbzvm_state bbzvm_lload(bbzvm_t* vm, uint16_t idx) {
-    bbzheap_idx_t id;
-    bbzdarray_get(&vm->heap, vm->lsyms, idx, &id);
+    bbzheap_idx_t id = vm->nil;
+    if (!bbzdarray_get(&vm->heap, vm->lsyms, idx, &id)) {
+        bbzvm_seterror(vm, BBZVM_ERROR_LNUM);
+    }
     bbzvm_push(vm, id);
     return vm->state;
 }
@@ -714,11 +709,11 @@ bbzvm_state bbzvm_lload(bbzvm_t* vm, uint16_t idx) {
 bbzvm_state bbzvm_lstore(bbzvm_t* vm, uint16_t idx) {
     bbzheap_idx_t o = bbzvm_stack_at(vm, 0);
     uint16_t size = bbzdarray_size(&vm->heap, vm->lsyms);
-    while (size++ < idx) {
+    while (size++ <= idx) {
         bbzdarray_push(&vm->heap, vm->lsyms, vm->nil);
     }
     bbzdarray_set(&vm->heap, vm->lsyms, idx, o);
-    return vm->state;
+    return bbzvm_pop(vm);
 }
 
 /****************************************/
@@ -761,6 +756,26 @@ bbzvm_state bbzvm_jumpnz(bbzvm_t* vm, uint16_t offset) {
     }
     bbzvm_pop(vm);
     return vm->state;
+}
+
+/****************************************/
+/****************************************/
+
+uint8_t bbzvm_gsym_register(bbzvm_t* vm, uint16_t sid, bbzheap_idx_t v) {
+    bbzvm_pushs(vm, sid);
+    bbzheap_idx_t str = bbzvm_stack_at(vm, 0);
+    bbzvm_pop(vm);
+    bbzobj_t* o = bbzvm_obj_at(vm, v);
+    uint8_t oldType = bbztype(*o);
+    /* If we want to put a nil, ... */
+    if (bbztype_isnil(*o)) {
+        // ... Cast the nil into an int
+        bbztype_cast(*o, BBZTYPE_INT);
+    }
+    /* Put the value in the global symbols table */
+    if (!bbztable_set(&vm->heap, vm->gsyms, str, v)) return 0;
+    bbztype_cast(*o, oldType);
+    return 1;
 }
 
 /****************************************/
@@ -812,30 +827,32 @@ bbzvm_state bbzvm_function_call(bbzvm_t* vm, bbzheap_idx_t fname, uint32_t argc)
 /****************************************/
 
 int bbzvm_function_cmp(const bbzobj_t* a, const bbzobj_t* b) {
+    if (!bbztype_isuserdata(*a) || !bbztype_isuserdata(*b)) return -1;
 	if (*(uint16_t*)((bbzuserdata_t*)a)->value < *(uint16_t*)((bbzuserdata_t*)b)->value) return -1;
 	if (*(uint16_t*)((bbzuserdata_t*)a)->value > *(uint16_t*)((bbzuserdata_t*)b)->value) return 1;
     return 0;
 }
 
-uint16_t bbzvm_function_register(bbzvm_t* vm, bbzvm_funp funp) {
-	/* Allocate a bbzuserdata_t for function comparison */
-	bbzheap_idx_t objbuf;
-	bbzheap_obj_alloc(&vm->heap, BBZTYPE_USERDATA, &objbuf); // FIXME Possible "out of memory"
-	bbzvm_obj_at(vm, objbuf)->u.value = (void*)funp;
-    uint16_t fpos = bbzdarray_find(&vm->heap, vm->flist, bbzvm_function_cmp, objbuf);
+int16_t bbzvm_function_register(bbzvm_t *vm, int16_t fnameid, bbzvm_funp funp) {
+    /* Allocate a bbzuserdata_t for function comparison */
+    if (bbzvm_pushu(vm, (void*)funp) == BBZVM_STATE_ERROR) return -1;
+    uint16_t fpos = bbzdarray_find(&vm->heap, vm->flist, bbzvm_function_cmp, bbzvm_stack_at(vm, 0));
     /* If the function isn't in the list yet, ... */
     if (fpos == bbzdarray_size(&vm->heap, vm->flist)) {
     	/* ... Add the bbzuserdata_t to the function list */
-    	bbzdarray_push(&vm->heap, vm->flist, objbuf);
+    	bbzdarray_push(&vm->heap, vm->flist, bbzvm_stack_at(vm, 0));
     }
     else {
     	/* ... else, Free the memory used by the buffer */
-        obj_makeinvalid(*bbzvm_obj_at(vm, objbuf));
+        obj_makeinvalid(*bbzvm_obj_at(vm, bbzvm_stack_at(vm, 0)));
     }
+    bbzvm_pop(vm);
     /* Register the closure in the global symbols */
-    bbzvm_pushs(vm, fpos);
-    bbzvm_pushcc(vm, fpos);
-    bbzvm_gstore(vm);
+    if (fnameid >= 0) {
+        bbzvm_pushs(vm, fnameid);
+        bbzvm_pushcc(vm, fpos);
+        bbzvm_gstore(vm);
+    }
     /* Return the function id */
     return fpos;
 }
@@ -876,26 +893,25 @@ bbzvm_state bbzvm_call(bbzvm_t* vm, int isswrm) {
     /* Get rid of the function arguments */
     int16_t i;
     for (i = argn; i > 0; --i) {
-    	bbzdarray_push(&vm->heap, vm->lsyms, bbzvm_stack_at(vm, 0));
-    	--vm->stackptr;
+    	bbzdarray_push(&vm->heap, vm->lsyms, bbzvm_stack_at(vm, i-1));
     }
-    --vm->stackptr; // Get rid of the closure's reference on the stack.
+    vm->stackptr -= argn + 1;// Get rid of the closure's reference on the stack.
     /* Push return address */
     bbzvm_pushi(vm, vm->pc);
     /* Push block pointer */
     bbzvm_pushi(vm, vm->blockptr);
     vm->blockptr = vm->stackptr;
     /* Jump to/execute the function */
-    if(bbzclosure_isnative(*c)) {
-    	vm->pc = c->c.value.ref;
+    bbzheap_idx_t udfunc;
+    bbzdarray_get(&vm->heap,
+                  vm->flist,
+                  c->c.value.ref,
+                  &udfunc);
+    if (bbzclosure_isnative(*c)) {
+        vm->pc = bbzvm_obj_at(vm, udfunc)->i.value;
     }
     else {
-    	bbzheap_idx_t udfunc;
-    	bbzdarray_get(&vm->heap,
-    				  vm->flist,
-				   	  c->c.value.ref,
-					  &udfunc);
-    	((bbzvm_funp)bbzvm_obj_at(vm, udfunc)->u.value)(vm);
+        ((bbzvm_funp)bbzvm_obj_at(vm, udfunc)->u.value)(vm);
     }
     return vm->state;
 }
@@ -920,7 +936,7 @@ bbzvm_state bbzvm_dup(bbzvm_t* vm) {
     uint16_t stack_size = bbzvm_stack_size(vm);
     if (stack_size > 0 && stack_size < BBZSTACK_SIZE) {
         bbzheap_idx_t idx;
-        bbzheap_obj_alloc(&vm->heap, BBZTYPE_NIL, &idx);
+        bbzvm_assert_mem_alloc(vm, BBZTYPE_NIL, &idx);
         bbzheap_obj_copy(&vm->heap, bbzvm_stack_at(vm, 0), idx);
         bbzvm_push(vm, idx);
     }
@@ -947,7 +963,7 @@ bbzvm_state bbzvm_push(bbzvm_t* vm, bbzheap_idx_t v) {
 
 bbzvm_state bbzvm_pushu(bbzvm_t* vm, void* v) {
     bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_USERDATA, &o);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_USERDATA, &o);
     bbzheap_obj_at(&vm->heap, o)->u.value = v;
     bbzvm_push(vm, o);
     return vm->state;
@@ -966,8 +982,23 @@ bbzvm_state bbzvm_pushnil(bbzvm_t* vm) {
 
 bbzvm_state bbzvm_pushc(bbzvm_t* vm, int16_t rfrnc, int16_t nat) {
     bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_CLOSURE | ((nat & 1) << 1), &o);
-    bbzvm_obj_at(vm, o)->c.value.ref = rfrnc;
+    bbzvm_assert_mem_alloc(vm, (uint8_t)(BBZTYPE_CLOSURE | ((nat & 1) << 1)), &o);
+    if (nat) {
+        bbzheap_idx_t idx;
+        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+        bbzvm_obj_at(vm, idx)->i.value = rfrnc;
+        rfrnc = bbzdarray_find(&vm->heap, vm->flist, bbztype_cmp, idx);
+        /* If the function isn't in the list yet, ... */
+        if (rfrnc == bbzdarray_size(&vm->heap, vm->flist)) {
+            /* ... Add the bbzuserdata_t to the function list */
+            bbzdarray_push(&vm->heap, vm->flist, idx);
+        }
+        else {
+            /* ... else, Free the memory used by the buffer */
+            obj_makeinvalid(*bbzvm_obj_at(vm, idx));
+        }
+    }
+    bbzvm_obj_at(vm, o)->c.value.ref = (uint8_t)rfrnc;
     bbzvm_push(vm, o);
     return vm->state;
 }
@@ -977,7 +1008,7 @@ bbzvm_state bbzvm_pushc(bbzvm_t* vm, int16_t rfrnc, int16_t nat) {
 
 bbzvm_state bbzvm_pushi(bbzvm_t* vm, int16_t v) {
     bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &o);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_INT, &o);
     bbzvm_obj_at(vm, o)->i.value = v;
     bbzvm_push(vm, o);
     return vm->state;
@@ -988,7 +1019,7 @@ bbzvm_state bbzvm_pushi(bbzvm_t* vm, int16_t v) {
 
 bbzvm_state bbzvm_pushf(bbzvm_t* vm, float v) {
     bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_FLOAT, &o);
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_FLOAT, &o);
     bbzheap_obj_at(&vm->heap, o)->f.value = v;
     bbzvm_push(vm, o);
     return vm->state;
@@ -998,9 +1029,14 @@ bbzvm_state bbzvm_pushf(bbzvm_t* vm, float v) {
 /****************************************/
 
 bbzvm_state bbzvm_pushs(bbzvm_t* vm, uint16_t strid) {
-	bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_STRING, &o);
+    bbzheap_idx_t o;
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_STRING, &o);
     bbzheap_obj_at(&vm->heap, o)->s.value = strid;
+    strid = bbzdarray_find(&vm->heap, vm->gsyms, bbztype_cmp, o);
+    if (strid < bbzdarray_size(&vm->heap, vm->gsyms)) {
+        obj_makeinvalid(*bbzvm_obj_at(vm, o));
+        bbzdarray_get(&vm->heap, vm->gsyms, strid, &o);
+    }
     bbzvm_push(vm, o);
     return vm->state;
 }
@@ -1010,11 +1046,27 @@ bbzvm_state bbzvm_pushs(bbzvm_t* vm, uint16_t strid) {
 
 bbzvm_state bbzvm_pushl(bbzvm_t* vm, int16_t addr) {
     bbzheap_idx_t o;
-    bbzheap_obj_alloc(&vm->heap, BBZTYPE_NCLOSURE, &o);
-    bbzvm_obj_at(vm, o)->c.value.ref = addr;
+    bbzvm_assert_mem_alloc(vm, BBZTYPE_NCLOSURE, &o);
+    if (1) {
+        bbzheap_idx_t idx;
+        bbzheap_obj_alloc(&vm->heap, BBZTYPE_INT, &idx);
+        bbzvm_obj_at(vm, idx)->i.value = addr;
+        addr = bbzdarray_find(&vm->heap, vm->flist, bbztype_cmp, idx);
+        /* If the function isn't in the list yet, ... */
+        if (addr == bbzdarray_size(&vm->heap, vm->flist)) {
+            /* ... Add the bbzuserdata_t to the function list */
+            bbzdarray_push(&vm->heap, vm->flist, idx);
+        }
+        else {
+            /* ... else, Free the memory used by the buffer */
+            obj_makeinvalid(*bbzvm_obj_at(vm, idx));
+        }
+    }
+    bbzvm_obj_at(vm, o)->c.value.ref = (uint8_t)addr;
     if (vm->lsyms) {
         bbzdarray_lambda_alloc(&vm->heap, vm->lsyms, &bbzvm_obj_at(vm, o)->c.value.actrec);
     }
+
     bbzvm_push(vm, o);
     return BBZVM_STATE_READY;
 }
@@ -1025,7 +1077,7 @@ bbzvm_state bbzvm_pushl(bbzvm_t* vm, int16_t addr) {
 bbzvm_state bbzvm_tput(bbzvm_t* vm) {
     // Get value, key and table, and pop them.
     bbzvm_stack_assert(vm, 3);
-    bbzvm_type_assert(vm, 3, BBZTYPE_TABLE);
+    bbzvm_type_assert(vm, 2, BBZTYPE_TABLE);
     bbzheap_idx_t v = bbzvm_stack_at(vm, 0);
     bbzheap_idx_t k = bbzvm_stack_at(vm, 1);
     bbzheap_idx_t t = bbzvm_stack_at(vm, 2);
@@ -1036,7 +1088,12 @@ bbzvm_state bbzvm_tput(bbzvm_t* vm) {
     bbzobj_t* vObj = bbzheap_obj_at(&vm->heap, v);
     if(bbztype_isclosure(*vObj)) {
         // Method call
-        // TODO Clone the object and add the table to its activation record.
+        bbzheap_idx_t o, ar = vObj->c.value.actrec;
+        bbzvm_assert_mem_alloc(vm, BBZTYPE_NIL, &o);
+        bbzheap_obj_copy(&vm->heap, v, o);
+        bbzdarray_lambda_alloc(&vm->heap, ar, &bbzvm_obj_at(vm, o)->c.value.actrec);
+        bbzdarray_set(&vm->heap, bbzvm_obj_at(vm, o)->c.value.actrec, 0, t);
+        bbztable_set(&vm->heap, t, k, o);
     }
     else {
         bbztable_set(&vm->heap, t, k, v);
@@ -1051,7 +1108,7 @@ bbzvm_state bbzvm_tput(bbzvm_t* vm) {
 bbzvm_state bbzvm_tget(bbzvm_t* vm) {
     // Get & pop the arguments
     bbzvm_stack_assert(vm, 2);
-    bbzvm_type_assert(vm, 2, BBZTYPE_TABLE);
+    bbzvm_type_assert(vm, 1, BBZTYPE_TABLE);
     bbzheap_idx_t k = bbzvm_stack_at(vm, 0);
     bbzheap_idx_t t = bbzvm_stack_at(vm, 1);
     bbzvm_pop(vm);
@@ -1075,7 +1132,7 @@ bbzvm_state bbzvm_tget(bbzvm_t* vm) {
 bbzvm_state bbzvm_gload(bbzvm_t* vm) {
     // Get and pop the string
     bbzvm_stack_assert(vm, 1);
-    bbzvm_type_assert(vm, 1, BBZTYPE_STRING);
+    bbzvm_type_assert(vm, 0, BBZTYPE_STRING);
     bbzheap_idx_t str = bbzvm_stack_at(vm, 0);
     bbzvm_pop(vm);
 
@@ -1096,7 +1153,7 @@ bbzvm_state bbzvm_gload(bbzvm_t* vm) {
 bbzvm_state bbzvm_gstore(bbzvm_t* vm) {
     // Get and pop the arguments    
     bbzvm_stack_assert((vm), 2);
-    bbzvm_type_assert((vm), 2, BBZTYPE_STRING);
+    bbzvm_type_assert((vm), 1, BBZTYPE_STRING);
     bbzheap_idx_t str = bbzvm_stack_at((vm), 1);
     bbzheap_idx_t o = bbzvm_stack_at((vm), 0);
     bbzvm_pop(vm);

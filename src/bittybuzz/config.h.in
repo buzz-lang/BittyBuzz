@@ -17,3 +17,8 @@
  * Name of the robot, in case we are crosscompiling.
  */
 #cmakedefine BBZ_ROBOT
+
+/**
+ * @brief
+ */
+#define RESERVED_ACTREC_MAX (uint16_t)@MAX_ACTREC_COUNT@

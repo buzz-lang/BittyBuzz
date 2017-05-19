@@ -1,0 +1,74 @@
+# Test global variables
+x = nil  # Test nil
+x = 1    # Test int
+x = 3.14 # Test float
+
+# Test native closure
+function add(a, b) {
+    var c = a + b # Test local variables
+    return c
+}
+# Test native closure call
+y = add(42, 21)
+log("y = ", y)
+
+# Test lambda closure
+lambda = function(a, b, c) {
+    log(a, "; ", b, "; ", c)
+}
+# Test lambda closure call
+lambda(-12, 2.91, nil)
+
+# FIXME Test crashes at this point (the GC collect the local symbols' array segment before running the inner closure).
+#lambdaGen = function(c) {
+#    return function(a, b) {
+#        log(a, "; ", b, "; ", c)
+#    }
+#}
+#lambdaGen("c")("a", "b")
+
+# Test string
+textToLog = "Hello, world!"
+# Test C closure call
+log('Logging "', textToLog, '"')
+
+# Test Comparisons
+if (x > 3)
+    log("x is too big")
+
+if (x > 3)
+    log("x is too big")
+else if (x < 3)
+    log("x is too small")
+else
+    log("maybe I just don't like x")
+
+if ((x < 3) or (x > 3))
+    log("x is not 3")
+
+# Test loop
+z = 0
+loc = function() {
+  z = z + 1
+  log(z)
+}
+while (z < 5)
+   loc()
+
+# Test table
+t = { .x=3 }
+log("t.x = ", t.x)       # dot syntax
+log("t['x'] = ", t["x"]) # string syntax
+
+# Test : tables are always passed by reference
+t1 = { .x=3 }
+t2 = t1      # now t2 points to the contents of t1 -> no deep copy
+t2.x = 5
+log(t1.x)    # prints 5, not 3!
+
+# Test swarm's methods
+#s = swarm.create(0) # FIXME Test crashes at this point.
+
+# TODO
+#s.select(id % 2 == 0)
+#s.leave()

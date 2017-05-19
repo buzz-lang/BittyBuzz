@@ -23,7 +23,7 @@
  *    2-byte field which contains flags and a pointer to the next
  *    segment, if any.
  *
- * TODO: closures
+ * TODO: Improve closures' ref usage
  */
 
 #include <bittybuzz/bbztype.h>
@@ -33,12 +33,19 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Type for a heap index.
+ * This can be considered to be a custom pointer
+ * to a heap-allocated element.
+ */
+typedef uint16_t bbzheap_idx_t;
+
 /*
  * A table segment.
  */
 typedef struct __attribute__((packed)) {
-   uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];   /* 16th bit: valid; other bits: obj index */
-   uint16_t values[BBZHEAP_ELEMS_PER_TSEG]; /* 16th bit: valid; other bits: obj index */
+   bbzheap_idx_t keys[BBZHEAP_ELEMS_PER_TSEG];   /* 16th bit: valid; other bits: obj index */
+   bbzheap_idx_t values[BBZHEAP_ELEMS_PER_TSEG]; /* 16th bit: valid; other bits: obj index */
    uint16_t mdata; /* 16th     bit : valid
                       15th-1st bits: next segment index (0x7FFF means no next) */
 } bbzheap_tseg_t;
@@ -47,7 +54,7 @@ typedef struct __attribute__((packed)) {
  * An array segment.
  */
 typedef struct __attribute__((packed)) {
-   uint16_t values[2*BBZHEAP_ELEMS_PER_TSEG]; /* 16th bit: valid; other bits: obj index */
+   bbzheap_idx_t values[2*BBZHEAP_ELEMS_PER_TSEG]; /* 16th bit: valid; other bits: obj index */
    uint16_t mdata; /* 16th     bit : valid
                       15th-1st bits: next segment index (0x7FFF means no next) */
 } bbzheap_aseg_t;
@@ -60,13 +67,6 @@ typedef struct __attribute__((packed)) {
    uint8_t* ltseg;             /* pointer to the leftmost table segment in heap, not necessarly valid */
    uint8_t data[BBZHEAP_SIZE]; /* data buffer */
 } bbzheap_t;
-
-/**
- * @brief Type for a heap index.
- * This can be considered to be a custom pointer
- * to a heap-allocated element.
- */
-typedef uint16_t bbzheap_idx_t;
 
 /*
  * Clears the heap.
@@ -84,9 +84,9 @@ void bbzheap_clear(bbzheap_t* h);
  * @param o A buffer for the index of the allocated object.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_obj_alloc(bbzheap_t* h,
-                      int t,
-                      bbzheap_idx_t* o);
+uint8_t bbzheap_obj_alloc(bbzheap_t *h,
+                          uint8_t t,
+                          bbzheap_idx_t *o);
 
 /*
  * Returns a pointer located at position i within the heap.
@@ -101,7 +101,7 @@ int bbzheap_obj_alloc(bbzheap_t* h,
  * @param x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).o.mdata & 0x10)
+#define bbzheap_obj_isvalid(x) ((x).o.mdata & (uint16_t)0x10)
 
 /**
  *  @brief Copy the value of an object to an other object.
@@ -118,13 +118,13 @@ int bbzheap_obj_alloc(bbzheap_t* h,
  * @param s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_tseg_alloc(bbzheap_t* h,
-                       bbzheap_idx_t* s);
+uint8_t bbzheap_tseg_alloc(bbzheap_t *h,
+                           bbzheap_idx_t *s);
 
-#define NO_NEXT 0x7FFF
-#define MASK_NEXT 0x7FFF
-#define MASK_VALID_SEG 0x8000
-#define MASK_VALID_SEG_ELEM 0x8000
+#define NO_NEXT (uint16_t)0x7FFF
+#define MASK_NEXT (uint16_t)0x7FFF
+#define MASK_VALID_SEG (uint16_t)0x8000
+#define MASK_VALID_SEG_ELEM (uint16_t)0x8000
 
 /*
  * Returns a table segment located at position i within the heap.
@@ -263,7 +263,7 @@ void bbzheap_gc(bbzheap_t* h,
  * Marks an object as currently in use, i.e., "allocated".
  * @pararm[in,out] obj The object to mark.
  */
-#define obj_makevalid(obj)   (obj).o.mdata |= 0x10
+#define obj_makevalid(obj)   (obj).o.mdata |= (uint16_t)0x10
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -271,7 +271,7 @@ void bbzheap_gc(bbzheap_t* h,
  * Marks an object as no longer in use, i.e., "not allocated".
  * @pararm[in,out] obj The object to mark.
  */
-#define obj_makeinvalid(obj) (obj).o.mdata &= 0xEF
+#define obj_makeinvalid(obj) (obj).o.mdata &= (uint16_t)0xEF
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -279,7 +279,7 @@ void bbzheap_gc(bbzheap_t* h,
  * Marks a segment as currently in use, i.e., "allocated".
  * @pararm[in,out] obj The object to mark.
  */
-#define tseg_makevalid(s) (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
+#define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND set next to -1
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -287,9 +287,7 @@ void bbzheap_gc(bbzheap_t* h,
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @pararm[in,out] obj The object to mark.
  */
-#define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
-
-#define RESERVED_ACTREC_MAX 0x20
+#define tseg_makeinvalid(s) (s).mdata &= (uint16_t)0x7FFF
 
 #ifdef __cplusplus
 }

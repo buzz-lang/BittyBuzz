@@ -23,13 +23,13 @@ extern "C" {
     /**
      *  @brief Function pointer for an element-wise function:
      *
-     *  void f(bbzheap_t* h, uint16_t darray, uint16_t pos, void* params)
+     *  void f(bbzheap_t* h, bbzheap_idx_t darray, uint16_t pos, void* params)
      *
      *  This function pointer is used to destroy elements by
      *  bbzdarray_destroy() and in methods such as
      *  bbzdarray_foreach().
      */
-    typedef void (*bbzdarray_elem_funp)(bbzheap_t* h, uint16_t darray, uint16_t pos, void* params);
+    typedef void (*bbzdarray_elem_funp)(bbzheap_t* h, bbzheap_idx_t darray, uint16_t pos, void* params);
 
     /**
      *  @brief Function pointer to compare buzzdarray elements.
@@ -50,8 +50,8 @@ extern "C" {
      *                 the heap.
      *  @return 1 for success, 0 for failure (out of memory).
      */
-    int bbzdarray_new(bbzheap_t* h,
-                       bbzheap_idx_t* d);
+    uint8_t bbzdarray_new(bbzheap_t *h,
+                          bbzheap_idx_t *d);
 
     /**
      *  @brief Destroys a dynamic array. Invalidates all its array segment.
@@ -71,10 +71,10 @@ extern "C" {
      *  @param v A buffer for the pointer to the value.
      *  @return 1 for success, 0 for failure (index not in table)
      */
-    int bbzdarray_get(bbzheap_t* h,
-                      bbzheap_idx_t d,
-                      uint16_t idx,
-                      bbzheap_idx_t* v);
+    uint8_t bbzdarray_get(bbzheap_t *h,
+                          bbzheap_idx_t d,
+                          uint16_t idx,
+                          bbzheap_idx_t *v);
 
     /**
      *  @brief Changes the value corresponding to the key k in the array d
@@ -86,10 +86,10 @@ extern "C" {
      *  @param v The value to set.
      *  @return 1 for success, 0 for failure (index out of range)
      */
-    int bbzdarray_set(bbzheap_t* h,
-                      bbzheap_idx_t d,
-                      uint16_t idx,
-                      bbzheap_idx_t v);
+    uint8_t bbzdarray_set(bbzheap_t *h,
+                          bbzheap_idx_t d,
+                          uint16_t idx,
+                          bbzheap_idx_t v);
 
     /**
      *  @brief Remove the value at the end of the array d.
@@ -97,8 +97,8 @@ extern "C" {
      *  @param [in] d The position of the dynamic array's object in the heap.
      *  @return 1 for success, 0 for failure (empty array)
      */
-    int bbzdarray_pop(bbzheap_t* h,
-                      bbzheap_idx_t d);
+    uint8_t bbzdarray_pop(bbzheap_t *h,
+                          bbzheap_idx_t d);
 
     /**
      *  @brief Insert a value v at the end of the array d.
@@ -107,9 +107,9 @@ extern "C" {
      *  @param [in] v The position in the heap of the object to push. 
      *  @return 1 for success, 0 for failure (out of memory)
      */
-    int bbzdarray_push(bbzheap_t* h,
-                       bbzheap_idx_t d,
-                       bbzheap_idx_t v);
+    uint8_t bbzdarray_push(bbzheap_t *h,
+                           bbzheap_idx_t d,
+                           bbzheap_idx_t v);
 
     /**
      *  @brief Return the count of sequential valid values in the table.
@@ -127,9 +127,9 @@ extern "C" {
      *  @param newd A buffer for the new dynamic array.
      *  @return 1 for success, 0 for failure (out of memory)
      */
-    int bbzdarray_clone(bbzheap_t* h,
-                        bbzheap_idx_t d,
-                        bbzheap_idx_t* newd);
+    uint8_t bbzdarray_clone(bbzheap_t *h,
+                            bbzheap_idx_t d,
+                            bbzheap_idx_t *newd);
 
     /**
      *  @brief Erases all the elements of the dynamic array.
@@ -176,7 +176,7 @@ extern "C" {
      * @param l A buffer for the index of the allocated closure.
      * @return 1 for success, 0 for failure (out of memory)
      */
-    int bbzdarray_lambda_alloc(bbzheap_t* h, bbzheap_idx_t d, uint8_t* l);
+    uint8_t bbzdarray_lambda_alloc(bbzheap_t *h, bbzheap_idx_t d, uint8_t *l);
 
 #ifdef __cplusplus
 }
