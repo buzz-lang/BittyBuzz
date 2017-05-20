@@ -3,8 +3,8 @@
 /****************************************/
 /****************************************/
 
-int bbztype_cmp(const bbzobj_t* a,
-                const bbzobj_t* b) {
+int8_t bbztype_cmp(const bbzobj_t* a,
+                   const bbzobj_t* b) {
    /* nil is smaller than anything, and equal to itself */
    if(bbztype_isnil(*a)) {
       if(bbztype_isnil(*b)) return 0;
@@ -48,14 +48,14 @@ int bbztype_cmp(const bbzobj_t* a,
       return 0;
    }
    if(bbztype_isuserdata(*a) && bbztype_isuserdata(*b)) {
-      int x = (int)a->u.value;
-      int y = (int)b->u.value;
+      uintptr_t x = (uintptr_t)a->u.value;
+      uintptr_t y = (uintptr_t)b->u.value;
       if(x < y) return -1;
       if(x > y) return  1;
       return 0;
    }
    /* Other cases are TODO */
-   return 0;
+   return -1;
 }
 
 /****************************************/

@@ -59,8 +59,8 @@ uint8_t bbzringbuf_capacity(const bbzringbuf_t* rb) { return rb->capacity; }
  */
  __attribute__((always_inline)) static inline
 uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
-    return (rb->dataend >= rb->datastart) ?
-           (rb->dataend  - rb->datastart)  :
+    return (rb->dataend >=  rb->datastart) ?
+           (rb->dataend  -  rb->datastart) :
            (rb->capacity - (rb->datastart - rb->dataend - 1));
 }
         

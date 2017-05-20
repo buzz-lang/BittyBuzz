@@ -31,6 +31,10 @@ if("${STACK_SIZE}" STREQUAL "")
   message(STATUS "Using default value for STACK_SIZE (-DSTACK_SIZE=256)")
   set(STACK_SIZE 256)
 endif("${STACK_SIZE}" STREQUAL "")
+if("${MAX_ACTREC_COUNT}" STREQUAL "")
+  message(STATUS "Using default value for MAX_ACTREC_COUNT (-DMAX_ACTREC_COUNT=32)")
+  set(MAX_ACTREC_COUNT 32)
+endif("${MAX_ACTREC_COUNT}" STREQUAL "")
 configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONLY)
 
 #

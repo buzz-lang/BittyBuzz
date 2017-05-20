@@ -48,7 +48,8 @@ extern "C" {
         BBZVM_ERROR_FLIST,    /**< @brief Function call id out of range */
         BBZVM_ERROR_TYPE,     /**< @brief Type mismatch */
         BBZVM_ERROR_STRING,   /**< @brief Unknown string id */
-        BBZVM_ERROR_SWARM     /**< @brief Unknown swarm id */
+        BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id */
+        BBZVM_ERROR_MEM       /**< @brief Out of memory*/
     } bbzvm_error;
 
     /**
@@ -121,7 +122,7 @@ extern "C" {
      * try to read 4 bytes (uint32_t).
      * @return A pointer to the data to the data.
      */
-    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(uint16_t offset, uint8_t size);
+    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(int16_t offset, uint8_t size);
 
     /**
      * @brief Type for the pointer to a function that is called whenever the
@@ -135,9 +136,16 @@ extern "C" {
     typedef void (*bbzvm_error_notifier_fun)(bbzvm_error errcode);
 
     /**
+     * @brief Type for the pointer to a C-closure.
+     * @return The updated VM state.
+     */
+    typedef bbzvm_state (*bbzvm_funp)();
+
+    /**
      * @brief The BittyBuzz Virtual Machine.
      * 
      * @details Responsibilities:
+     * 
      *      1) Load and run bytecode.
      */
     typedef struct __attribute__((packed)) {
@@ -151,11 +159,11 @@ extern "C" {
         bbzheap_idx_t stack[BBZSTACK_SIZE];
         /** @brief Stack pointer (Index of the last valid element of the stack) */
         int16_t stackptr;
-        /** @brief Block pointer (... ?) */
+        /** @brief Block pointer (Index of the previous block pointer in the stack) */
         int16_t blockptr;
         /** @brief Current local variable table */
         bbzheap_idx_t lsyms;
-        /** @brief Local variable table list */
+        /** @brief Local variable array list */
         bbzheap_idx_t lsymts;
         /** @brief Global symbols */
         bbzheap_idx_t gsyms;
@@ -207,12 +215,6 @@ extern "C" {
      */
     extern bbzvm_t* vm;
 
-    /**
-     * @brief Type for the pointer to a C-closure.
-     * @return The updated VM state.
-     */
-    typedef int (*bbzvm_funp)();
-
 
 
     // ======================================
@@ -256,9 +258,7 @@ extern "C" {
      * @param[in] error_notifier_fun Function recieving the error notification.
      */
      __attribute__((always_inline)) static inline
-    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) {
-        vm->error_notifier_fun = error_notifier_fun;
-    }
+    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) { vm->error_notifier_fun = error_notifier_fun; }
 
     /**
      * @brief Processes the input message queue.
@@ -297,10 +297,7 @@ extern "C" {
      * @return The updated state of the VM.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_done() {
-        vm->state = BBZVM_STATE_DONE;
-        return BBZVM_STATE_DONE;
-    }
+    bbzvm_state bbzvm_done() { vm->state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
 
     /**
      * @brief Pushes nil on the stack.
@@ -587,10 +584,11 @@ extern "C" {
 
     /**
      * @brief Registers a function in the VM.
+     * @param[in] fnameid The symbol ID of the function's name.
      * @param[in] funp The function pointer to register.
      * @return The function id.
      */
-    uint16_t bbzvm_function_register(bbzvm_funp funp);
+    int16_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp);
 
     /**
      * @brief Calls a closure.
@@ -634,9 +632,7 @@ extern "C" {
      * @return The updated VM state.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_callc() {
-        return bbzvm_call(0);
-    }
+    bbzvm_state bbzvm_callc() { return bbzvm_call(0); }
 
     /**
      * @brief Calls a swarm closure.
@@ -660,9 +656,7 @@ extern "C" {
      * @return The updated VM state.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_calls() {
-        return bbzvm_call(1);
-    }
+    bbzvm_state bbzvm_calls() { return bbzvm_call(1); }
 
     /**
      * @brief Pushes a variable on the stack.
@@ -718,9 +712,7 @@ extern "C" {
      * @return The VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcn(int32_t addr) {
-        return bbzvm_pushc(addr, 1);
-    }
+    bbzvm_state bbzvm_pushcn(int32_t addr) { return bbzvm_pushc(addr, 1); }
 
     /**
      * @brief Pushes a c-function closure on the stack.
@@ -736,9 +728,7 @@ extern "C" {
      * @return The updated VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcc(int32_t cid) {
-        return bbzvm_pushc(cid, 0);
-    }
+    bbzvm_state bbzvm_pushcc(int32_t cid) { return bbzvm_pushc(cid, 0); }
 
     /**
      * @brief Pushes a lambda native closure on the stack.
@@ -817,6 +807,15 @@ extern "C" {
      */
     bbzvm_state bbzvm_jumpnz(uint16_t offset);
 
+    /**
+     * @brief Register a global symbol.
+     * @param[in,out] vm The VM
+     * @param[in] sid The string ID representing the global symbol.
+     * @param[in] v The value of the global symbol.
+     * @return 1 for success, 0 for failure (out of memory).
+     */
+    uint8_t bbzvm_gsym_register(uint16_t sid, bbzheap_idx_t v);
+
 
 
     // ======================================
@@ -829,9 +828,7 @@ extern "C" {
      * @return A pointer to the fetched object.
      */
     __attribute__((always_inline)) static inline
-    bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) {
-        return bbzheap_obj_at(idx);
-    }
+    bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) { return bbzheap_obj_at(idx); }
 
     /**
      * Returns the size of the stack.
@@ -839,9 +836,7 @@ extern "C" {
      * @return The size of the VM's current stack.
      */
      __attribute__((always_inline)) static inline
-    uint16_t bbzvm_stack_size() {
-        return vm->stackptr + 1;
-    }
+    uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
 
     /**
      * @brief Returns the heap index of the element at given stack position,
@@ -851,9 +846,7 @@ extern "C" {
      * @return The heap index of the element at given stack index.
      */
     __attribute__((always_inline)) static inline
-    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) {
-        return vm->stack[vm->stackptr - idx];
-    }
+    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm->stack[vm->stackptr - idx]; }
 
 
     /**
@@ -886,6 +879,21 @@ extern "C" {
                 bbzvm_seterror(BBZVM_ERROR_TYPE);                       \
                 return BBZVM_STATE_ERROR;                               \
             }                                                           \
+        }
+
+    /**
+     * @brief Allocate memory on the heap. If the heap is out of memory,
+     * it updates the VM state and exits the current function.
+     * This function is designed to be used within int-returning functions such as
+     * bbzvm_push<i|nil|...>() or bbzvm_lload().
+     * @param[in,out] vm The VM data.
+     * @param[in] tpe The type to allocate.
+     * @param[out] idx A buffer for the index of the allocated object.
+     */
+    #define bbzvm_assert_mem_alloc(type, idx)                           \
+        if (!bbzheap_obj_alloc(type, idx)) {                            \
+            bbzvm_seterror(BBZVM_ERROR_MEM);                            \
+            return BBZVM_STATE_ERROR;                                   \
         }
 
     /**

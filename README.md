@@ -28,10 +28,12 @@ Should you wish to, you may specify a custom value for these variables:
 - HEAP_SIZE: Size of the heap (in bytes) [Default: 1024].
 - HEAP_ELEMS_PER_TSEG: Number of table entries per table segment [Default: 5].
 - STACK_SIZE: Size of the VM's stack (in number of objects) [Default: 256].
+- MAX_ACTREC_COUNT: Number of table segments reserved for lambdas'
+activation record [Default: 32].
 
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 
-    $ cmake -DHEAP_SIZE=768 -DHEAP_ELEMS_PER_TSEG=4 -DSTACK_SIZE=384 ../src
+    $ cmake -DHEAP_SIZE=768 -DSTACK_SIZE=384 ../src
 
 For the Kilobot
 ---------------

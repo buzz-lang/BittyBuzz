@@ -104,8 +104,8 @@ void bbzheap_clear();
  * @param[out] o A buffer for the index of the allocated object.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_obj_alloc(int t,
-                      bbzheap_idx_t* o);
+uint8_t bbzheap_obj_alloc(uint8_t t,
+                          bbzheap_idx_t* o);
 
 /**
  * @brief Returns a pointer located at position i within the heap.
@@ -119,7 +119,7 @@ int bbzheap_obj_alloc(int t,
  * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).o.mdata & 0x10)
+#define bbzheap_obj_isvalid(x) ((x).o.mdata & (uint16_t)0x10)
 
 /**
  *  @brief Copy the value of an object to an other object.
@@ -134,12 +134,12 @@ int bbzheap_obj_alloc(int t,
  * @param[out] s A buffer for the pointer to the allocated segment.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbzheap_tseg_alloc(bbzheap_idx_t* s);
+uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
 
-#define NO_NEXT 0x7FFF
-#define MASK_NEXT 0x7FFF
-#define MASK_VALID_SEG 0x8000
-#define MASK_VALID_SEG_ELEM 0x8000
+#define NO_NEXT (uint16_t)0x7FFF
+#define MASK_NEXT (uint16_t)0x7FFF
+#define MASK_VALID_SEG (uint16_t)0x8000
+#define MASK_VALID_SEG_ELEM (uint16_t)0x8000
 
 /**
  * @brief Returns a table segment located at position i within the heap.
@@ -268,7 +268,7 @@ int bbzheap_tseg_alloc(bbzheap_idx_t* s);
  * require modifications to the heap tests.
  */
 void bbzheap_gc(bbzheap_idx_t* st,
-                int sz);
+                uint16_t sz);
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -276,7 +276,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makevalid(obj)   (obj).o.mdata |= 0x10
+#define obj_makevalid(obj)   (obj).o.mdata |= (uint16_t)0x10
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -284,7 +284,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makeinvalid(obj) (obj).o.mdata &= 0xEF
+#define obj_makeinvalid(obj) (obj).o.mdata &= (uint16_t)0xEF
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -292,7 +292,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as currently in use, i.e., "allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makevalid(s) (s).mdata = 0xFFFF // Make the segment valid AND set next to -1
+#define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND set next to -1
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -300,9 +300,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makeinvalid(s) (s).mdata &= 0x7FFF
-
-#define RESERVED_ACTREC_MAX 0x20
+#define tseg_makeinvalid(s) (s).mdata &= (uint16_t)0x7FFF
 
 #ifdef __cplusplus
 }

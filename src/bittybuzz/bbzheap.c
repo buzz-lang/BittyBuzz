@@ -14,16 +14,18 @@
 void bbzheap_clear() {
    vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
    vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
-   for(int i = BBZHEAP_SIZE-1; i >= 0; --i) vm->heap.data[i] = 0;
+   for(int16_t i = BBZHEAP_SIZE-1; i >= 0; --i) {
+       vm->heap.data[i] = 0;
+   }
 }
 
 /****************************************/
 /****************************************/
 
-int bbzheap_obj_alloc(int t,
-                      bbzheap_idx_t* o) {
+uint8_t bbzheap_obj_alloc(uint8_t t,
+                          bbzheap_idx_t* o) {
    /* Look for empty slot */
-   for(int i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
        i >= RESERVED_ACTREC_MAX;
        --i)
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
@@ -34,6 +36,15 @@ int bbzheap_obj_alloc(int t,
          bbztype_cast(*x, t);
          /* Set result */
          *o = i;
+         /* Take care of special initialisations */
+         if (t == BBZTYPE_TABLE) {
+             bbztable_t* x = &bbzheap_obj_at(*o)->t;
+             if(!bbzheap_tseg_alloc(&x->value)) return 0;
+         }
+         else if (bbztype_isclosure(*bbzheap_obj_at(*o))) {
+             bbzclosure_t* x = (bbzclosure_t*)bbzheap_obj_at(*o);
+             x->value.actrec = 0xFF; // Default activation record
+         }
          /* Success */
          return 1;
       }
@@ -62,9 +73,9 @@ int bbzheap_obj_alloc(int t,
 /****************************************/
 /****************************************/
 
-int bbzheap_tseg_alloc(bbzheap_idx_t* s) {
+uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
    /* Look for empty slot */
-   for(int i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
+   for(int16_t i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;
        --i)
       if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) {
@@ -73,7 +84,7 @@ int bbzheap_tseg_alloc(bbzheap_idx_t* s) {
          /* Set valid bit of segment and -1 index for next */
          tseg_makevalid(*x);
          /* Invalidate keys and values */
-         for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+         for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
             x->keys[i] = 0;
             x->values[i] = 0;
          }
@@ -91,7 +102,7 @@ int bbzheap_tseg_alloc(bbzheap_idx_t* s) {
    /* Set valid bit of segment and zero index for next */
    tseg_makevalid(*(bbzheap_tseg_t*)(vm->heap.ltseg));
    /* Invalidate keys and values */
-   for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+   for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
       ((bbzheap_tseg_t*)vm->heap.ltseg)->keys[i] = 0;
       ((bbzheap_tseg_t*)vm->heap.ltseg)->values[i] = 0;
    }
@@ -102,12 +113,12 @@ int bbzheap_tseg_alloc(bbzheap_idx_t* s) {
 /****************************************/
 
 void bbzheap_gc(bbzheap_idx_t* st,
-                int sz) {
+                uint16_t sz) {
    /* Set all gc bits to zero */
-   for(int i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
       gc_unmark(*bbzheap_obj_at(i));
    /* Go through the stack and set the gc bit of valid variables */
-   for(int i = 0; i < sz; ++i) {
+   for(uint16_t i = 0; i < sz; ++i) {
       /* Mark gc bit */
       gc_mark(*bbzheap_obj_at(st[i]));
       /* If it's a table, go through it and mark all associated objects */
@@ -119,7 +130,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
             bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
             /* Go through the segments */
             while(1) {
-               for(int j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
+               for(uint8_t j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
                   if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
                      gc_mark(*bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[j])));
                   }
@@ -133,7 +144,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
             bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
             /* Go through the segments */
             while(1) {
-               for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
+               for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
                   if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
                      gc_mark(*bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[j])));
                      gc_mark(*bbzheap_obj_at(bbzheap_tseg_elem_get(sd->values[j])));
@@ -146,7 +157,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
       }
    }
    /* Go through the objects; invalidate those with 0 gc bit */
-   for(int i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {
       if(!gc_hasmark(*bbzheap_obj_at(i))) {
          /* Invalidate object */
          obj_makeinvalid(*bbzheap_obj_at(i));
@@ -167,7 +178,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
       }
    }
    /* Move rightmost object pointer as far left as possible */
-   for(int i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
        i >= RESERVED_ACTREC_MAX;
        --i)
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i)))
@@ -175,7 +186,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
       else
          break;
    /* Move leftmost table segment pointer as far right as possible */
-   for(int i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
+   for(int16_t i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;
        --i) {
       if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i)))

@@ -26,4 +26,10 @@
  */
 #cmakedefine BBZ_ROBOT
 
+/**
+ * @brief Index of end of the heap's space reserved for lambdas'
+ * activation record.
+ */
+#define RESERVED_ACTREC_MAX (uint16_t)@MAX_ACTREC_COUNT@
+
 #endif // !CONFIG_H

@@ -138,8 +138,8 @@ typedef union __attribute__((packed)) {
  * @param[in] b The second object to compare.
  * @return <0 if a<b, 0 if a==b, >0 if a>b
  */
-int bbztype_cmp(const bbzobj_t* a,
-                const bbzobj_t* b);
+int8_t bbztype_cmp(const bbzobj_t* a,
+                   const bbzobj_t* b);
 
 /**
  * @brief Returns the type of an object.
