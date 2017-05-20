@@ -210,10 +210,10 @@ extern "C" {
     } bbzvm_t;
 
     /**
-     * @brief Pointer to the VM.
+     * @brief Virtual Machine instance.
      * @note The user is responsible for creating and setting this value.
      */
-    extern bbzvm_t* vm;
+    extern bbzvm_t vm;
 
 
 
@@ -258,7 +258,7 @@ extern "C" {
      * @param[in] error_notifier_fun Function recieving the error notification.
      */
      __attribute__((always_inline)) static inline
-    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) { vm->error_notifier_fun = error_notifier_fun; }
+    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) { vm.error_notifier_fun = error_notifier_fun; }
 
     /**
      * @brief Processes the input message queue.
@@ -297,7 +297,7 @@ extern "C" {
      * @return The updated state of the VM.
      */
      __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_done() { vm->state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
+    bbzvm_state bbzvm_done() { vm.state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
 
     /**
      * @brief Pushes nil on the stack.
@@ -836,7 +836,7 @@ extern "C" {
      * @return The size of the VM's current stack.
      */
      __attribute__((always_inline)) static inline
-    uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
+    uint16_t bbzvm_stack_size() { return vm.stackptr + 1; }
 
     /**
      * @brief Returns the heap index of the element at given stack position,
@@ -846,7 +846,7 @@ extern "C" {
      * @return The heap index of the element at given stack index.
      */
     __attribute__((always_inline)) static inline
-    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm->stack[vm->stackptr - idx]; }
+    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm.stack[vm.stackptr - idx]; }
 
 
     /**
@@ -859,7 +859,7 @@ extern "C" {
     #define bbzvm_stack_assert(size)                                    \
         if (bbzvm_stack_size() < (size)) {                              \
             bbzvm_seterror(BBZVM_ERROR_STACK);                          \
-            return vm->state;                                           \
+            return vm.state;                                           \
         }
     
     /**

@@ -36,7 +36,7 @@ void bbzdarray_print(bbzheap_idx_t d) {
 
 void bbzheap_print() {
    /* Object-related stuff */
-   int objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
+   int objimax = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t);
    printf("Max object index: %d\n", objimax);
    int objnum = 0;
    for(int i = 0; i < objimax; ++i)
@@ -61,7 +61,7 @@ void bbzheap_print() {
          printf("\n");
       }
    /* Segment-related stuff */
-   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
+   int tsegimax = (vm.heap.data + BBZHEAP_SIZE - vm.heap.ltseg) / sizeof(bbzheap_tseg_t);
    printf("Max table segment index: %d\n", tsegimax);
    int tsegnum = 0;
    for(int i = 0; i < tsegimax; ++i)
@@ -87,12 +87,9 @@ void foreach(uint16_t darray, uint16_t pos, void* params) {
    ((bbzint_t*)bbzheap_obj_at(pos))->value += 20;
 }
 
-bbzvm_t* vm;
+bbzvm_t vm;
 
 int main() {
-   bbzvm_t vmObj;
-   vm = &vmObj;
-   
    bbzheap_clear();
    
    printf("+=-=-=-=-=-= bbzdarray_new =-=-=-=-=-=+\n");

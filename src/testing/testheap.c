@@ -8,7 +8,7 @@ static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "tabl
 
 void bbzheap_print() {
    /* Object-related stuff */
-   int objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
+   int objimax = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t);
    printf("Max object index: %d\n", objimax);
    int objnum = 0;
    for(int i = 0; i < objimax; ++i)
@@ -33,7 +33,7 @@ void bbzheap_print() {
          printf("\n");
       }
    /* Segment-related stuff */
-   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
+   int tsegimax = (vm.heap.data + BBZHEAP_SIZE - vm.heap.ltseg) / sizeof(bbzheap_tseg_t);
    printf("Max table segment index: %d\n", tsegimax);
    int tsegnum = 0;
    for(int i = 0; i < tsegimax; ++i)
@@ -55,12 +55,9 @@ void bbzheap_print() {
    printf("\n");
 }
 
-bbzvm_t* vm; // Declaration for extern resolution
+bbzvm_t vm; // Declaration for extern resolution
 
 int main() {
-   bbzvm_t vmObj;
-   vm = &vmObj;
-
    bbzheap_clear();
    bbzheap_print();
    uint16_t o;

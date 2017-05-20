@@ -112,7 +112,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  * @param[in] i The position.
  * @return A pointer to the object.
  */
-#define bbzheap_obj_at(i) ((bbzobj_t*)(vm->heap.data) + (i))
+#define bbzheap_obj_at(i) ((bbzobj_t*)(vm.heap.data) + (i))
 
 /**
  * @brief Returns non-zero if the given object is valid (i.e., in use).
@@ -146,7 +146,7 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
  * @param[in] i The position.
  * @return A pointer to the table segment.
  */
-#define bbzheap_tseg_at(i) ((bbzheap_tseg_t*)(vm->heap.data + BBZHEAP_SIZE) - ((i)+1))
+#define bbzheap_tseg_at(i) ((bbzheap_tseg_t*)(vm.heap.data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next table segment linked to the given one.
@@ -209,7 +209,7 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
  * @param[in] i The position.
  * @return A pointer to the array segment.
  */
-#define bbzheap_aseg_at(i) ((bbzheap_aseg_t*)(vm->heap.data + BBZHEAP_SIZE) - ((i)+1))
+#define bbzheap_aseg_at(i) ((bbzheap_aseg_t*)(vm.heap.data + BBZHEAP_SIZE) - ((i)+1))
 
 /**
  * @brief Returns the next array segment linked to the given one.
