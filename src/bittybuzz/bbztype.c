@@ -18,6 +18,7 @@ int8_t bbztype_cmp(const bbzobj_t* a,
       return 0;
    }
    /* If operands are integer or float, perform float comparison */
+   // TODO Remove float comparison? MCUs generally can't do them.
    if(bbztype_isint(*a) && bbztype_isfloat(*b)) {
       float x = a->i.value;
       float y = bbzfloat_tofloat(b->f.value);
