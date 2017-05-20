@@ -1,8 +1,10 @@
 /**
- * @file bbztype.h
- * @brief Implementation of BittyBuzz's Virtual Stigmergy, a structure of data
+ * @file bbzvstig.h
+ * @brief Definition of BittyBuzz's Virtual Stigmergy, a structure of data
  * shared accross a swarm of robots inspired from nest-building instects'
  * stigmergies.
+ * @warning Due to low hardware ressources, we only allow a single
+ * stigmergy. Its ID must be 1.
  */
 
 #ifndef BBZVSTIG
