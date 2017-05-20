@@ -146,14 +146,14 @@ float bbzfloat_tofloat(bbzfloat x);
  * @param[in] x The operand.
  * @return The result.
  */
-int bbzfloat_isinf(bbzfloat x);
+uint8_t bbzfloat_isinf(bbzfloat x);
 
 /**
  * @brief Returns 1 if x is NaN, 0 otherwise.
  * @param[in] x The operand.
  * @return The result.
  */
-int bbzfloat_isnan(bbzfloat x);
+uint8_t bbzfloat_isnan(bbzfloat x);
 
 #ifdef __cplusplus
 }

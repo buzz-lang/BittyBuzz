@@ -7,12 +7,12 @@ static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "tabl
 #define obj_isvalid(x) ((x).o.mdata & 0x10)
 
 void bbzdarray_print(bbzheap_idx_t d) {
-   int size = bbzdarray_size(d);
+   uint16_t size = bbzdarray_size(d);
    printf("Size: %d\n", size);
    printf("Elements: [\n");
    /* Prints in the format: [arrayPos: type<heapPos:{intValue}>, ...]*/
    uint16_t v;
-   for (int i = 0; i < size-1; ++i) {
+   for (uint16_t i = 0; i < size-1; ++i) {
       bbzdarray_get(d, i, &v);
       printf("\t#%d: %s<%d:{%d}>,\n",i,bbztype_desc[bbztype(*bbzheap_obj_at(v))],v,((bbzint_t*)bbzheap_obj_at(v))->value);
    }

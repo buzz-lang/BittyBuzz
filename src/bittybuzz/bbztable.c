@@ -3,7 +3,7 @@
 /****************************************/
 /****************************************/
 
-int bbztable_get(bbzheap_idx_t t,
+uint8_t bbztable_get(bbzheap_idx_t t,
                  bbzheap_idx_t k,
                  bbzheap_idx_t* v) {
    /* Get segment index */
@@ -13,7 +13,7 @@ int bbztable_get(bbzheap_idx_t t,
    /* Go through segments */
    while(1) {
       /* Go through valid keys in the segment */
-      for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+      for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
          if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
                         bbzheap_obj_at(k)) == 0) {
             /* Key found */
@@ -32,7 +32,7 @@ int bbztable_get(bbzheap_idx_t t,
 /****************************************/
 /****************************************/
 
-int bbztable_set(bbzheap_idx_t t,
+uint8_t bbztable_set(bbzheap_idx_t t,
                  bbzheap_idx_t k,
                  bbzheap_idx_t v) {
    /* Search for the given key, keeping track of first free slot */
@@ -47,7 +47,7 @@ int bbztable_set(bbzheap_idx_t t,
    /* Go through segments */
    while(1) {
       /* Go through valid keys in the segment */
-      for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+      for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
          if(!bbzheap_tseg_elem_isvalid(sd->keys[i])) {
             if(fseg < 0) {
                /* First free slot found */
@@ -86,7 +86,7 @@ int bbztable_set(bbzheap_idx_t t,
          bbzheap_tseg_at(seg)->keys[slot] = 0;
          bbzheap_tseg_at(seg)->values[slot] = 0;
          /* Is segment empty? */
-         for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+         for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
             if(bbzheap_tseg_elem_isvalid(sd->keys[i])) return 1;
          }
          /* If we get here, it's because the segment is empty */
@@ -152,7 +152,7 @@ uint8_t bbztable_size(bbzheap_idx_t t) {
    /* Go through elements and segments */
    while(1) {
       /* Count valid keys in the segment */
-      for(int i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i)
+      for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i)
          if(bbzheap_tseg_elem_isvalid(sd->keys[i])) ++sz;
       /* Are we done? */
       if(!bbzheap_tseg_hasnext(sd)) break;

@@ -250,7 +250,7 @@ extern "C" {
      * @param[in] bcode_size The size (in bytes) of the bytecode.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    int bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
+    bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
 
     /**
      * @brief Sets the error notifier.
@@ -608,7 +608,7 @@ extern "C" {
      * @param[in] isswrm 0 for a normal closure, 1 for a swarm closure
      * @return The VM state.
      */
-    bbzvm_state bbzvm_call(int isswrm);
+    bbzvm_state bbzvm_call(uint8_t isswrm);
 
     /**
      * @brief Calls a normal closure.

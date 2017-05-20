@@ -22,7 +22,7 @@ extern "C" {
  * @param[out] v A buffer for the pointer to the value.
  * @return 1 for success, 0 for failure (index not in table)
  */
-int bbztable_get(bbzheap_idx_t t,
+uint8_t bbztable_get(bbzheap_idx_t t,
                  bbzheap_idx_t k,
                  bbzheap_idx_t* v);
 
@@ -35,7 +35,7 @@ int bbztable_get(bbzheap_idx_t t,
  * @param[in] v The value to set.
  * @return 1 for success, 0 for failure (out of memory)
  */
-int bbztable_set(bbzheap_idx_t t,
+uint8_t bbztable_set(bbzheap_idx_t t,
                  bbzheap_idx_t k,
                  bbzheap_idx_t v);
 

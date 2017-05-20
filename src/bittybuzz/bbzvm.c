@@ -90,7 +90,7 @@ void bbzvm_seterror(bbzvm_error errcode) {
 /****************************************/
 /****************************************/
 
-int bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size) {
+bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size) {
     // 1) Reset the VM
     vm->state = BBZVM_STATE_READY;
     vm->error = BBZVM_ERROR_NONE;
@@ -144,7 +144,7 @@ uint8_t bbzvm_gc() {
     bbzvm_push(vm->dflt_actrec);
     bbzvm_push(vm->flist);
     bbzheap_gc(vm->stack, bbzvm_stack_size());
-    for (int i = 6; i > 0; --i) {
+    for (int8_t i = 6; i > 0; --i) {
         bbzvm_pop();
     }
     return 1;
@@ -813,7 +813,7 @@ bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint32_t argc) {
 	/* Move closure before arguments */
 	if(argc > 0) {
 		bbzheap_idx_t c = bbzvm_stack_at( 0);
-		for (int i = 0;
+		for (uint16_t i = 0;
 			 i < argc; ++i) {
 			vm->stack[vm->stackptr - i] = bbzvm_stack_at(i + 1);
 		}
@@ -861,7 +861,7 @@ int16_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_call(int isswrm) {
+bbzvm_state bbzvm_call(uint8_t isswrm) {
 	/* Get argument number and pop it */
     bbzvm_stack_assert(1);
     bbzvm_type_assert(0, BBZTYPE_INT);

@@ -29,7 +29,7 @@ int8_t float_cmp(float lhs, float rhs) {
 }
 
 TEST(bbz_float) {
-   for(int i = 0; i < 10; ++i) {
+   for(uint16_t i = 0; i < 10; ++i) {
       ASSERT(float_cmp(bbzfloat_tofloat(bbzfloat_fromfloat(BASE * i)), BASE * i) == 0);
    }
 

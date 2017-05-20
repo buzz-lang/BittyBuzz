@@ -58,7 +58,7 @@ bbzfloat bbzfloat_fromfloat(float f) {
    /* Copy the sign */
    x = ((*(uint32_t*)(&f)) & 0x80000000) >> 16;
    /* Check exponent */
-   int e = ((*(uint32_t*)(&f)) & 0x7F800000) >> 23;
+   int16_t e = ((*(uint32_t*)(&f)) & 0x7F800000) >> 23;
    if(e > 96 && e < 158) {
       /* Float value is within the range of bbzfloat */
       /* Set exponent */
@@ -93,7 +93,7 @@ float bbzfloat_tofloat(bbzfloat x) {
    f = bbzfloat_sign(x);
    f <<= 31;
    /* Check the exponent */
-   int e = bbzfloat_exp(x);
+   int16_t e = bbzfloat_exp(x);
    if(e == 0) {
       if(bbzfloat_frac(x) > 0) {
          /* Denormalized values, set exponent to 96 */
@@ -120,7 +120,7 @@ float bbzfloat_tofloat(bbzfloat x) {
 /****************************************/
 /****************************************/
 
-int bbzfloat_isinf(bbzfloat x) {
+uint8_t bbzfloat_isinf(bbzfloat x) {
    return
       ((x & BBZFLOAT_EXPMASK) == BBZFLOAT_EXPMASK) &&
       ((x & BBZFLOAT_FRACMASK) == 0);
@@ -129,7 +129,7 @@ int bbzfloat_isinf(bbzfloat x) {
 /****************************************/
 /****************************************/
 
-int bbzfloat_isnan(bbzfloat x) {
+uint8_t bbzfloat_isnan(bbzfloat x) {
    return
       ((x & BBZFLOAT_EXPMASK) == BBZFLOAT_EXPMASK) &&
       ((x & BBZFLOAT_FRACMASK) != 0);
