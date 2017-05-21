@@ -434,16 +434,23 @@ int16_t mul(int16_t lhs, int16_t rhs) { return lhs * rhs; }
 int16_t div(int16_t lhs, int16_t rhs) { return lhs / rhs; }
 int16_t mod(int16_t lhs, int16_t rhs) { return lhs % rhs; }
 int16_t bbzpow(int16_t lhs, int16_t rhs) {
-    uint16_t res = 1;
     if (rhs >= 0) {
+        int32_t res = 1;
         for (uint16_t i = 0; i < rhs; ++i) {
             res *= lhs;
         }
+        return (int16_t)res;
+    }
+    else if (lhs == 1) {
+        return 1;
+    }
+    else if (lhs == -1) {
+        return -1;
     }
     else {
-        res = INT16_MIN;
+        // TODO Set an error when lhs == 0 ?
+        return 0;
     }
-    return res;
 }
 
 /****************************************/
