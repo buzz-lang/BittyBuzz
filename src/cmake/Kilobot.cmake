@@ -74,7 +74,7 @@ function(kilobot_add_executable _TARGET)
   set_target_properties(${_TARGET} PROPERTIES OUTPUT_NAME "${_ELF_TARGET}")
   # Uploading file
   add_custom_target(upload_${_TARGET}
-    ${AVR_UPLOAD} -p m328 -P ${AVR_PORT} -c avrispmkII -U "flash:w:${_HEX_TARGET}:i"
+    ${AVR_UPLOAD} -p ${AVR_DEVICE} -P ${AVR_PORT} -c avrispmkII -U "flash:w:${_HEX_TARGET}:i"
     DEPENDS ${_HEX_TARGET}
     COMMENT "Uploading ${_HEX_TARGET} to Kilobot")
   # Extra files to clean
@@ -104,8 +104,10 @@ endfunction(kilobot_add_library _TARGET)
 function(kilobot_target_link_libraries _TARGET)
   # Put as first in the target list the name of the target known by CMake
   get_target_property(_TARGET_LIST ${_TARGET} OUTPUT_NAME)
-  # Go through the arguments, and make a list of CMake targets and non-CMake targets
+  # Go through the arguments, add them as dependencies and make a
+  # list of CMake targets and non-CMake targets.
   foreach(_T ${ARGN})
+    add_dependencies(${_TARGET} ${_T})
     if(TARGET ${_T})
       get_target_property(_P ${_T} OUTPUT_NAME)
       list(APPEND _TARGET_LIST ${_P})
