@@ -5,10 +5,11 @@
 #include <boost/test/unit_test.hpp>
 #endif // BBZ_USE_AUTOMATED_TESTS
 
+//#define BBZVM_USE_BBO
+
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
-#include <bittybuzz/bbzheap.h>
 
 #include "bittybuzz/bbzvm.c"
 
@@ -98,7 +99,12 @@ void bbzheap_print() {
                  break;
              case BBZTYPE_NCLOSURE: // fallthrough
              case BBZTYPE_CLOSURE:
-                 printf(" %d", bbzheap_obj_at(i)->c.value.ref);
+                 if (bbztype_isclosurelambda(*bbzheap_obj_at(i)))
+                     printf("[l] %d", (uint8_t)bbzheap_obj_at(i)->l.value.ref);
+                 else
+                     printf(" %d", (int)(intptr_t)bbzheap_obj_at(i)->c.value);
+                 break;
+             default:
                  break;
          }
          printf("\n");
@@ -187,7 +193,8 @@ char* getString(uint16_t sid) {
 
 void logfunc() {
     int16_t argn = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
-    for (int16_t i = 1; i <= argn; ++i) {
+    bbzvm_pop();
+    for (int16_t i = 0; i < argn; ++i) {
         bbzobj_t* o = bbzvm_obj_at(bbzvm_stack_at(i));
         switch(bbztype(*o)) {
             case BBZTYPE_NIL:
@@ -200,17 +207,22 @@ void logfunc() {
                 printf("%f", bbzfloat_tofloat(o->f.value));
                 break;
             case BBZTYPE_TABLE:
-                printf("%" PRIu16, o->t.value);
+                printf("[t]%" PRIu16, o->t.value);
                 break;
             case BBZTYPE_USERDATA:
-                printf("%" PRIXPTR, (uintptr_t)o->u.value);
+                printf("[u]%" PRIXPTR, (uintptr_t)o->u.value);
                 break;
             case BBZTYPE_STRING:
                 printf("%s", getString(o->s.value));
                 break;
             case BBZTYPE_NCLOSURE: // fallthrough
             case BBZTYPE_CLOSURE:
-                printf("%d", o->c.value.ref);
+                if (bbztype_isclosurelambda(*o))
+                    printf("[cl]%d", o->l.value.ref);
+                else
+                    printf("[c]%d", (int)(intptr_t)o->c.value);
+                break;
+            default:
                 break;
         }
     }
@@ -295,22 +307,22 @@ void bbzvm_register_gsyms() {
     bbzvm_gsym_register(BBZVM_SYMID_SWARM, o);
     //   Register 'swarm.create'
     bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'swarm.intersection'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_INTERSECTION);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'swarm.union'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_UNION);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'swarm.difference'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_DIFFERENCE);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
 
     bbzvm_gc();
@@ -320,42 +332,42 @@ void bbzvm_register_gsyms() {
     o = bbzvm_stack_at(0);
     //   Register 'neighbors.foreach'
     bbzvm_pushs(BBZVM_SYMID_FOREACH);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'neighbors.map'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_MAP);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'neighbors.filter'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_FILTER);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'neighbors.listen'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_LISTEN);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'neighbors.ignore'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_IGNORE);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
     //   Register 'neighbors.broadcast'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_BROADCAST);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
 
     bbzvm_gc();
 
     // Register stigmergy
     bbzvm_pusht();
-    o = bbzvm_stack_at(0);
+    //o = bbzvm_stack_at(0);
     //   Register 'stigmergy.create'
     bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_pushc(bbzvm_function_register(-1, bbzvm_dummy), 0);
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
 
     bbzvm_gc();
@@ -706,20 +718,17 @@ TEST(bbzvm) {
 
     // B) Register C closure
     REQUIRE(vm.state != BBZVM_STATE_ERROR);
-    int16_t funcid = bbzvm_function_register(0, printIntVal);
+    bbzheap_idx_t c = bbzvm_function_register(0, printIntVal);
 
-    REQUIRE(funcid >= 0);
-    ASSERT_EQUAL(bbzdarray_size(vm.flist), 2);
-    bbzheap_idx_t c;
-    bbzdarray_get(vm.flist, funcid, &c);
-    ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_USERDATA);
-    ASSERT_EQUAL(bbzvm_obj_at(c)->u.value, printIntVal);
+    REQUIRE(c >= 0);
+    ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_CLOSURE);
+    ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)(void*)printIntVal);
 
     // C) Call registered C closure
-    REQUIRE(bbzdarray_size(vm.flist) >= 1);
     REQUIRE(bbztable_size(vm.gsyms) == *(uint16_t*)vm.bcode_fetch_fun(0, 2));
     bbzvm_pushs(0);
-    bbztable_get(vm.gsyms, bbzvm_stack_at(0), &c);
+    bbzvm_gload();
+    c = bbzvm_stack_at(0);
     bbzvm_pop();
     REQUIRE(bbztype_isclosure(*bbzvm_obj_at(c)));
     bbzvm_pushi(123);
@@ -760,10 +769,12 @@ TEST(bbzvm) {
     REQUIRE(vm.state == BBZVM_STATE_READY);
     REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
     bbzvm_register_gsyms();
+    //bbzheap_print();
     while (vm.state == BBZVM_STATE_READY) {
         bbzvm_step();
-        ASSERT(vm.state == BBZVM_STATE_READY || vm.state == BBZVM_STATE_DONE);
+        ASSERT(vm.state != BBZVM_STATE_ERROR);
     }
+    //bbzheap_print();
     ASSERT_EQUAL(vm.state, BBZVM_STATE_DONE);
     ASSERT_EQUAL(vm.error, BBZVM_ERROR_NONE);
     #endif

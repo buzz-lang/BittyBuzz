@@ -1,4 +1,5 @@
 #include "bbzheap.h"
+#include "bbztype.h"
 #include <stdio.h>
 
 /****************************************/
@@ -38,12 +39,12 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
          *o = i;
          /* Take care of special initialisations */
          if (t == BBZTYPE_TABLE) {
-             bbztable_t* x = &bbzheap_obj_at(*o)->t;
-             if(!bbzheap_tseg_alloc(&x->value)) return 0;
+            bbztable_t* x = &bbzheap_obj_at(*o)->t;
+            if(!bbzheap_tseg_alloc(&x->value)) return 0;
          }
-         else if (bbztype_isclosure(*bbzheap_obj_at(*o))) {
-             bbzclosure_t* x = (bbzclosure_t*)bbzheap_obj_at(*o);
-             x->value.actrec = 0xFF; // Default activation record
+         else if (bbztype_isclosure(*x)) {
+            bbzclosure_unmake_lambda(*x);
+            ((bbzlclosure_t*)x)->value.actrec = 0xFF; // Default activation record
          }
          /* Success */
          return 1;
@@ -64,7 +65,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
       if(!bbzheap_tseg_alloc(&(x->value))) return 0;
    }
    else if (bbztype_isclosure(*bbzheap_obj_at(*o))) {
-      bbzclosure_t* x = (bbzclosure_t*)bbzheap_obj_at(*o);
+      bbzlclosure_t* x = (bbzlclosure_t*)bbzheap_obj_at(*o);
       x->value.actrec = 0xFF; // Default activation record
    }
    return 1;
@@ -112,6 +113,49 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
 /****************************************/
 /****************************************/
 
+void bbzheap_gc_mark(bbzheap_idx_t obj) {
+   if (gc_hasmark(*bbzheap_obj_at(obj))) return;
+   /* Mark gc bit */
+   gc_mark(*bbzheap_obj_at(obj));
+   /* If it's a table, go through it and mark all associated objects */
+   if(bbztype_istable(*bbzheap_obj_at(obj))) {
+      /* Segment index in heap */
+      bbzheap_idx_t si = bbzheap_obj_at(obj)->t.value;
+      if(bbztype_isdarray(*bbzheap_obj_at(obj))) {
+         /* Actual segment data in heap */
+         bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
+         /* Go through the segments */
+         while(1) {
+            for(uint8_t j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
+               if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
+                  bbzheap_gc_mark(bbzheap_aseg_elem_get(sd->values[j]));
+               }
+            if(!bbzheap_aseg_hasnext(sd)) break;
+            si = bbzheap_aseg_next_get(sd);
+            sd = bbzheap_aseg_at(si);
+         }
+      }
+      else {
+         /* Actual segment data in heap */
+         bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
+         /* Go through the segments */
+         while(1) {
+            for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
+               if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
+                  bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->keys[j]));
+                  bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->values[j]));
+               }
+            if(!bbzheap_tseg_hasnext(sd)) break;
+            si = bbzheap_tseg_next_get(sd);
+            sd = bbzheap_tseg_at(si);
+         }
+      }
+   }
+   else if (bbztype_isclosurelambda(*bbzheap_obj_at(obj))) {
+      bbzheap_gc_mark(bbzheap_obj_at(obj)->l.value.actrec);
+   }
+}
+
 void bbzheap_gc(bbzheap_idx_t* st,
                 uint16_t sz) {
    /* Set all gc bits to zero */
@@ -120,41 +164,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
    /* Go through the stack and set the gc bit of valid variables */
    for(uint16_t i = 0; i < sz; ++i) {
       /* Mark gc bit */
-      gc_mark(*bbzheap_obj_at(st[i]));
-      /* If it's a table, go through it and mark all associated objects */
-      if(bbztype_istable(*bbzheap_obj_at(st[i]))) {
-         /* Segment index in heap */
-         bbzheap_idx_t si = bbzheap_obj_at(st[i])->t.value;
-         if(bbztype_isdarray(*bbzheap_obj_at(st[i]))) {
-            /* Actual segment data in heap */
-            bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
-            /* Go through the segments */
-            while(1) {
-               for(uint8_t j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
-                  if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
-                     gc_mark(*bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[j])));
-                  }
-               if(!bbzheap_aseg_hasnext(sd)) break;
-               si = bbzheap_aseg_next_get(sd);
-               sd = bbzheap_aseg_at(si);
-            }
-         }
-         else {
-            /* Actual segment data in heap */
-            bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
-            /* Go through the segments */
-            while(1) {
-               for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
-                  if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
-                     gc_mark(*bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[j])));
-                     gc_mark(*bbzheap_obj_at(bbzheap_tseg_elem_get(sd->values[j])));
-                  }
-               if(!bbzheap_tseg_hasnext(sd)) break;
-               si = bbzheap_tseg_next_get(sd);
-               sd = bbzheap_tseg_at(si);
-            }
-         }
-      }
+      bbzheap_gc_mark(st[i]);
    }
    /* Go through the objects; invalidate those with 0 gc bit */
    for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {

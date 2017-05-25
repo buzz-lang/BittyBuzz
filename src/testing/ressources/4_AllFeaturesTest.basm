@@ -1,4 +1,4 @@
-!55
+!60
 'log
 'forward
 'stop
@@ -39,6 +39,10 @@
 'y = 
 'lambda
 '; 
+'lambdaGen
+'c
+'a
+'b
 'textToLog
 'Hello, world!
 'Logging "
@@ -50,6 +54,7 @@
 'z
 'loc
 't
+'t = 
 't.x = 
 't['x'] = 
 't1
@@ -95,104 +100,123 @@
 	pushnil	|20,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushi 3	|20,22,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	callc	|20,22,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 40	|31,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 41	|31,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gstore	|31,27,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|33,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|33,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 42	|33,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 40	|33,26,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|33,26,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 43	|33,28,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|33,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|33,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|36,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|36,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|36,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gt	|36,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jumpz @__label_3	|36,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|37,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|37,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 44	|37,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|37,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|37,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_3	|39,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|39,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|39,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|39,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gt	|39,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jumpz @__label_5	|39,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|40,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|40,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 44	|40,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|40,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|40,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jump @__label_6	|41,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_5	|41,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|41,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|41,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|41,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	lt	|41,14,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jumpz @__label_7	|41,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|42,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|42,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 45	|42,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|42,25,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|42,25,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jump @__label_8	|43,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_7	|43,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|44,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|44,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 46	|44,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|44,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|44,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_8	|44,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_6	|44,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|46,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 40	|22,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushl @__label_3	|22,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|26,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 40	|27,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|27,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 41	|27,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|27,14,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|27,14,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 42	|27,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 43	|27,20,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 2	|27,24,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|27,24,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 44	|30,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 45	|30,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|30,27,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|32,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|32,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 46	|32,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 44	|32,26,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|32,26,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 47	|32,28,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|32,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|32,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|35,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|35,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|35,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gt	|35,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jumpz @__label_5	|35,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|36,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|36,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 48	|36,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|36,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|36,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_5	|38,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|38,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|38,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|38,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gt	|38,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jumpz @__label_7	|38,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|39,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|39,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 48	|39,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|39,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|39,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jump @__label_8	|40,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_7	|40,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|40,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|40,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|40,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lt	|40,14,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jumpz @__label_9	|40,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|41,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|41,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 49	|41,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|41,25,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|41,25,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jump @__label_10	|42,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_9	|42,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|43,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|43,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 50	|43,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|43,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|43,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_10	|43,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_8	|43,36,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|45,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|45,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|45,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lt	|45,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|45,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|45,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|45,20,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gt	|45,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	or	|45,22,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jumpz @__label_11	|45,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|46,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|46,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|46,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	lt	|46,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|46,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|46,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|46,20,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gt	|46,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	or	|46,22,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jumpz @__label_9	|46,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|47,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|47,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 47	|47,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|47,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|47,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_9	|50,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 48	|50,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 0	|50,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gstore	|50,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 49	|51,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushl @__label_11	|51,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gstore	|54,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_12	|55,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 48	|55,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|55,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 5	|55,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	lt	|55,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jumpz @__label_13	|55,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 49	|56,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|56,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 0	|56,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|56,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	jump @__label_12	|56,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-@__label_13	|56,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 50	|59,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pusht	|59,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	dup	|59,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 34	|59,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 3	|59,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	tput	|59,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gstore	|59,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 51	|46,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|46,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|46,21,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_11	|49,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 52	|49,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 0	|49,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|49,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 53	|50,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushl @__label_13	|50,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|53,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_14	|54,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 52	|54,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|54,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 5	|54,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lt	|54,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jumpz @__label_15	|54,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 53	|55,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|55,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 0	|55,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|55,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	jump @__label_14	|55,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_15	|55,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 54	|58,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pusht	|58,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	dup	|58,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 34	|58,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 3	|58,9,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	tput	|58,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|58,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|59,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|59,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 55	|59,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 54	|59,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|59,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 2	|60,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|60,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 0	|60,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|60,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 51	|60,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 50	|60,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 56	|60,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 54	|60,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|60,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 34	|60,16,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	tget	|60,17,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
@@ -200,32 +224,32 @@
 	callc	|61,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 0	|61,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|61,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 52	|61,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 50	|61,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 57	|61,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 54	|61,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|61,18,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 34	|61,19,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	tget	|61,23,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushi 2	|62,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	callc	|62,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 53	|64,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 58	|64,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pusht	|64,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	dup	|64,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 34	|64,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushi 3	|64,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	tput	|64,12,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gstore	|64,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 54	|65,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 53	|66,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 59	|65,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 58	|66,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|66,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gstore	|66,0,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 54	|66,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 59	|66,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|66,2,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 34	|66,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushi 5	|66,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	tput	|66,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 0	|67,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|67,3,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 53	|67,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 58	|67,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	gload	|67,6,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	pushs 34	|67,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	tget	|67,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
@@ -256,17 +280,34 @@
 	callc	|17,28,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 	ret0	|18,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
 
-@__label_11
-	pushs 48	|52,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 48	|52,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|52,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|52,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	add	|52,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gstore	|52,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 0	|53,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|53,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushs 48	|53,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	gload	|53,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	pushi 1	|53,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	callc	|53,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
-	ret0	|54,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+@__label_3
+	pushl @__label_4	|23,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	ret1	|25,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	ret0	|26,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+
+@__label_4
+	pushs 0	|24,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|24,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lload 2	|24,13,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 39	|24,15,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lload 3	|24,22,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 39	|24,24,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	lload 1	|24,31,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 5	|24,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|24,32,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	ret0	|25,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+
+@__label_13
+	pushs 52	|51,4,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 52	|51,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|51,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|51,10,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	add	|51,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gstore	|51,11,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 0	|52,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|52,5,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushs 52	|52,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	gload	|52,7,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	pushi 1	|52,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	callc	|52,8,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz
+	ret0	|53,1,/home/user1/CLionProjects/BittyBuzz/src/testing/ressources/4_AllFeaturesTest.bzz

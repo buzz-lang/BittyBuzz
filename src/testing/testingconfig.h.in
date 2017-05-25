@@ -76,7 +76,18 @@ static uint16_t error_count = 0;
         }                                                               \
     }
 
-#define ASSERT_EQUAL(lhs, rhs) ASSERT(lhs == rhs)
+//#define ASSERT_EQUAL(lhs, rhs) ASSERT(lhs == rhs)
+#define ASSERT_EQUAL(lhs, rhs)                                          \
+    {                                                                   \
+        uint8_t eval = (lhs == rhs);                                    \
+        if (!eval) {                                                    \
+            printf(__FILE__ "(%d): error: "                             \
+            "check " #lhs " (%d) == " #rhs " (%d) failed\n",            \
+            __LINE__,                                                   \
+            (int)(lhs), (int)(rhs));                                    \
+            ++error_count;                                              \
+        }                                                               \
+    }
 
 #define REQUIRE(expr)                                                   \
     {                                                                   \

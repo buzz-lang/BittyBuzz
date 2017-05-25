@@ -86,6 +86,20 @@ typedef struct __attribute__((packed)) {
    /**
     * @brief Object metadata.
     * @details 7th topmost bit: 'native' flag.
+    *          3rd topmost bit: 'lambda' flag.
+    */
+   uint8_t mdata;
+   void* value; /**< @brief Closure object's value. */
+} bbzclosure_t;
+
+/**
+ * @brief Lambda Closure
+ */
+typedef struct __attribute__((packed)) {
+   /**
+    * @brief Object metadata.
+    * @details 7th topmost bit: 'native' flag.
+    *          3rd topmost bit: 'lambda' flag.
     */
    uint8_t mdata;
    struct {
@@ -93,14 +107,14 @@ typedef struct __attribute__((packed)) {
        * @brief Location of the closure.
        * @details Jump address (C closure) or function id (native closure).
        */
-      int8_t ref;
+      uint8_t ref;
       /**
        * @brief Position in the heap of the activation record array.
        * @details A value of 0xFF means it uses the default activation record of the VM.
        */
       uint8_t actrec;
    } value; /**< @brief Closure object's value. */
-} bbzclosure_t;
+} bbzlclosure_t;
 
 /**
  * @brief User data
@@ -129,6 +143,7 @@ typedef union __attribute__((packed)) {
    bbzstring_t   s; /**< @brief String object */
    bbztable_t    t; /**< @brief Table object */
    bbzclosure_t  c; /**< @brief Closure object */
+   bbzlclosure_t l; /**< @brief Lambda closure object */
    bbzuserdata_t u; /**< @brief Data object */
 } bbzobj_t;
 
@@ -207,7 +222,16 @@ int8_t bbztype_cmp(const bbzobj_t* a,
  * @brief Returns 1 if a closure is native, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbzclosure_isnative(obj) ((obj).c.mdata & 0x40)
+#define bbztype_isclosurenative(obj) ((obj).c.mdata & 0x40)
+
+/**
+ * @brief Returns 1 if a closure is a lambda closure, 0 otherwise.
+ * @param[in] obj The object.
+ */
+#define bbztype_isclosurelambda(obj) ((obj).c.mdata & 0x04)
+
+#define bbzclosure_make_lambda(obj) ((obj).l.mdata |= 0x04)
+#define bbzclosure_unmake_lambda(obj) ((obj).l.mdata &= ~0x04)
 
 #ifdef __cplusplus
 }

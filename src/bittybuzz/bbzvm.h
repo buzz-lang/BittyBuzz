@@ -580,15 +580,15 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint32_t argc);
+    bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc);
 
     /**
      * @brief Registers a function in the VM.
      * @param[in] fnameid The symbol ID of the function's name.
      * @param[in] funp The function pointer to register.
-     * @return The function id.
+     * @return The function's closure position in the heap.
      */
-    int16_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp);
+    bbzheap_idx_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp);
 
     /**
      * @brief Calls a closure.
@@ -671,7 +671,11 @@ extern "C" {
      * @param[in] v The value.
      * @return The VM state.
      */
+#ifndef BBZVM_USE_BBO
     bbzvm_state bbzvm_pushf(float v);
+#else
+    bbzvm_state bbzvm_pushf(bbzfloat v);
+#endif
 
     /**
      * @brief Pushes a 32 bit signed int value on the stack.
@@ -699,7 +703,7 @@ extern "C" {
      * @param[in] nat 1 if the closure in native, 0 if not
      * @return The VM state.
      */
-    bbzvm_state bbzvm_pushc(int16_t rfrnc, int16_t nat);
+    bbzvm_state bbzvm_pushc(intptr_t rfrnc, int16_t nat);
 
     /**
      * @brief Pushes a native closure on the stack.
@@ -712,7 +716,7 @@ extern "C" {
      * @return The VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcn(int32_t addr) { return bbzvm_pushc(addr, 1); }
+    bbzvm_state bbzvm_pushcn(int16_t addr) { return bbzvm_pushc((intptr_t)addr, 1); }
 
     /**
      * @brief Pushes a c-function closure on the stack.
@@ -728,7 +732,7 @@ extern "C" {
      * @return The updated VM state.
      */
     __attribute__((always_inline)) static inline
-    bbzvm_state bbzvm_pushcc(int32_t cid) { return bbzvm_pushc(cid, 0); }
+    bbzvm_state bbzvm_pushcc(bbzvm_funp cid) { return bbzvm_pushc((intptr_t)cid, 0); }
 
     /**
      * @brief Pushes a lambda native closure on the stack.
