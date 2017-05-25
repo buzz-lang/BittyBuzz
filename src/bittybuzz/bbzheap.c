@@ -1,6 +1,5 @@
 #include "bbzheap.h"
 #include "bbztype.h"
-#include <stdio.h>
 
 /****************************************/
 /****************************************/
@@ -13,10 +12,10 @@
 /****************************************/
 
 void bbzheap_clear() {
-   vm.heap.rtobj = vm.heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
-   vm.heap.ltseg = vm.heap.data + BBZHEAP_SIZE;
+   vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
+   vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
    for(int16_t i = BBZHEAP_SIZE-1; i >= 0; --i) {
-       vm.heap.data[i] = 0;
+       vm->heap.data[i] = 0;
    }
 }
 
@@ -26,9 +25,9 @@ void bbzheap_clear() {
 uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o) {
    /* Look for empty slot */
-   for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1;
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
        i >= RESERVED_ACTREC_MAX;
-       --i)
+       --i) {
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
          /* Empty slot found */
          bbzobj_t* x = bbzheap_obj_at(i);
@@ -49,16 +48,17 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
          /* Success */
          return 1;
       }
+   }
    /* No empty slot found, must create a new one */
    /* ...but first, make sure there is room */
-   if(vm.heap.rtobj + sizeof(bbzobj_t) > vm.heap.ltseg) return 0;
+   if(vm->heap.rtobj + sizeof(bbzobj_t) > vm->heap.ltseg) { return 0; }
    /* Set result */
-   *o = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t);
+   *o = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
    /* Set valid bit and type */
-   obj_makevalid(*((bbzobj_t*)vm.heap.rtobj));
-   bbztype_cast(*((bbzobj_t*)vm.heap.rtobj), t);
+   obj_makevalid(*((bbzobj_t*)vm->heap.rtobj));
+   bbztype_cast(*((bbzobj_t*)vm->heap.rtobj), t);
    /* Make room */
-   vm.heap.rtobj += sizeof(bbzobj_t);
+   vm->heap.rtobj += sizeof(bbzobj_t);
    /* Take care of special initialisations */
    if (t == BBZTYPE_TABLE) {
       bbztable_t* x = &bbzheap_obj_at(*o)->t;
@@ -76,9 +76,9 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
 
 uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
    /* Look for empty slot */
-   for(int16_t i = (vm.heap.data + BBZHEAP_SIZE - vm.heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
+   for(int16_t i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;
-       --i)
+       --i) {
       if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) {
          /* Empty slot found */
          bbzheap_tseg_t* x = bbzheap_tseg_at(i);
@@ -94,18 +94,19 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
          /* Success */
          return 1;
       }
+   }
    /* Make sure there is room */
-   if(vm.heap.ltseg - sizeof(bbzheap_tseg_t) < vm.heap.rtobj) return 0;
+   if(vm->heap.ltseg - sizeof(bbzheap_tseg_t) < vm->heap.rtobj) return 0;
    /* Set result */
-   *s = (vm.heap.data + BBZHEAP_SIZE - vm.heap.ltseg) / sizeof(bbzheap_tseg_t);
+   *s = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
    /* Update pointer to leftmost invalid segment */
-   vm.heap.ltseg -= sizeof(bbzheap_tseg_t);
+   vm->heap.ltseg -= sizeof(bbzheap_tseg_t);
    /* Set valid bit of segment and zero index for next */
-   tseg_makevalid(*(bbzheap_tseg_t*)(vm.heap.ltseg));
+   tseg_makevalid(*(bbzheap_tseg_t*)(vm->heap.ltseg));
    /* Invalidate keys and values */
    for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-      ((bbzheap_tseg_t*)vm.heap.ltseg)->keys[i] = 0;
-      ((bbzheap_tseg_t*)vm.heap.ltseg)->values[i] = 0;
+      ((bbzheap_tseg_t*)vm->heap.ltseg)->keys[i] = 0;
+      ((bbzheap_tseg_t*)vm->heap.ltseg)->values[i] = 0;
    }
    return 1;
 }
@@ -159,7 +160,7 @@ void bbzheap_gc_mark(bbzheap_idx_t obj) {
 void bbzheap_gc(bbzheap_idx_t* st,
                 uint16_t sz) {
    /* Set all gc bits to zero */
-   for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
       gc_unmark(*bbzheap_obj_at(i));
    /* Go through the stack and set the gc bit of valid variables */
    for(uint16_t i = 0; i < sz; ++i) {
@@ -167,8 +168,8 @@ void bbzheap_gc(bbzheap_idx_t* st,
       bbzheap_gc_mark(st[i]);
    }
    /* Go through the objects; invalidate those with 0 gc bit */
-   for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {
-      if(!gc_hasmark(*bbzheap_obj_at(i)) && !bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {
+      if(!gc_hasmark(*bbzheap_obj_at(i)) && bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
          /* Invalidate object */
          obj_makeinvalid(*bbzheap_obj_at(i));
          /* If it's a table, invalidate its segments too */
@@ -188,19 +189,19 @@ void bbzheap_gc(bbzheap_idx_t* st,
       }
    }
    /* Move rightmost object pointer as far left as possible */
-   for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1;
+   for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1;
        i >= RESERVED_ACTREC_MAX;
        --i)
       if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i)))
-         vm.heap.rtobj -= sizeof(bbzobj_t);
+         vm->heap.rtobj -= sizeof(bbzobj_t);
       else
          break;
    /* Move leftmost table segment pointer as far right as possible */
-   for(int16_t i = (vm.heap.data + BBZHEAP_SIZE - vm.heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
+   for(int16_t i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
        i >= 0;
        --i) {
       if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i)))
-         vm.heap.ltseg += sizeof(bbzheap_tseg_t);
+         vm->heap.ltseg += sizeof(bbzheap_tseg_t);
       else
          break;
    }

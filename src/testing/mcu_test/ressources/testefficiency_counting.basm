@@ -1,0 +1,125 @@
+!8
+'led
+'LED_OFF
+'LED_RED
+'LED_GREEN
+'LED_BLUE
+'i
+'add
+'x
+
+	pushs 6
+	pushcn @__label_1
+	gstore
+	nop
+
+@__label_0
+	pushs 1	|1,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 0	|1,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|1,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 2	|2,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|2,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|2,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 3	|3,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 2	|3,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|3,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 4	|4,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 4	|4,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|4,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|6,2,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 0	|6,4,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|6,5,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 0	|13,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|13,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 3	|13,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|13,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|13,14,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|13,14,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_2	|15,7,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|15,9,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|15,9,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 100	|15,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	lt	|15,14,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jumpz @__label_3	|15,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|16,6,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|16,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|16,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|16,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	add	|16,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|16,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|17,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|17,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 2	|17,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	mod	|17,14,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 0	|17,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	eq	|17,18,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jumpz @__label_4	|17,19,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 0	|18,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|18,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 4	|18,21,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|18,21,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 3	|18,32,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|18,32,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	add	|18,32,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|18,33,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|18,33,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jump @__label_5	|19,8,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_4	|19,8,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 0	|20,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|20,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 2	|20,19,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|20,19,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|20,20,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|20,20,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_5	|20,20,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jump @__label_2	|21,1,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_3	|21,1,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 0	|23,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|23,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 4	|23,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|23,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|23,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|23,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_6	|25,7,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|25,9,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|25,9,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1000	|25,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	lt	|25,15,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jumpz @__label_7	|25,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 7	|26,6,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 6	|26,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|26,11,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|26,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|26,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|26,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|26,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 2	|26,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|26,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|26,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	jump @__label_6	|26,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+@__label_7	|26,17,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 0	|28,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|28,3,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 2	|28,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|28,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 3	|28,23,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|28,23,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	add	|28,23,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|28,24,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	callc	|28,24,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+
+@__exitpoint
+	done
+
+@__label_1
+	pushs 5	|9,6,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushs 5	|9,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gload	|9,10,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	pushi 1	|9,12,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	add	|9,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	gstore	|9,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	lload 1	|10,13,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	lload 2	|10,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	add	|10,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	ret1	|10,16,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz
+	ret0	|11,1,/home/anthonyd973/Git/Git_Projects/BittyBuzz/src/testing/mcu_test/ressources/testefficiency_counting.bzz

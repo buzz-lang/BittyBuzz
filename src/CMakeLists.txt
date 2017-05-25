@@ -40,15 +40,12 @@ configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONL
 #
 # GCC flags
 #
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} " -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
 #
 # Descend into the subdirectories
 #
 add_subdirectory(bittybuzz)
-#add_subdirectory(kilolib)
-# TODO Make tests work on the kilobot?
-if (NOT CMAKE_CROSSCOMPILING)
-  add_subdirectory(testing)
-endif()
+# TODO Make some tests work on the kilobot?
+add_subdirectory(testing)
 add_subdirectory(doc)

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#include <testing/testingconfig.h>
+#include "testingconfig.h"
 #ifdef BBZ_USE_AUTOMATED_TESTS
 #define BOOST_TEST_DYN_LINK // Use Boost as a dynamic library
 #define BOOST_TEST_MODULE BBZ_FLOAT_TEST
