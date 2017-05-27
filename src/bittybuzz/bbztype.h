@@ -15,14 +15,14 @@ extern "C" {
 /*
  * Object types in BittyBuzz
  */
-#define BBZTYPE_NIL      0 /**< @brief Nil type. */
-#define BBZTYPE_INT      1 /**< @brief Integer type. */
-#define BBZTYPE_FLOAT    2 /**< @brief Float type. */
-#define BBZTYPE_STRING   3 /**< @brief String type. */
-#define BBZTYPE_TABLE    4 /**< @brief Table type. */
-#define BBZTYPE_CLOSURE  5 /**< @brief Closure type. */
-#define BBZTYPE_USERDATA 6 /**< @brief User-data type. */
-#define BBZTYPE_NCLOSURE 7 /**< @brief Native closure type. */
+#define BBZTYPE_NIL      (uint8_t)0 /**< @brief Nil type. */
+#define BBZTYPE_INT      (uint8_t)1 /**< @brief Integer type. */
+#define BBZTYPE_FLOAT    (uint8_t)2 /**< @brief Float type. */
+#define BBZTYPE_STRING   (uint8_t)3 /**< @brief String type. */
+#define BBZTYPE_TABLE    (uint8_t)4 /**< @brief Table type. */
+#define BBZTYPE_CLOSURE  (uint8_t)5 /**< @brief Closure type. */
+#define BBZTYPE_USERDATA (uint8_t)6 /**< @brief User-data type. */
+#define BBZTYPE_NCLOSURE (uint8_t)7 /**< @brief Native closure type. */
 
 /**
  * @brief Nil type

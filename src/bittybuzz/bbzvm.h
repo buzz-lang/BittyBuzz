@@ -49,7 +49,7 @@ extern "C" {
         BBZVM_ERROR_TYPE,     /**< @brief Type mismatch */
         BBZVM_ERROR_STRING,   /**< @brief Unknown string id */
         BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id */
-        BBZVM_ERROR_MEM       /**< @brief Out of memory*/
+        BBZVM_ERROR_MEM       /**< @brief Out of memory */
     } bbzvm_error;
 
     /**
@@ -163,8 +163,8 @@ extern "C" {
         int16_t blockptr;
         /** @brief Current local variable table */
         bbzheap_idx_t lsyms;
-        /** @brief Local variable array list */
-        bbzheap_idx_t lsymts;
+        /* @brief Local variable array list */
+        //bbzheap_idx_t lsymts;
         /** @brief Global symbols */
         bbzheap_idx_t gsyms;
         /* Strings */
@@ -886,19 +886,34 @@ extern "C" {
         }
 
     /**
+     * @brief Assert the correct execution of a boolean returning function.
+     * Typically used with memory allocating functions such as bbzheap_obj_alloc()
+     * or bbzdarray_lambda_alloc().
+     * @param[in] expr The expression (function call) to assert.
+     * @param[in] ERR_TYPE The kind of error to "throw" if the assertion fails.
+     */
+    #define bbzvm_assert_exec(expr, ERR_TYPE)                           \
+        if(!(expr)) {                                                   \
+            bbzvm_seterror(ERR_TYPE);                                   \
+            return BBZVM_STATE_ERROR;                                   \
+        }
+
+    /**
      * @brief Allocate memory on the heap. If the heap is out of memory,
      * it updates the VM state and exits the current function.
      * This function is designed to be used within int-returning functions such as
      * bbzvm_push<i|nil|...>() or bbzvm_lload().
-     * @param[in,out] vm The VM data.
      * @param[in] tpe The type to allocate.
      * @param[out] idx A buffer for the index of the allocated object.
      */
-    #define bbzvm_assert_mem_alloc(type, idx)                           \
-        if (!bbzheap_obj_alloc(type, idx)) {                            \
-            bbzvm_seterror(BBZVM_ERROR_MEM);                            \
-            return BBZVM_STATE_ERROR;                                   \
-        }
+    #define bbzvm_assert_mem_alloc(type, idx) bbzvm_assert_exec(bbzheap_obj_alloc(type, idx), BBZVM_ERROR_MEM)
+
+    /**
+     * @brief Assert the state of the VM. To be used after explicit usage of
+     * instructions such as bbzvm_pop() or bbzvm_gload();
+     */
+    #define bbzvm_assert_state()                                        \
+        if(vm.state == BBZVM_STATE_ERROR) return vm.state;
 
     /**
      * Calls a normal closure.
@@ -914,7 +929,8 @@ extern "C" {
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * #1 An integer for the return address
+     * #1 The old block pointer
+     * #2 An integer for the return address
      */
     #define bbzvm_callc() bbzvm_call(0)
 

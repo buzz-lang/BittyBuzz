@@ -19,7 +19,7 @@
 
 FILE* fbcode;
 uint16_t fsize;
-uint8_t buf[16];
+uint8_t buf[4];
 bbzvm_error last_error;
 
 /**
@@ -59,7 +59,11 @@ const uint8_t* testBcode(int16_t offset, uint8_t size) {
      uint8_t has_operand = (*testBcode(vm.pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
      vm.pc += sizeof(uint8_t); // Skip opcode
      if (has_operand) {
+#ifndef BBZVM_USE_BBO
         vm.pc += sizeof(uint32_t); // Skip operand
+#else
+        vm.pc += sizeof(uint16_t); // Skip operand
+#endif
      }
  }
 
@@ -129,7 +133,7 @@ void bbzheap_print() {
          printf(" /next=%x }\n", bbzheap_tseg_next_get(seg));
       }
    }
-   printf("\n");
+   printf("\n");fflush(stdout);
 }
 
 /**
@@ -168,7 +172,7 @@ bbzvm_state printIntVal() {
     bbzheap_idx_t idx;
     bbzvm_lload(1);
     idx = bbzvm_stack_at(0);
-    printf("#%02x: (%s) %d\n", idx, bbztype_desc[bbztype(*bbzvm_obj_at(idx))], bbzvm_obj_at(idx)->i.value);
+    printf("#%d: (%s) %d\n", idx, bbztype_desc[bbztype(*bbzvm_obj_at(idx))], bbzvm_obj_at(idx)->i.value);
     bbzvm_pop();
     return bbzvm_ret0();
 }
@@ -213,7 +217,11 @@ void logfunc() {
                 printf("[u]%" PRIXPTR, (uintptr_t)o->u.value);
                 break;
             case BBZTYPE_STRING:
+#ifndef BBZVM_USE_BBO
                 printf("%s", getString(o->s.value));
+#else
+                //printf("[s]%d", (o->s.value));
+#endif
                 break;
             case BBZTYPE_NCLOSURE: // fallthrough
             case BBZTYPE_CLOSURE:
@@ -225,6 +233,9 @@ void logfunc() {
             default:
                 break;
         }
+#ifdef BBZVM_USE_BBO
+        if (bbztype(*o) != BBZTYPE_STRING) printf("; ");
+#endif
     }
     printf("\n");
 }
@@ -235,7 +246,7 @@ bbzvm_state bbzvm_log() {
         bbzvm_lload(nArg - i);
     }
     bbzvm_pushi(nArg);
-    logfunc();
+    logfunc();fflush(stdout);
     return bbzvm_ret0();
 }
 
@@ -295,17 +306,19 @@ int8_t bbzvm_register_functions() {
 }
 
 void bbzvm_register_gsyms() {
+    bbzheap_idx_t o;
     // Register 'id'
+    bbzvm_pushs(BBZVM_SYMID_ID);
     bbzvm_pushi(vm.robot);
-    bbzheap_idx_t o = bbzvm_stack_at(0);
-    bbzvm_pop();
-    bbzvm_gsym_register(BBZVM_SYMID_ID, o);
+    bbzvm_gstore();
 
     // Register 'swarm'
+    bbzvm_pushs(BBZVM_SYMID_SWARM);
     bbzvm_pusht();
     o = bbzvm_stack_at(0);
-    bbzvm_gsym_register(BBZVM_SYMID_SWARM, o);
+    bbzvm_gstore();
     //   Register 'swarm.create'
+    bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_CREATE);
     bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
@@ -328,9 +341,12 @@ void bbzvm_register_gsyms() {
     bbzvm_gc();
 
     // Register neighbors
+    bbzvm_pushs(BBZVM_SYMID_NEIGHBORS);
     bbzvm_pusht();
     o = bbzvm_stack_at(0);
+    bbzvm_gstore();
     //   Register 'neighbors.foreach'
+    bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_FOREACH);
     bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
@@ -363,9 +379,12 @@ void bbzvm_register_gsyms() {
     bbzvm_gc();
 
     // Register stigmergy
+    bbzvm_pushs(BBZVM_SYMID_STIGMERGY);
     bbzvm_pusht();
-    //o = bbzvm_stack_at(0);
+    o = bbzvm_stack_at(0);
+    bbzvm_gstore();
     //   Register 'stigmergy.create'
+    bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_CREATE);
     bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
@@ -378,6 +397,19 @@ void bbzvm_register_gsyms() {
     // ======================================
 
 bbzvm_t vm;
+#ifdef BBZVM_USE_BBO
+#define FILE_TEST1 "ressources/1_InstrTest.bbo"
+#define FILE_TEST2 "ressources/2_IfTest.bbo"
+#define FILE_TEST3 "ressources/3_test1.bbo"
+#define FILE_TEST4 "ressources/4_AllFeaturesTest.bbo"
+#define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint16_t)
+#else
+#define FILE_TEST1 "ressources/1_InstrTest.bo"
+#define FILE_TEST2 "ressources/2_IfTest.bo"
+#define FILE_TEST3 "ressources/3_test1.bo"
+#define FILE_TEST4 "ressources/4_AllFeaturesTest.bo"
+#define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint32_t)
+#endif
 
 TEST(bbzvm) {
     
@@ -389,7 +421,7 @@ TEST(bbzvm) {
     bbzvm_construct(robot);
 
     ASSERT_EQUAL(vm.pc, 0);
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm.lsymts)));
+    //ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm.lsymts)));
     ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm.flist)));
     ASSERT(bbztype_istable (*bbzvm_obj_at(vm.gsyms)));
     ASSERT(bbztype_isnil   (*bbzvm_obj_at(vm.nil)));
@@ -406,7 +438,7 @@ TEST(bbzvm) {
     // ------------------------
 
     // 1) Open bytecode file.
-    fbcode = fopen("ressources/2_IfTest.bo", "rb");
+    fbcode = fopen(FILE_TEST2, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
@@ -429,7 +461,7 @@ TEST(bbzvm) {
 
     // 1) Open instruction test file
     fclose(fbcode);
-    fbcode = fopen("ressources/1_InstrTest.bo", "rb");
+    fbcode = fopen(FILE_TEST1, "rb");
     REQUIRE(fbcode != NULL);
     fseek(fbcode, 0, SEEK_END);
     fsize = ftell(fbcode);
@@ -437,7 +469,7 @@ TEST(bbzvm) {
 
     vm.bcode_size = fsize;
 
-    vm.pc = 0;
+    vm.pc = 2;
 
     // 2) Nop
     REQUIRE(*testBcode(vm.pc, 1) == BBZVM_INSTR_NOP);
@@ -506,7 +538,7 @@ TEST(bbzvm) {
     }
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
     // Skip jump instruction.
-    vm.pc += sizeof(uint8_t) + sizeof(uint32_t);
+    vm.pc += SKIP_JUMP;
 
     // Save PC
     uint16_t jumpzLabel = vm.pc;
@@ -543,7 +575,7 @@ TEST(bbzvm) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm.pc, jumpzLabel + sizeof(uint8_t) + sizeof(uint32_t));
+    ASSERT_EQUAL(vm.pc, jumpzLabel + SKIP_JUMP);
 
     // Save PC.
     uint16_t jumpnzLabel = vm.pc;
@@ -566,7 +598,7 @@ TEST(bbzvm) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm.pc, jumpnzLabel + sizeof(uint8_t) + sizeof(uint32_t));
+    ASSERT_EQUAL(vm.pc, jumpnzLabel + SKIP_JUMP);
 
     // Do the jumpnz again.
     vm.pc = jumpnzLabel;
@@ -577,7 +609,7 @@ TEST(bbzvm) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm.pc, jumpnzLabel + sizeof(uint8_t) + sizeof(uint32_t));
+    ASSERT_EQUAL(vm.pc, jumpnzLabel + SKIP_JUMP);
 
     // 14) Empty the stack
     while (bbzvm_stack_size() != 0) {
@@ -638,7 +670,7 @@ TEST(bbzvm) {
             BBZVM_INSTR_GTE, BBZVM_INSTR_LT,  BBZVM_INSTR_LTE, BBZVM_INSTR_JUMPZ, BBZVM_INSTR_JUMPNZ,
             LAST_INSTR
         };
-        uint16_t oldPc = vm.pc;
+        int16_t oldPc = vm.pc;
         uint16_t i = 0;
         bbzvm_instr curr_instr = failing_instr[i++];
         while(curr_instr != LAST_INSTR) {
@@ -689,7 +721,6 @@ TEST(bbzvm) {
     }
     bbzvm_reset_state();
 
-
     // -----------------------
     // - Test bbzvm_destruct -
     // -----------------------
@@ -705,7 +736,7 @@ TEST(bbzvm) {
     bbzvm_set_error_notifier(&set_last_error);
 
     fclose(fbcode);
-    fbcode = fopen("ressources/3_test1.bo", "rb");
+    fbcode = fopen(FILE_TEST3, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
@@ -722,7 +753,7 @@ TEST(bbzvm) {
 
     REQUIRE(c >= 0);
     ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_CLOSURE);
-    ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)(void*)printIntVal);
+    ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)printIntVal);
 
     // C) Call registered C closure
     REQUIRE(bbztable_size(vm.gsyms) == *(uint16_t*)vm.bcode_fetch_fun(0, 2));
@@ -750,15 +781,15 @@ TEST(bbzvm) {
     // --------------------------
 
     #if BBZHEAP_SIZE < 2048
-    #warning "Test file \"testvm.c\": Running test of all features requires BBZHEAP_SIZE >= 2048 "
-             "on 32 and 64 bit systems. The script execution test will be disabled."
+    #warning Test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
+    on 32 and 64 bit systems. The script execution test will be disabled.
     #else
 
     bbzvm_construct(robot);
     bbzvm_set_error_notifier(&set_last_error);
 
     fclose(fbcode);
-    fbcode = fopen("ressources/4_AllFeaturesTest.bo", "rb");
+    fbcode = fopen(FILE_TEST4, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
@@ -769,14 +800,14 @@ TEST(bbzvm) {
     REQUIRE(vm.state == BBZVM_STATE_READY);
     REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
     bbzvm_register_gsyms();
-    //bbzheap_print();
     while (vm.state == BBZVM_STATE_READY) {
         bbzvm_step();
         ASSERT(vm.state != BBZVM_STATE_ERROR);
     }
-    //bbzheap_print();
     ASSERT_EQUAL(vm.state, BBZVM_STATE_DONE);
     ASSERT_EQUAL(vm.error, BBZVM_ERROR_NONE);
+
+    bbzvm_destruct();
     #endif
 
     TEST_END();
