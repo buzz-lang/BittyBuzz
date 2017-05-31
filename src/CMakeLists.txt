@@ -5,10 +5,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # Global options
 #
 
-option(ENABLE_AUTOMATED_TESTING
-  "Enables the use of the Boost Unit Test Framework, if it is found.
-   Only considered when compiling for PC."
-  ON)
+# Nothing to see here.
 
 #
 # Add these directories to the paths

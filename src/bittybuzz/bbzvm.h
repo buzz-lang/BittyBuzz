@@ -14,12 +14,12 @@
 #include "bbzdarray.h"
 #include "bbztable.h"
 
+#include "bbzTEMP.h" // FIXME Remove this
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
-
-#include "bbzTEMP.h" // FIXME Remove this
 
 
     // ======================================
