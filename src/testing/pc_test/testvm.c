@@ -1,7 +1,5 @@
 #include "testingconfig.h"
 
-#define BBZVM_USE_BBO
-
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
@@ -60,11 +58,7 @@ const uint8_t* testBcode(int16_t offset, uint8_t size) {
      uint8_t has_operand = (*testBcode(vm->pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
      vm->pc += sizeof(uint8_t); // Skip opcode
      if (has_operand) {
-#ifndef BBZVM_USE_BBO
-        vm->pc += sizeof(uint32_t); // Skip operand
-#else
         vm->pc += sizeof(uint16_t); // Skip operand
-#endif
      }
  }
 
@@ -144,7 +138,7 @@ void bbzheap_print() {
 void set_last_error(bbzvm_error errcode) {
     last_error = errcode;
 #ifdef DEBUG
-    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm.state], vm.dbg_pc, instr_desc[*vm.bcode_fetch_fun(vm.dbg_pc, 1)], error_desc[vm.error]);
+    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
 #endif
 }
 
@@ -225,11 +219,7 @@ void logfunc() {
                 printf("[u]%" PRIXPTR, (uintptr_t)o->u.value);
                 break;
             case BBZTYPE_STRING:
-#ifndef BBZVM_USE_BBO
-                printf("%s", getString(o->s.value));
-#else
                 //printf("[s]%d", (o->s.value));
-#endif
                 break;
             case BBZTYPE_NCLOSURE: // fallthrough
             case BBZTYPE_CLOSURE:
@@ -241,9 +231,7 @@ void logfunc() {
             default:
                 break;
         }
-#ifdef BBZVM_USE_BBO
         if (bbztype(*o) != BBZTYPE_STRING) printf("; ");
-#endif
     }
     printf("\n");
 }
@@ -442,19 +430,11 @@ void bbzvm_register_gsyms() {
 
 bbzvm_t* vm;
 
-#ifdef BBZVM_USE_BBO
 #define FILE_TEST1 "ressources/1_InstrTest.bbo"
 #define FILE_TEST2 "ressources/2_IfTest.bbo"
 #define FILE_TEST3 "ressources/3_test1.bbo"
 #define FILE_TEST4 "ressources/4_AllFeaturesTest.bbo"
 #define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint16_t)
-#else
-#define FILE_TEST1 "ressources/1_InstrTest.bo"
-#define FILE_TEST2 "ressources/2_IfTest.bo"
-#define FILE_TEST3 "ressources/3_test1.bo"
-#define FILE_TEST4 "ressources/4_AllFeaturesTest.bo"
-#define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint32_t)
-#endif
 
 TEST(bbzvm) {
     bbzvm_t vmObj;
@@ -820,7 +800,7 @@ TEST(bbzvm) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(bbzvm_step() == BBZVM_STATE_READY);
     ASSERT(vm->state != BBZVM_STATE_ERROR);
-    bbzvm_pushs(4);
+    bbzvm_pushs(3);
     bbzvm_gload();
     ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 63);
 
@@ -852,7 +832,7 @@ TEST(bbzvm) {
     bbzvm_register_gsyms();
     while (vm->state == BBZVM_STATE_READY) {
     #ifdef DEBUG
-        printf("[%d: %s]\n", vm.pc, instr_desc[*vm.bcode_fetch_fun(vm.pc,1)]);
+        printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);
     #endif
         bbzvm_step();
         ASSERT(vm->state != BBZVM_STATE_ERROR);
