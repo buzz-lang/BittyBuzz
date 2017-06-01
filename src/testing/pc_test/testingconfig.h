@@ -1,46 +1,40 @@
+/**
+ * @file testingconfig.h
+ * @brief Defines testing macros that yield output similar to
+ * Boost's Unit Test Framework.
+ */
+
 #ifndef TESTING_CONFIG_H
 #define TESTING_CONFIG_H
 
-/**
- * @brief Whether we are using automated tests.
- */
-#cmakedefine BBZ_USE_AUTOMATED_TESTS
-
 #cmakedefine DEBUG
-
-
-// --------------------------------------------------
-// Configure depending on whether tests are automated
-// --------------------------------------------------
 
 #include <stdio.h>
 #include <inttypes.h>
 
-#ifdef BBZ_USE_AUTOMATED_TESTS
 
-
-// Automated tests.
-// Required in all test files:
-//
-// #include "testing/testingconfig.h"
-// #ifdef BBZ_USE_AUTOMATED_TESTS
-// #define BOOST_TEST_DYN_LINK // Use Boost as a dynamic library
-// #define BOOST_TEST_MODULE <a_value>
-// #include <boost/test/unit_test.hpp>
-// #endif // BBZ_USE_AUTOMATED_TESTS
+static uint16_t __error_count__ = 0;
 
 /**
  * @brief Declares the test function.
  * @warning There can only be one test function per translation unit.
  * @param[in] name Name of the unit test.
  */
-#define TEST(name) BOOST_AUTO_TEST_CASE(name)
+#define TEST(name) int main()
 
 /**
  * @brief Performs a check, printing an error when the check is false.
  * @param[in] expr The expression to assert.
  */
-#define ASSERT(expr) BOOST_CHECK(expr)
+#define ASSERT(expr)                                                    \
+    {                                                                   \
+        uint8_t eval = expr;                                            \
+        if (!eval) {                                                    \
+            printf(__FILE__ "(%d): error: "                             \
+            "check " #expr " failed\n", __LINE__);                      \
+            ++__error_count__;                                          \
+        }                                                               \
+    }
 
 /**
  * @brief Checks if the two operands are equal, printing an error
@@ -49,72 +43,46 @@
  * @param[in] lhs First operand.
  * @param[in] rhs Second operand.
  */
-#define ASSERT_EQUAL(lhs, rhs) BOOST_CHECK_EQUAL(lhs, rhs)
-
-/**
- * @brief Exits the current test if expr is false.
- * @param[in] expr The expression to check.
- */
-#define REQUIRE(expr) BOOST_REQUIRE(expr)
-
-/**
- * @brief Terminates the current test function.
- */
-#define TEST_END()
-
-
-#else // BBZ_USE_AUTOMATED_TESTS
-
-
-static uint16_t error_count = 0;
-#define TEST(name) int main()
-#define ASSERT(expr)                                                    \
-    {                                                                   \
-        uint8_t eval = expr;                                            \
-        if (!eval) {                                                    \
-            printf(__FILE__ "(%d): error: "                             \
-            "check " #expr " failed\n", __LINE__);                      \
-            ++error_count;                                              \
-        }                                                               \
-    }
-
-//#define ASSERT_EQUAL(lhs, rhs) ASSERT(lhs == rhs)
 #define ASSERT_EQUAL(lhs, rhs)                                          \
     {                                                                   \
         uint8_t eval = (lhs == rhs);                                    \
         if (!eval) {                                                    \
             printf(__FILE__ "(%d): error: "                             \
-            "check " #lhs " (%d) == " #rhs " (%d) failed\n",            \
+            "check " #lhs " == " #rhs " failed [%d != %d]\n",           \
             __LINE__,                                                   \
             (int)(lhs), (int)(rhs));                                    \
-            ++error_count;                                              \
+            ++__error_count__;                                          \
         }                                                               \
     }
 
+/**
+ * @brief Exits the current test if expr is false.
+ * @param[in] expr The expression to check.
+ */
 #define REQUIRE(expr)                                                   \
     {                                                                   \
         uint8_t eval = expr;                                            \
         if (!eval) {                                                    \
             printf(__FILE__ "(%d): fatal error: "                       \
             "critical check " #expr " failed\n", __LINE__);             \
-            ++error_count;                                              \
+            ++__error_count__;                                          \
             TEST_END();                                                 \
         }                                                               \
     }
 
+/**
+ * @brief Terminates the current test function.
+ */
 #define TEST_END()                                                      \
-    if (error_count > 0) {                                              \
+    if (__error_count__ > 0) {                                          \
         fprintf(stderr, "\n\n*** %" PRIu16 " failures detected in test file \""  \
-               __FILE__ "\"\n", error_count);                           \
+               __FILE__ "\"\n", __error_count__);                       \
         return 1;                                                       \
     }                                                                   \
     else {                                                              \
         fprintf(stderr, "\n\n*** No errors detected\n");                \
         return 0;                                                       \
     }
-
-
-#endif // BBZ_USE_AUTOMATED_TESTS
 
 
 #endif // !TESTING_CONFIG_H

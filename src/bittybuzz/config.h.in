@@ -36,6 +36,6 @@
 /**
  * @brief Debug flag.
  */
-#cmakedefine DEBUG
+#cmakedefine DEBUGBBZVM_USE_BBO
 
 #endif // !CONFIG_H

@@ -1,9 +1,9 @@
 #include <bittybuzz/bbzobjringbuf.h>
 #include <stdio.h>
 
+/*
 static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata" };
 
-/*
 void bbzobjringbuf_print(const bbzringbuf_t* ring) {
    printf("Ring buffer size = %u\n", bbzobjringbuf_size(*ring));
    for(uint8_t i = 0; i < bbzobjringbuf_size(*ring); ++i) {

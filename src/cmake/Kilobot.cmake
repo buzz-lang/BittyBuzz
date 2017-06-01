@@ -23,9 +23,21 @@ set(AVR_DEVICE "m328p")      # device for avrdude -p
 set(AVR_PORT "usb")          # port for avrdude -P
 set(AVR_BOOTLOADER "0x7000") # section start for bootloader code
 
-set(AVR_CFLAGS "-std=c99 -mmcu=${AVR_MCU} -Wall -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -DF_CPU=8000000")
-# set(AVR_LDFLAGS "-Wl,-section-start=.text=0x7000")
+set(AVR_CFLAGS "-std=c99 -mmcu=${AVR_MCU} -Wall -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -ffunction-sections -fdata-sections -DF_CPU=8000000")
 set(AVR_LDFLAGS "-mmcu=${AVR_MCU} -Wl,-s -Wl,--gc-sections")
+
+#
+# Variable caching (for compiler swap functions)
+#
+set(NATIVE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME} CACHE STRING
+    "Name of the system we are programming for.")
+set(NATIVE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING
+    "Processor type for the system we are programming for.")
+set(NATIVE_C_COMPILER ${CMAKE_C_COMPILER} CACHE STRING
+    "Path to the compiler for the system we are programing for.")
+
+set(NATIVE_C_FLAGS " " CACHE STRING "GCC flags for the native compiler.")
+set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 
 #
 # BittyBuzz variables
@@ -59,25 +71,30 @@ function(kilobot_add_executable _TARGET)
   add_custom_command(OUTPUT ${_BIN_TARGET}
     COMMAND ${AVR_OBJCOPY} -O binary -R .eeprom -R .fuse -R .lock -R .signature ${_ELF_TARGET} ${_BIN_TARGET}
     DEPENDS ${_ELF_TARGET})
-  # .elf -> .map
-  add_custom_command(OUTPUT ${_BIN_TARGET}
-    COMMAND ${AVR_OBJCOPY} -O binary -R .eeprom -R .fuse -R .lock -R .signature ${_ELF_TARGET} ${_BIN_TARGET}
-    DEPENDS ${_ELF_TARGET})
   # Compile .elf file
   add_executable(${_ELF_TARGET} EXCLUDE_FROM_ALL ${ARGN})
   math(EXPR _BCODE_ADDR "28672-(79+2)")
   set_target_properties(${_ELF_TARGET}
     PROPERTIES
-    COMPILE_FLAGS ${AVR_CFLAGS}
+    COMPILE_FLAGS "${AVR_CFLAGS}"
     LINK_FLAGS "${AVR_LDFLAGS} -Wl,-Map,${_MAP_TARGET} -Wl,--section-start=.bcode=0x${_BCODE_ADDR}")
+
   # Make target
-  add_custom_target(${_TARGET} ALL DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
+  add_custom_target(${_TARGET} DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
   set_target_properties(${_TARGET} PROPERTIES OUTPUT_NAME "${_ELF_TARGET}")
+
   # Uploading file
   add_custom_target(upload_${_TARGET}
     ${AVR_UPLOAD} -p ${AVR_DEVICE} -P ${AVR_PORT} -c avrispmkII -U "flash:w:${_HEX_TARGET}:i"
     DEPENDS ${_HEX_TARGET}
     COMMENT "Uploading ${_HEX_TARGET} to Kilobot")
+
+  # Uploading/Initializing EEPROM
+  add_custom_target(eep_upload_${_TARGET}
+    ${AVR_UPLOAD} -p ${AVR_DEVICE} -P ${AVR_PORT} -c avrispmkII -U "eeprom:w:${_EEP_TARGET}:i"
+    DEPENDS ${_EEP_TARGET}
+    COMMENT "Uploading EEPROM data from ${_EEP_TARGET} to Kilobot")
+
   # Extra files to clean
   get_directory_property(_CLEAN_FILES ADDITIONAL_MAKE_CLEAN_FILES)
   set_directory_properties(
@@ -115,7 +132,7 @@ function(kilobot_target_link_libraries _TARGET)
       get_target_property(_P ${_T} OUTPUT_NAME)
       list(APPEND _TARGET_LIST ${_P})
     else(TARGET ${_T})
-      list(APPEND _NON_TARGET_LIST ${_P})
+      list(APPEND _NON_TARGET_LIST ${_T})
     endif(TARGET ${_T})
   endforeach(_T ${ARGN})
   # Declare the target list
