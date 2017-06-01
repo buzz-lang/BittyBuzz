@@ -8,23 +8,12 @@ function(add_test_executables)
     file(GLOB test_sources "*.c")
 
     foreach(test_source ${test_sources})
-        get_filename_component(test_excutable ${test_source} NAME_WE)
-        add_executable(${test_excutable} ${test_source})
-        target_link_libraries(${test_excutable} bittybuzz ${TESTING_EXTRA_LIBS})
+        get_filename_component(test_executable ${test_source} NAME_WE)
+        add_executable(${test_executable} ${test_source})
+        target_link_libraries(${test_executable} bittybuzz ${TESTING_EXTRA_LIBS})
+        add_dependencies(test_executables ${test_executable})
     endforeach()
 endfunction()
-
-
-# Copies all files under ./ressources/ to the binary directory
-# so that they can be found by the test executables.
-function (copy_test_ressources)
-    # Find files under the directory.
-    file(GLOB files "ressources/*")
-
-    # Copy those files to a new ressource directory.
-    file(COPY ${files} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ressources")
-endfunction()
-
 
 
 # ==========================================
@@ -32,6 +21,6 @@ endfunction()
 # ==========================================
 
 add_test_executables()
-copy_test_ressources()
+add_subdirectory(ressources)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

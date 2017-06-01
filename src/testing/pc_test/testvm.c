@@ -1,11 +1,6 @@
 #include "testingconfig.h"
-#ifdef BBZ_USE_AUTOMATED_TESTS
-#define BOOST_TEST_DYN_LINK // Use Boost as a dynamic library
-#define BOOST_TEST_MODULE BBZVM_TEST
-#include <boost/test/unit_test.hpp>
-#endif // BBZ_USE_AUTOMATED_TESTS
 
-//#define BBZVM_USE_BBO
+#define BBZVM_USE_BBO
 
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
@@ -776,7 +771,7 @@ TEST(bbzvm) {
     // --------------------------
 
     #if BBZHEAP_SIZE < 2048
-    #warning Test file "testvm->c": Running test of all features requires BBZHEAP_SIZE >= 2048\
+    #warning Test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
     on 32 and 64 bit systems. The script execution test will be disabled.
     #else
 

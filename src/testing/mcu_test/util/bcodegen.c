@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
         printf("Metaprogram which generates a header file containing raw bytecode.\n");
         printf("The bytecode is available as 'uint8_t bcode[]', and its size is stored as "
                "'uint16_t bcode_size'.\n");
-        printf("Usage: \n\tbcodegen <buzzscript.bo> <outfile.h>\n");
+        printf("Usage: \n\tbcodegen <buzzscript.bbo> <outfile.h>\n");
         return 1;
     }
 

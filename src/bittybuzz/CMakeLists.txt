@@ -1,3 +1,5 @@
+use_native_compiler()
+
 file(GLOB BBZ_HEADERS "*.h")
 file(GLOB BBZ_SOURCES "*.c")
 list(APPEND BBZ_SOURCES ${BBZ_HEADERS})

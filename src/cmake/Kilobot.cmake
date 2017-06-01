@@ -27,6 +27,19 @@ set(AVR_CFLAGS "-std=c99 -mmcu=${AVR_MCU} -Wall -Os -funsigned-char -funsigned-b
 set(AVR_LDFLAGS "-mmcu=${AVR_MCU} -Wl,-s -Wl,--gc-sections")
 
 #
+# Variable caching (for compiler swap functions)
+#
+set(NATIVE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME} CACHE STRING
+    "Name of the system we are programming for.")
+set(NATIVE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING
+    "Processor type for the system we are programming for.")
+set(NATIVE_C_COMPILER ${CMAKE_C_COMPILER} CACHE STRING
+    "Path to the compiler for the system we are programing for.")
+
+set(NATIVE_C_FLAGS " " CACHE STRING "GCC flags for the native compiler.")
+set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
+
+#
 # BittyBuzz variables
 #
 set(BBZ_ROBOT kilobot)
@@ -66,7 +79,7 @@ function(kilobot_add_executable _TARGET)
     LINK_FLAGS "${AVR_LDFLAGS} -Wl,-Map,${_MAP_TARGET}")
 
   # Make target
-  add_custom_target(${_TARGET} ALL DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
+  add_custom_target(${_TARGET} DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
   set_target_properties(${_TARGET} PROPERTIES OUTPUT_NAME "${_ELF_TARGET}")
 
   # Uploading file
