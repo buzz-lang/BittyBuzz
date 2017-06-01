@@ -19,13 +19,13 @@ set(CMAKE_C_COMPILER ${AVR_CC})
 # AVR variables
 #
 set(AVR_MCU "atmega328p")    # MCU for avr-gcc
-set(AVR_DEVICE "m328")       # device for avrdude -p
+set(AVR_DEVICE "m328p")      # device for avrdude -p
 set(AVR_PORT "usb")          # port for avrdude -P
 set(AVR_BOOTLOADER "0x7000") # section start for bootloader code
 
 set(AVR_CFLAGS "-std=c99 -mmcu=${AVR_MCU} -Wall -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -DF_CPU=8000000")
 # set(AVR_LDFLAGS "-Wl,-section-start=.text=0x7000")
-set(AVR_LDFLAGS "-Wl,-s -Wl,--gc-sections")
+set(AVR_LDFLAGS "-mmcu=${AVR_MCU} -Wl,-s -Wl,--gc-sections")
 
 #
 # BittyBuzz variables
@@ -65,10 +65,11 @@ function(kilobot_add_executable _TARGET)
     DEPENDS ${_ELF_TARGET})
   # Compile .elf file
   add_executable(${_ELF_TARGET} EXCLUDE_FROM_ALL ${ARGN})
+  math(EXPR _BCODE_ADDR "28672-(79+2)")
   set_target_properties(${_ELF_TARGET}
     PROPERTIES
     COMPILE_FLAGS ${AVR_CFLAGS}
-    LINK_FLAGS "${AVR_LDFLAGS} -Wl,-Map,${_MAP_TARGET}")
+    LINK_FLAGS "${AVR_LDFLAGS} -Wl,-Map,${_MAP_TARGET} -Wl,--section-start=.bcode=0x${_BCODE_ADDR}")
   # Make target
   add_custom_target(${_TARGET} ALL DEPENDS ${_LSS_TARGET} ${_HEX_TARGET} ${_EEP_TARGET} ${_BIN_TARGET})
   set_target_properties(${_TARGET} PROPERTIES OUTPUT_NAME "${_ELF_TARGET}")
@@ -102,12 +103,14 @@ endfunction(kilobot_add_library _TARGET)
 # CMake command to link a target to a library
 #
 function(kilobot_target_link_libraries _TARGET)
+  set(_ELF_TARGET ${_TARGET}-${BBZ_ROBOT}.elf)
   # Put as first in the target list the name of the target known by CMake
   get_target_property(_TARGET_LIST ${_TARGET} OUTPUT_NAME)
   # Go through the arguments, add them as dependencies and make a
   # list of CMake targets and non-CMake targets.
   foreach(_T ${ARGN})
     add_dependencies(${_TARGET} ${_T})
+    add_dependencies(${_ELF_TARGET} ${_T})
     if(TARGET ${_T})
       get_target_property(_P ${_T} OUTPUT_NAME)
       list(APPEND _TARGET_LIST ${_P})

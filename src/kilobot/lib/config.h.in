@@ -1,0 +1,10 @@
+//
+// Created by user1 on 17-05-31.
+//
+
+#ifndef BITTYBUZZ_CONFIG_H
+#define BITTYBUZZ_CONFIG_H
+
+#define BBZ_BOOTLOADER_ADDR @AVR_BOOTLOADER@
+
+#endif //BITTYBUZZ_CONFIG_H

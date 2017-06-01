@@ -168,7 +168,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
    }
    /* Go through the objects; invalidate those with 0 gc bit */
    for(int16_t i = (vm.heap.rtobj - vm.heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i) {
-      if(!gc_hasmark(*bbzheap_obj_at(i)) && !bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
+      if(!gc_hasmark(*bbzheap_obj_at(i)) && bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
          /* Invalidate object */
          obj_makeinvalid(*bbzheap_obj_at(i));
          /* If it's a table, invalidate its segments too */

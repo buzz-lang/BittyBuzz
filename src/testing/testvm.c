@@ -22,6 +22,14 @@ uint16_t fsize;
 uint8_t buf[4];
 bbzvm_error last_error;
 
+char* state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR", "BBZVM_STATE_STOPPED"};
+char* error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STACK", "BBZVM_ERROR_LNUM", "BBZVM_ERROR_PC",
+                      "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_MEM"};
+char* instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
+                      "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
+                      "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
+                      "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
+
 /**
  * @brief Fetches bytecode from a FILE.
  * @param[in] offset Offset of the bytes to fetch.
@@ -141,6 +149,13 @@ void bbzheap_print() {
  * @param[in] errcode The error type.
  */
 void set_last_error(bbzvm_error errcode) {
+    last_error = errcode;
+#ifdef DEBUG
+    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm.state], vm.dbg_pc, instr_desc[*vm.bcode_fetch_fun(vm.dbg_pc, 1)], error_desc[vm.error]);
+#endif
+}
+
+void set_last_error_no_print(bbzvm_error errcode) {
     last_error = errcode;
 }
 
@@ -297,11 +312,53 @@ bbzvm_state bbzvm_dummy_int() {
     return bbzvm_ret1();
 }
 
+bbzheap_idx_t swarm_select;
+bbzheap_idx_t swarm_join;
+bbzheap_idx_t swarm_unselect;
+bbzheap_idx_t swarm_leave;
+bbzheap_idx_t swarm_in;
+bbzheap_idx_t swarm_exec;
+
+bbzvm_state bbzvm_swarm_create() {
+    bbzvm_pusht();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_SELECT);
+    bbzvm_push(swarm_select);
+    bbzvm_tput();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_JOIN);
+    bbzvm_push(swarm_join);
+    bbzvm_tput();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_UNSELECT);
+    bbzvm_push(swarm_unselect);
+    bbzvm_tput();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_LEAVE);
+    bbzvm_push(swarm_leave);
+    bbzvm_tput();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_IN);
+    bbzvm_push(swarm_in);
+    bbzvm_tput();
+    bbzvm_dup();
+    bbzvm_pushs(BBZVM_SYMID_EXEC);
+    bbzvm_push(swarm_exec);
+    bbzvm_tput();
+    return bbzvm_ret1();
+}
+
 int8_t bbzvm_register_functions() {
     if (bbzvm_function_register(BBZVM_SYMID_LOG, bbzvm_log) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_FORWARD, bbzvm_dummy) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_STOP, bbzvm_dummy) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_TURN, bbzvm_dummy) < 0) return -1;
+    swarm_select = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_select < 0) return -1;
+    swarm_join = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_join < 0) return -1;
+    swarm_unselect = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_unselect < 0) return -1;
+    swarm_leave = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_leave < 0) return -1;
+    swarm_in = bbzvm_function_register(-1, bbzvm_dummy_int); if (swarm_in < 0) return -1;
+    swarm_exec = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_exec < 0) return -1;
     return 0;
 }
 
@@ -320,25 +377,25 @@ void bbzvm_register_gsyms() {
     //   Register 'swarm.create'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
     bbzvm_tput();
     //   Register 'swarm.intersection'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_INTERSECTION);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
     bbzvm_tput();
     //   Register 'swarm.union'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_UNION);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
     bbzvm_tput();
     //   Register 'swarm.difference'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_DIFFERENCE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
     bbzvm_tput();
 
-    bbzvm_gc();
+    //bbzvm_gc();
 
     // Register neighbors
     bbzvm_pushs(BBZVM_SYMID_NEIGHBORS);
@@ -376,7 +433,7 @@ void bbzvm_register_gsyms() {
     bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
     bbzvm_tput();
 
-    bbzvm_gc();
+    //bbzvm_gc();
 
     // Register stigmergy
     bbzvm_pushs(BBZVM_SYMID_STIGMERGY);
@@ -386,10 +443,10 @@ void bbzvm_register_gsyms() {
     //   Register 'stigmergy.create'
     bbzvm_push(o);
     bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
+    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
     bbzvm_tput();
 
-    bbzvm_gc();
+    //bbzvm_gc();
 }
 
     // ======================================
@@ -452,7 +509,7 @@ TEST(bbzvm) {
     ASSERT_EQUAL(vm.state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm.error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(bbzdarray_size(vm.flist), 0);
-    ASSERT_EQUAL(bbztable_size(vm.gsyms), 1);
+    ASSERT_EQUAL(bbztable_size(vm.gsyms), 0);
     ASSERT_EQUAL(*testBcode(vm.pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------
@@ -656,6 +713,7 @@ TEST(bbzvm) {
         }
     }
 
+    bbzvm_set_error_notifier(set_last_error_no_print);
     // ---- Test failing operations ----
     // 16) Perform some basic operations when stack is empty
     {
@@ -721,6 +779,8 @@ TEST(bbzvm) {
     }
     bbzvm_reset_state();
 
+    bbzvm_set_error_notifier(&set_last_error);
+
     // -----------------------
     // - Test bbzvm_destruct -
     // -----------------------
@@ -745,7 +805,7 @@ TEST(bbzvm) {
     // A) Set the bytecode in the VM.
     bbzvm_set_bcode(&testBcode, fsize);
 
-    ASSERT_EQUAL(bbztable_size(vm.gsyms), 5);
+    //ASSERT_EQUAL(bbztable_size(vm.gsyms), 5);
 
     // B) Register C closure
     REQUIRE(vm.state != BBZVM_STATE_ERROR);
@@ -756,7 +816,7 @@ TEST(bbzvm) {
     ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)printIntVal);
 
     // C) Call registered C closure
-    REQUIRE(bbztable_size(vm.gsyms) == *(uint16_t*)vm.bcode_fetch_fun(0, 2));
+    //REQUIRE(bbztable_size(vm.gsyms) == *(uint16_t*)vm.bcode_fetch_fun(0, 2));
     bbzvm_pushs(0);
     bbzvm_gload();
     c = bbzvm_stack_at(0);
@@ -801,6 +861,9 @@ TEST(bbzvm) {
     REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
     bbzvm_register_gsyms();
     while (vm.state == BBZVM_STATE_READY) {
+    #ifdef DEBUG
+        printf("[%d: %s]\n", vm.pc, instr_desc[*vm.bcode_fetch_fun(vm.pc,1)]);
+    #endif
         bbzvm_step();
         ASSERT(vm.state != BBZVM_STATE_ERROR);
     }
@@ -809,6 +872,7 @@ TEST(bbzvm) {
 
     bbzvm_destruct();
     #endif
+    fclose(fbcode);
 
     TEST_END();
 }

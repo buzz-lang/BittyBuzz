@@ -6,6 +6,8 @@
  */
 #cmakedefine BBZ_USE_AUTOMATED_TESTS
 
+#cmakedefine DEBUG
+
 
 // --------------------------------------------------
 // Configure depending on whether tests are automated

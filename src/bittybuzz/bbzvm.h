@@ -207,6 +207,12 @@ extern "C" {
         // TODO
         /* Random number generator index */
         // TODO
+#ifdef DEBUG
+        /** @brief PC value used for debugging purpose. */
+        int16_t dbg_pc;
+        /** @brief Current instruction */
+        bbzvm_instr instr;
+#endif
     } bbzvm_t;
 
     /**

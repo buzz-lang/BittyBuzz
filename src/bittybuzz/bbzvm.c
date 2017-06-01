@@ -111,7 +111,6 @@ bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcod
     		c = vm.bcode_fetch_fun(vm.pc++, sizeof(uint8_t));
     	} while(*c != 0);
 #endif
-        bbzvm_gsym_register(i, vm.nil);
     }
 
     // 4) Register Buzz's built-in functions
@@ -163,9 +162,13 @@ uint8_t bbzvm_gc() {
  */
 __attribute__((always_inline)) static inline
 bbzvm_state bbzvm_exec_instr() {
-    uint16_t instrOffset = vm.pc; // Save PC in case of error or DONE.
+    int16_t instrOffset = vm.pc; // Save PC in case of error or DONE.
 
     uint8_t instr = *(*vm.bcode_fetch_fun)(vm.pc, 1);
+    #ifdef DEBUG
+    vm.dbg_pc = vm.pc;
+    vm.instr = instr;
+    #endif
     inc_pc();
     switch(instr) {
         case BBZVM_INSTR_NOP: {
@@ -779,16 +782,8 @@ uint8_t bbzvm_gsym_register(uint16_t sid, bbzheap_idx_t v) {
     bbzvm_pushs(sid);
     bbzheap_idx_t str = bbzvm_stack_at(0);
     bbzvm_pop();
-    bbzobj_t* o = bbzvm_obj_at(v);
-    uint8_t oldType = bbztype(*o);
-    /* If we want to put a nil, ... */
-    if (bbztype_isnil(*o)) {
-        // ... Cast the nil into an int
-        bbztype_cast(*o, BBZTYPE_INT);
-    }
-    /* Put the value in the global symbols table */
+    // Put the value in the global symbols table
     if (!bbztable_set(vm.gsyms, str, v)) return 0;
-    bbztype_cast(*o, oldType);
     return 1;
 }
 

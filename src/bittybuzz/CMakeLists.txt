@@ -3,7 +3,7 @@ file(GLOB BBZ_SOURCES "*.c")
 list(APPEND BBZ_SOURCES ${BBZ_HEADERS})
 
 if(NOT CMAKE_CROSSCOMPILING)
-  add_library(bittybuzz STATIC ${BBZ_SOURCES} ../kilobot/bootloader.c)
+  add_library(bittybuzz STATIC ${BBZ_SOURCES})
 else(NOT CMAKE_CROSSCOMPILING)
   if("${BBZ_ROBOT}" STREQUAL "kilobot")
     kilobot_add_library(bittybuzz STATIC ${BBZ_SOURCES})

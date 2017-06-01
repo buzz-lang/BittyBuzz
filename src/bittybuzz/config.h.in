@@ -29,7 +29,13 @@
 /**
  * @brief Index of end of the heap's space reserved for lambdas'
  * activation record.
+ * @note The maximum value is 0xFE (254)
  */
 #define RESERVED_ACTREC_MAX (uint16_t)@MAX_ACTREC_COUNT@
+
+/**
+ * @brief Debug flag.
+ */
+#cmakedefine DEBUG
 
 #endif // !CONFIG_H

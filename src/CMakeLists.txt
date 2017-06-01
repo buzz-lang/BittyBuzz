@@ -51,4 +51,8 @@ add_subdirectory(bittybuzz)
 if (NOT CMAKE_CROSSCOMPILING)
   add_subdirectory(testing)
 endif()
+
+if(CMAKE_CROSSCOMPILING)
+  add_subdirectory(kilobot)
+endif()
 add_subdirectory(doc)

@@ -18,6 +18,7 @@ lambda = function(a, b, c) {
 }
 # Test lambda closure call
 lambda(-12, 2.91, nil)
+lambda = nil
 
 lambdaGen = function(c) {
     return function(a, b) {
@@ -30,6 +31,7 @@ lambdaGen("c")("a", "b")
 textToLog = "Hello, world!"
 # Test C closure call
 log('Logging "', textToLog, '"')
+textToLog = nil
 
 # Test Comparisons
 if (x > 3)
@@ -44,6 +46,7 @@ else
 
 if ((x < 3) or (x > 3))
     log("x is not 3")
+x = nil
 
 # Test loop
 z = 0
@@ -54,20 +57,26 @@ loc = function() {
 while (z < 5)
    loc()
 
+loc = nil
+z = nil
+
 # Test table
 t = { .x=3 }
 log("t = ", t)           # FIXME The table is garbage collected after the first time we try to access to the table.
 log("t.x = ", t.x)       # dot syntax
 log("t['x'] = ", t["x"]) # string syntax
+t = nil
 
 # Test : tables are always passed by reference
 t1 = { .x=3 }
 t2 = t1      # now t2 points to the contents of t1 -> no deep copy
 t2.x = 5
 log(t1.x)    # prints 5, not 3!
+t1 = nil
+t2 = nil
 
 # Test swarm's methods
-#s = swarm.create(0) # FIXME Test crashes at this point.
+s = swarm.create(0)
 
 # TODO
 #s.select(id % 2 == 0)
