@@ -28,7 +28,7 @@ extern "C" {
 
 
 
-void led(int8_t color);
+void set_led(int8_t color);
 void bin_count(uint16_t val, uint8_t size);
 
 /*
@@ -47,7 +47,7 @@ void kilo_start();
 
 #include <inttypes.h>
 
-void led(uint8_t color);
+void set_led(uint8_t color);
 
 #endif // BBZ_ROBOT
 

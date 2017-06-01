@@ -1,7 +1,7 @@
 #include <util/delay.h>
 #include <bittybuzz/bbzTEMP.h>
 
-void setup() { led(R); }
+void setup() { set_led(R); }
 void loop() { }
 
 int main() {

@@ -6,7 +6,8 @@
 
 #include <avr/io.h>
 
-void led(int8_t color) {
+
+void set_led(int8_t color) {
     uint8_t rgb = RGB(
         (color & 1) ? 1 : 0,
         (color & 2) ? 1 : 0,
@@ -47,26 +48,26 @@ void led(int8_t color) {
 }
 
 void bin_count(uint16_t val, uint8_t size) {
-    led(O);
-    led(W);
-    led(O);
-    led(W);
+    set_led(O);
+    set_led(W);
+    set_led(O);
+    set_led(W);
     for (uint8_t i = 0; i < 8*size; ++i) {
-        led(O);
+        set_led(O);
         if (val & 1) {
-            led(G);
-            led(G);
+            set_led(G);
+            set_led(G);
         }
         else {
-            led(M);
-            led(M);
+            set_led(M);
+            set_led(M);
         }
         val >>= 1;
     }
-    led(W);
-    led(O);
-    led(W);
-    led(O);
+    set_led(W);
+    set_led(O);
+    set_led(W);
+    set_led(O);
 }
 
 /*
@@ -212,7 +213,7 @@ ISR(TIMER0_COMPA_vect) {
 
 char* led_desc[] = {"OFF", "RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "WHITE"};
 
-void led(uint8_t color) {
+void set_led(uint8_t color) {
     printf("%s", led_desc[color]);
 }
 

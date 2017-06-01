@@ -104,7 +104,6 @@ bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcod
     vm->bcode_size = bcode_size;
 
     // 3) Register global strings
-    uint16_t strCount = *vm->bcode_fetch_fun(0, sizeof(uint16_t));
     vm->pc = sizeof(uint16_t);
 
     // 4) Register Buzz's built-in functions

@@ -20,29 +20,29 @@ const uint8_t* bcode_fetcher(int16_t offset, uint8_t size) {
 }
 
 void err_reciever(bbzvm_error errcode) {
-    led(M); led(R); led(M);
+    set_led(M); set_led(R); set_led(M);
     _delay_ms(1000.0);
     switch(errcode) {
-        case BBZVM_ERROR_INSTR:  led(R);         break;
-        case BBZVM_ERROR_STACK:  led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { led(R); } else if (bbzvm_stack_size() <= 0) { led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { led(Y); } break;
-        case BBZVM_ERROR_LNUM:   led(B);         break;
-        case BBZVM_ERROR_PC:     led(C);         break;
-        case BBZVM_ERROR_FLIST:  led(Y);         break;
-        case BBZVM_ERROR_TYPE:   led(R); led(G); break;
-        case BBZVM_ERROR_STRING: led(G); led(B); break;
-        case BBZVM_ERROR_SWARM:  led(B); led(C); break;
-        case BBZVM_ERROR_MEM:    led(C); led(Y); break;
-        default: led(M); led(M); break;
+        case BBZVM_ERROR_INSTR:  set_led(R);         break;
+        case BBZVM_ERROR_STACK:  set_led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { set_led(R); } else if (bbzvm_stack_size() <= 0) { set_led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { set_led(Y); } break;
+        case BBZVM_ERROR_LNUM:   set_led(B);         break;
+        case BBZVM_ERROR_PC:     set_led(C);         break;
+        case BBZVM_ERROR_FLIST:  set_led(Y);         break;
+        case BBZVM_ERROR_TYPE:   set_led(R); set_led(G); break;
+        case BBZVM_ERROR_STRING: set_led(G); set_led(B); break;
+        case BBZVM_ERROR_SWARM:  set_led(B); set_led(C); break;
+        case BBZVM_ERROR_MEM:    set_led(C); set_led(Y); break;
+        default: set_led(M); set_led(M); break;
     }
-    led(W);
-    led(W);
-    led(W);
+    set_led(W);
+    set_led(W);
+    set_led(W);
 }
 
 bbzvm_state bbz_led() {
     bbzvm_lload(1);
     int8_t color = (int8_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
-    led(color);
+    set_led(color);
     return bbzvm_ret0();
 }
 
@@ -51,8 +51,8 @@ bbzheap_idx_t led_c;
 
 void setup() {
 
-    led(M);
-    led(M);
+    set_led(M);
+    set_led(M);
 
     bbzvm_construct(0);
     bbzvm_set_error_notifier(&err_reciever);
