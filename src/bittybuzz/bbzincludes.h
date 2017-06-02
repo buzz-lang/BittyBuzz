@@ -17,9 +17,6 @@ extern "C" {
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
-// struct bbzvm_t;
-// extern struct bbzvm_t* vm;
-
 #ifdef __cplusplus
 }
 #endif

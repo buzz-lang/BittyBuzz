@@ -4,8 +4,8 @@
  * useful for O(1) push and pop operations on a queue.
  */
 
-#ifndef BBZRINGBUF
-#define BBZRINGBUF
+#ifndef BBZRINGBUF_H
+#define BBZRINGBUF_H
 
 #include "bbzincludes.h"
 #include "bbztype.h"
@@ -107,4 +107,4 @@ uint8_t bbzringbuf_makeslot(bbzringbuf_t* rb);
 }
 #endif // __cplusplus
 
-#endif
+#endif // !BBZRINGBUF_H

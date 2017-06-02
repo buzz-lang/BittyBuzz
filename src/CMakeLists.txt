@@ -18,10 +18,10 @@ link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
 # Prepare config.h file, making sure parameters have been set
 #
 function (config_value value default)
-  if("${${value}}" STREQUAL "")
-    message(STATUS "Using default value for ${value} (-D${value}=${default})")
-    set(${value} ${default} PARENT_SCOPE)
-  endif()
+    if("${${value}}" STREQUAL "")
+        message(STATUS "Using default value for ${value} (-D${value}=${default})")
+        set(${value} ${default} PARENT_SCOPE)
+    endif()
 endfunction()
 
 config_value(HEAP_SIZE 1024)
@@ -46,32 +46,32 @@ set(CURRENT_COMPILER "HOST" CACHE STRING "Which compiler we are using.")
 # Swaps to the host's compiler in order to generate
 # utility executables and libraries.
 macro(use_host_compiler)
-  if (${CURRENT_COMPILER} STREQUAL "NATIVE")
-    # Save current native flags
-    set(NATIVE_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "GCC flags for the native compiler." FORCE)
+    if (${CURRENT_COMPILER} STREQUAL "NATIVE")
+        # Save current native flags
+        set(NATIVE_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "GCC flags for the native compiler." FORCE)
 
-    # Change compiler
-    set(CMAKE_SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})
-    set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
-    set(CMAKE_C_COMPILER ${HOST_C_COMPILER})
-    set(CMAKE_C_FLAGS ${HOST_C_FLAGS})
-    set(CURRENT_COMPILER "HOST" CACHE STRING "Which compiler we are using." FORCE)
-  endif()
+        # Change compiler
+        set(CMAKE_SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})
+        set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
+        set(CMAKE_C_COMPILER ${HOST_C_COMPILER})
+        set(CMAKE_C_FLAGS ${HOST_C_FLAGS})
+        set(CURRENT_COMPILER "HOST" CACHE STRING "Which compiler we are using." FORCE)
+    endif()
 endmacro()
 
 # Swaps to the compiler for the system we are programming for.
 macro(use_native_compiler)
-  if (CMAKE_CROSSCOMPILING AND ${CURRENT_COMPILER} STREQUAL "HOST")
-    # Save current host flags
-    set(HOST_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "GCC flags for the host compiler." FORCE)
+    if (CMAKE_CROSSCOMPILING AND ${CURRENT_COMPILER} STREQUAL "HOST")
+        # Save current host flags
+        set(HOST_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "GCC flags for the host compiler." FORCE)
 
-    # Change compiler
-    set(CMAKE_SYSTEM_NAME ${NATIVE_SYSTEM_NAME})
-    set(CMAKE_SYSTEM_PROCESSOR ${NATIVE_SYSTEM_PROCESSOR})
-    set(CMAKE_C_COMPILER ${NATIVE_C_COMPILER})
-    set(CMAKE_C_FLAGS ${NATIVE_C_FLAGS})
-    set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using." FORCE)
-  endif()
+        # Change compiler
+        set(CMAKE_SYSTEM_NAME ${NATIVE_SYSTEM_NAME})
+        set(CMAKE_SYSTEM_PROCESSOR ${NATIVE_SYSTEM_PROCESSOR})
+        set(CMAKE_C_COMPILER ${NATIVE_C_COMPILER})
+        set(CMAKE_C_FLAGS ${NATIVE_C_FLAGS})
+        set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using." FORCE)
+    endif()
 endmacro()
 
 #
@@ -79,16 +79,16 @@ endmacro()
 #
 
 function(buzz_find_program varOut prgm)
-  set(path ${varOut}_PATH)
-  find_program(${path} ${prgm})
-  if ("${${path}}" STREQUAL "${path}-NOTFOUND")
-    message(SEND_ERROR "Buzz program \"${prgm}\" could not be found. "
-            "Compile and install instructions can be found at "
-            "https://github.com/MISTLab/Buzz")
-    set(${varOut} "${varOut}-NOTFOUND" CACHE STRING "Path to a Buzz program.")
-  else()
-    set(${varOut} "${${path}}" CACHE STRING "Path to a Buzz program.")
-  endif()
+    set(path ${varOut}_PATH)
+    find_program(${path} ${prgm})
+    if ("${${path}}" STREQUAL "${path}-NOTFOUND")
+        message(SEND_ERROR "Buzz program \"${prgm}\" could not be found. "
+                "Compile and install instructions can be found at "
+                "https://github.com/MISTLab/Buzz")
+        set(${varOut} "${varOut}-NOTFOUND" CACHE STRING "Path to a Buzz program.")
+    else()
+        set(${varOut} "${${path}}" CACHE STRING "Path to a Buzz program.")
+    endif()
 endfunction()
 
 buzz_find_program(BZZC   bzzc)
@@ -102,6 +102,6 @@ buzz_find_program(BZZRUN bzzrun)
 add_subdirectory(bittybuzz)
 add_subdirectory(testing)
 if(CMAKE_CROSSCOMPILING)
-  add_subdirectory(kilobot)
+    add_subdirectory(kilobot)
 endif()
 add_subdirectory(doc)

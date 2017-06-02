@@ -18,39 +18,39 @@ extern "C" {
  * @brief A table segment.
  */
 typedef struct __attribute__((packed)) {
-   /**
-    * @brief Table keys.
-    * @details 16th bit: valid; other bits: obj index
-    */
-   uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];
-   /**
-    * @brief Table values.
-    * @details 16th bit: valid; other bits: obj index.
-    */
-   uint16_t values[BBZHEAP_ELEMS_PER_TSEG];
-   /**
-    * @brief Segment metadata.
-    * @details 16th bit : valid
-    * 15th-1st bits: next segment index (0x7FFF means no next)
-    */
-   uint16_t mdata;
+    /**
+      * @brief Table keys.
+      * @details 16th bit: valid; other bits: obj index
+      */
+    uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];
+    /**
+      * @brief Table values.
+      * @details 16th bit: valid; other bits: obj index.
+      */
+    uint16_t values[BBZHEAP_ELEMS_PER_TSEG];
+    /**
+      * @brief Segment metadata.
+      * @details 16th bit : valid
+      * 15th-1st bits: next segment index (0x7FFF means no next)
+      */
+    uint16_t mdata;
 } bbzheap_tseg_t;
 
 /**
  * @brief An array segment.
  */
 typedef struct __attribute__((packed)) {
-   /**
-    * @brief Array values.
-    * @details 16th bit: valid; other bits: obj index.
-    */
-   uint16_t values[2*BBZHEAP_ELEMS_PER_TSEG];
-   /**
-    * @brief Segment metadata.
-    * @details 16th bit : valid
-    * 15th-1st bits: next segment index (0x7FFF means no next)
-    */
-   uint16_t mdata;
+    /**
+      * @brief Array values.
+      * @details 16th bit: valid; other bits: obj index.
+      */
+    uint16_t values[2*BBZHEAP_ELEMS_PER_TSEG];
+    /**
+      * @brief Segment metadata.
+      * @details 16th bit : valid
+      * 15th-1st bits: next segment index (0x7FFF means no next)
+      */
+    uint16_t mdata;
 } bbzheap_aseg_t;
 
 /**
@@ -77,10 +77,10 @@ typedef struct __attribute__((packed)) {
  *    2-byte field which contains flags and a pointer to the next
  *    segment, if any.
  */
- typedef struct __attribute__((packed)) {
-   uint8_t* rtobj;             /**< @brief Pointer to after the rightmost object in heap, not necessarly valid */
-   uint8_t* ltseg;             /**< @brief Pointer to the leftmost table segment in heap, not necessarly valid */
-   uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
+typedef struct __attribute__((packed)) {
+    uint8_t* rtobj;             /**< @brief Pointer to after the rightmost object in heap, not necessarly valid */
+    uint8_t* ltseg;             /**< @brief Pointer to the leftmost table segment in heap, not necessarly valid */
+    uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
 } bbzheap_t;
 
 /**
