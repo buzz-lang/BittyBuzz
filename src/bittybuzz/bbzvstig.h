@@ -10,6 +10,7 @@
 #ifndef BBZVSTIG
 #define BBZVSTIG
 
+#include "bbzincludes.h"
 #include "bbzheap.h"
 
 #ifdef __cplusplus
@@ -20,19 +21,19 @@ extern "C" {
  * @brief Virtual stigmergy element.
  */
 typedef struct __attribute__((packed)) {
-   bbzheap_idx_t key;      /**< @brief Element's key. */
-   bbzheap_idx_t value;    /**< @brief Element's current value. */
-   uint8_t timestamp; /**< @brief Timestamp (Lamport clock) of last update of the value. */
-   uint8_t robot;     /**< @brief Robot ID. */
+    bbzheap_idx_t key;      /**< @brief Element's key. */
+    bbzheap_idx_t value;    /**< @brief Element's current value. */
+    uint8_t timestamp; /**< @brief Timestamp (Lamport clock) of last update of the value. */
+    uint8_t robot;     /**< @brief Robot ID. */
 } bbzvstig_elem_t;
 
 /**
  * @brief Virtual stigmergy.
  */
 typedef struct __attribute__((packed)) {
-   bbzvstig_elem_t* data; /**< @brief Stigmergy elements. */
-   uint8_t capacity;      /**< @brief Allocated stigmergy element capacity. */
-   uint8_t size;          /**< @brief Number of stigmergy elements. */
+    bbzvstig_elem_t* data; /**< @brief Stigmergy elements. */
+    uint8_t capacity;      /**< @brief Allocated stigmergy element capacity. */
+    uint8_t size;          /**< @brief Number of stigmergy elements. */
 } bbzvstig_t;
 
 /**

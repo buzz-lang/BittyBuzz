@@ -9,7 +9,7 @@
 
 #include <inttypes.h>
 
-#include <bittybuzz/config.h>
+#include "bbzincludes.h"
 #include "bbzheap.h"
 #include "bbzdarray.h"
 #include "bbztable.h"
@@ -264,7 +264,7 @@ extern "C" {
      * @see bbzvm_error_notifier_fun
      * @param[in] error_notifier_fun Function recieving the error notification.
      */
-     __attribute__((always_inline)) static inline
+     ALWAYS_INLINE
     void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) { vm->error_notifier_fun = error_notifier_fun; }
 
     /**
@@ -309,7 +309,7 @@ extern "C" {
      * @see BBZVM_INSTR_DONE
      * @return The updated state of the VM.
      */
-     __attribute__((always_inline)) static inline
+     ALWAYS_INLINE
     bbzvm_state bbzvm_done() { vm->state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
 
     /**
@@ -644,7 +644,7 @@ extern "C" {
      * @see BBZVM_INSTR_CALLC
      * @return The updated VM state.
      */
-     __attribute__((always_inline)) static inline
+     ALWAYS_INLINE
     bbzvm_state bbzvm_callc() { return bbzvm_call(0); }
 
     /**
@@ -668,7 +668,7 @@ extern "C" {
      * @see BBZVM_INSTR_CALLS
      * @return The updated VM state.
      */
-     __attribute__((always_inline)) static inline
+     ALWAYS_INLINE
     bbzvm_state bbzvm_calls() { return bbzvm_call(1); }
 
     /**
@@ -724,7 +724,7 @@ extern "C" {
      * @param[in] addr The closure address.
      * @return The VM state.
      */
-    __attribute__((always_inline)) static inline
+    ALWAYS_INLINE
     bbzvm_state bbzvm_pushcn(uint16_t addr) { return bbzvm_pushc((intptr_t)addr, 1); }
 
     /**
@@ -740,7 +740,7 @@ extern "C" {
      * @param[in] cid The closure id.
      * @return The updated VM state.
      */
-    __attribute__((always_inline)) static inline
+    ALWAYS_INLINE
     bbzvm_state bbzvm_pushcc(bbzvm_funp cid) { return bbzvm_pushc((intptr_t)cid, 0); }
 
     /**
@@ -840,7 +840,7 @@ extern "C" {
      * @param[in] idx Index of the object on the VM's heap.
      * @return A pointer to the fetched object.
      */
-    __attribute__((always_inline)) static inline
+    ALWAYS_INLINE
     bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) { return bbzheap_obj_at(idx); }
 
     /**
@@ -848,7 +848,7 @@ extern "C" {
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
      */
-     __attribute__((always_inline)) static inline
+     ALWAYS_INLINE
     uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
 
     /**
@@ -858,7 +858,7 @@ extern "C" {
      * @param[in] idx The stack index.
      * @return The heap index of the element at given stack index.
      */
-    __attribute__((always_inline)) static inline
+    ALWAYS_INLINE
     bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm->stack[vm->stackptr - idx]; }
 
 

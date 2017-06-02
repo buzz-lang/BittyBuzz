@@ -7,7 +7,8 @@
 #ifndef BBZTABLE
 #define BBZTABLE
 
-#include <bittybuzz/bbzheap.h>
+#include "bbzincludes.h"
+#include "bbzheap.h"
 
 #ifdef __cplusplus
 extern "C" {

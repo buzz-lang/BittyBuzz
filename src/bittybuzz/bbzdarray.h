@@ -4,12 +4,12 @@
  * rather, a means of implementation.
  */
 
-#ifndef BBZDARRAY
-#define BBZDARRAY
+#ifndef BBZDARRAY_H
+#define BBZDARRAY_H
 
+#include "bbzincludes.h"
 #include "bbzheap.h"
 #include "bbztype.h"
-#include "bbzvm.h"
 
 #ifndef NULL
 #define NULL 0
@@ -181,4 +181,4 @@ extern "C" {
  */
 #define bbzdarray_isempty(d) (bbzdarray_size(d) == 0)
 
-#endif
+#endif // !BBZDARRAY_H

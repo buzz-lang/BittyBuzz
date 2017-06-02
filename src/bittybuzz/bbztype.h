@@ -3,10 +3,11 @@
  * @brief Definition of BittyBuzz's main types.
  */
 
-#ifndef BBZTYPE
-#define BBZTYPE
+#ifndef BBZTYPE_H
+#define BBZTYPE_H
 
-#include <bittybuzz/bbzfloat.h>
+#include "bbzincludes.h"
+#include "bbzfloat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,123 +29,123 @@ extern "C" {
  * @brief Nil type
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /**< @brief Object metadata. */
+    uint8_t mdata; /**< @brief Object metadata. */
 } bbznil_t;
 
 /**
  * @brief 16-bit signed integer
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /**< @brief Object metadata. */
-   int16_t value; /**< @brief Integer's value. */
+    uint8_t mdata; /**< @brief Object metadata. */
+    int16_t value; /**< @brief Integer's value. */
 } bbzint_t;
 
 /**
  * @brief Float
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;  /**< @brief Object metadata. */
-   bbzfloat value; /**< @brief Float object's value. */
+    uint8_t mdata;  /**< @brief Object metadata. */
+    bbzfloat value; /**< @brief Float object's value. */
 } bbzfloat_t;
 
 /**
  * @brief String
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;  /**< @brief Object metadata. */
-   uint16_t value; /**< @brief The string id */
+    uint8_t mdata;  /**< @brief Object metadata. */
+    uint16_t value; /**< @brief The string id */
 } bbzstring_t;
 
 /**
  * @brief Table
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata;  /**< @brief Object metadata. */
-   uint16_t value; /**< @brief The index of the first segment in the heap */
+    uint8_t mdata;  /**< @brief Object metadata. */
+    uint16_t value; /**< @brief The index of the first segment in the heap */
 } bbztable_t;
 
 /**
  * @brief Dynamic Array
  */
 typedef struct __attribute__((packed)) {
-   /**
-    * @brief Object metadata.
-    * @details 3rd bit: 1 if is dynamic array,
-    * 2nd bit: 1 if elements need invalidation on array destroy
-    */
-   uint8_t mdata;
-   /**
-    * @brief Index of the first segment in the heap.
-    */
-   uint16_t value;
+    /**
+     * @brief Object metadata.
+     * @details 3rd bit: 1 if is dynamic array,
+     * 2nd bit: 1 if elements need invalidation on array destroy
+     */
+    uint8_t mdata;
+    /**
+     * @brief Index of the first segment in the heap.
+     */
+    uint16_t value;
 } bbzdarray_t;
 
 /**
  * @brief Closure
  */
 typedef struct __attribute__((packed)) {
-   /**
-    * @brief Object metadata.
-    * @details 7th topmost bit: 'native' flag.
-    *          3rd topmost bit: 'lambda' flag.
-    */
-   uint8_t mdata;
-   void* value; /**< @brief Closure object's value. */
+    /**
+     * @brief Object metadata.
+     * @details 7th topmost bit: 'native' flag.
+     *          3rd topmost bit: 'lambda' flag.
+     */
+    uint8_t mdata;
+    void* value; /**< @brief Closure object's value. */
 } bbzclosure_t;
 
 /**
  * @brief Lambda Closure
  */
 typedef struct __attribute__((packed)) {
-   /**
-    * @brief Object metadata.
-    * @details 7th topmost bit: 'native' flag.
-    *          3rd topmost bit: 'lambda' flag.
-    */
-   uint8_t mdata;
-   struct {
-      /**
-       * @brief Location of the closure.
-       * @details Jump address (C closure) or function id (native closure).
-       */
-      uint8_t ref;
-      /**
-       * @brief Position in the heap of the activation record array.
-       * @details A value of 0xFF means it uses the default activation record of the VM.
-       */
-      uint8_t actrec;
-   } value; /**< @brief Closure object's value. */
+    /**
+     * @brief Object metadata.
+     * @details 7th topmost bit: 'native' flag.
+     *          3rd topmost bit: 'lambda' flag.
+     */
+    uint8_t mdata;
+    struct {
+        /**
+         * @brief Location of the closure.
+         * @details Jump address (C closure) or function id (native closure).
+         */
+        uint8_t ref;
+        /**
+         * @brief Position in the heap of the activation record array.
+         * @details A value of 0xFF means it uses the default activation record of the VM.
+         */
+        uint8_t actrec;
+    } value; /**< @brief Closure object's value. */
 } bbzlclosure_t;
 
 /**
  * @brief User data
  */
 typedef struct __attribute__((packed)) {
-   uint8_t mdata; /**< @brief Object metadata. */
-   void* value;   /**< @brief User value. */
+    uint8_t mdata; /**< @brief Object metadata. */
+    void* value;   /**< @brief User value. */
 } bbzuserdata_t;
 
 /**
  * @brief A handle for a object
  */
 typedef union __attribute__((packed)) {
-   struct {
-      /**
-       * @brief Object metadata.
-       * @details 8th,7th,6th bit for type
-       * 5th bit for valid in heap
-       * 4th bit for garbage collection
-       */
-      uint8_t mdata; 
-   }             o; /**< @brief Generic object */
-   bbznil_t      n; /**< @brief Nil object */
-   bbzint_t      i; /**< @brief Integer object */
-   bbzfloat_t    f; /**< @brief Floating-point object */
-   bbzstring_t   s; /**< @brief String object */
-   bbztable_t    t; /**< @brief Table object */
-   bbzclosure_t  c; /**< @brief Closure object */
-   bbzlclosure_t l; /**< @brief Lambda closure object */
-   bbzuserdata_t u; /**< @brief Data object */
+    struct {
+        /**
+         * @brief Object metadata.
+         * @details 8th,7th,6th bit for type
+         * 5th bit for valid in heap
+         * 4th bit for garbage collection
+         */
+        uint8_t mdata; 
+    }             o; /**< @brief Generic object */
+    bbznil_t      n; /**< @brief Nil object */
+    bbzint_t      i; /**< @brief Integer object */
+    bbzfloat_t    f; /**< @brief Floating-point object */
+    bbzstring_t   s; /**< @brief String object */
+    bbztable_t    t; /**< @brief Table object */
+    bbzclosure_t  c; /**< @brief Closure object */
+    bbzlclosure_t l; /**< @brief Lambda closure object */
+    bbzuserdata_t u; /**< @brief Data object */
 } bbzobj_t;
 
 /**
@@ -237,4 +238,4 @@ int8_t bbztype_cmp(const bbzobj_t* a,
 }
 #endif // __cplusplus
 
-#endif
+#endif // !BBZTYPE_H
