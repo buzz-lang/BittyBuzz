@@ -24,10 +24,10 @@ function (config_value value default)
     endif()
 endfunction()
 
-config_value(HEAP_SIZE 1024)
-config_value(HEAP_ELEMS_PER_TSEG 5)
-config_value(STACK_SIZE 256)
-config_value(MAX_ACTREC_COUNT 32)
+config_value(BBZHEAP_SIZE 1024)
+config_value(BBZHEAP_ELEMS_PER_TSEG 5)
+config_value(BBZSTACK_SIZE 256)
+config_value(RESERVED_ACTREC_MAX 32)
 
 configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONLY)
 

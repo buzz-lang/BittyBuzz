@@ -9,17 +9,17 @@
 /**
  * @brief Total size of heap in bytes.
  */
-#define BBZHEAP_SIZE @HEAP_SIZE@
+#define BBZHEAP_SIZE @BBZHEAP_SIZE@
 
 /**
  * @brief Elements per table segment.
  */
-#define BBZHEAP_ELEMS_PER_TSEG @HEAP_ELEMS_PER_TSEG@
+#define BBZHEAP_ELEMS_PER_TSEG @BBZHEAP_ELEMS_PER_TSEG@
 
 /**
  * @brief Size of the stack in bytes.
  */
-#define BBZSTACK_SIZE @STACK_SIZE@
+#define BBZSTACK_SIZE @BBZSTACK_SIZE@
 
 /**
  * @brief Name of the robot, in case we are crosscompiling.
@@ -31,7 +31,7 @@
  * activation record.
  * @note The maximum value is 0xFE (254)
  */
-#define RESERVED_ACTREC_MAX (uint16_t)@MAX_ACTREC_COUNT@
+#define RESERVED_ACTREC_MAX (uint16_t)@RESERVED_ACTREC_MAX@
 
 /**
  * @brief Debug flag.
