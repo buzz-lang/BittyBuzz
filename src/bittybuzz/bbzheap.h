@@ -4,11 +4,11 @@
  * operations.
  */
 
-#ifndef BBZHEAP
-#define BBZHEAP
+#ifndef BBZHEAP_H
+#define BBZHEAP_H
 
-#include <bittybuzz/bbztype.h>
-#include <bittybuzz/config.h>
+#include "bbzincludes.h"
+#include "bbztype.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -306,6 +306,6 @@ void bbzheap_gc(bbzheap_idx_t* st,
 }
 #endif // __cplusplus
 
-#endif
+#include "bbzvm.h" // Include AFTER bbzheap.h because of circular dependencies
 
-#include <bittybuzz/bbzdarray.h>
+#endif // !BBZHEAP_H

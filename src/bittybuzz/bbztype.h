@@ -3,10 +3,11 @@
  * @brief Definition of BittyBuzz's main types.
  */
 
-#ifndef BBZTYPE
-#define BBZTYPE
+#ifndef BBZTYPE_H
+#define BBZTYPE_H
 
-#include <bittybuzz/bbzfloat.h>
+#include "bbzincludes.h"
+#include "bbzfloat.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -237,4 +238,4 @@ int8_t bbztype_cmp(const bbzobj_t* a,
 }
 #endif // __cplusplus
 
-#endif
+#endif // !BBZTYPE_H

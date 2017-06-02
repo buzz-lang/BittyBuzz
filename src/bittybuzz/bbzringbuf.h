@@ -7,7 +7,8 @@
 #ifndef BBZRINGBUF
 #define BBZRINGBUF
 
-#include <bittybuzz/bbztype.h>
+#include "bbzincludes.h"
+#include "bbztype.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,7 @@ typedef struct __attribute__((packed)) {
  * @brief Erases all the elements in the ring buffer.
  * @param[in,out] rb The ring buffer.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 void bbzringbuf_clear(bbzringbuf_t* rb) { rb->datastart = 0; rb->dataend = 0; }
 
 /**
@@ -39,7 +40,7 @@ void bbzringbuf_clear(bbzringbuf_t* rb) { rb->datastart = 0; rb->dataend = 0; }
  * @param[in] sz Number of elements of the linear buffer.
  * @param[in] cap The capacity of the ring buffer.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 void bbzringbuf_construct(bbzringbuf_t* rb, uint8_t* buf, uint8_t sz, uint8_t cap) { rb->buffer = buf; rb->elsize = sz; rb->capacity = cap; bbzringbuf_clear(rb); }
 
 /**
@@ -48,7 +49,7 @@ void bbzringbuf_construct(bbzringbuf_t* rb, uint8_t* buf, uint8_t sz, uint8_t ca
  * @param[in] rb The ring buffer.
  * @return The capacity of the ring buffer.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 uint8_t bbzringbuf_capacity(const bbzringbuf_t* rb) { return rb->capacity; }
 
 /**
@@ -57,7 +58,7 @@ uint8_t bbzringbuf_capacity(const bbzringbuf_t* rb) { return rb->capacity; }
  * @param[in] rb The ring buffer.
  * @return The number of elements inside the ring buffer.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
     return (rb->dataend >=  rb->datastart) ?
            (rb->dataend  -  rb->datastart) :
@@ -70,7 +71,7 @@ uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
  * @param[in] rb The ring buffer.
  * @return 1 if the buffer is full, 0 otherwise
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 uint8_t bbzringbuf_full(const bbzringbuf_t* rb) { return ((rb->dataend + 1) % rb->capacity) == rb->datastart; }
 
 /**
@@ -81,7 +82,7 @@ uint8_t bbzringbuf_full(const bbzringbuf_t* rb) { return ((rb->dataend + 1) % rb
  * @param[in] idx The index.
  * @return A pointer to the object starting at given index.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx) { return rb->buffer + ((rb->datastart + idx) % rb->capacity) * rb->elsize; }
 
 /**
@@ -91,7 +92,7 @@ uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx) { return rb->buffer 
  * @param[in] idx The internal index.
  * @return A pointer to the object starting at given internal index.
  */
- __attribute__((always_inline)) static inline
+ALWAYS_INLINE
 uint8_t* bbzringbuf_rawat(const bbzringbuf_t* rb, uint8_t idx) { return (rb->buffer + (idx % rb->capacity) * rb->elsize); }
 
 /**

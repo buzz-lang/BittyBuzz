@@ -10,6 +10,7 @@
 #ifndef BBZVSTIG
 #define BBZVSTIG
 
+#include "bbzincludes.h"
 #include "bbzheap.h"
 
 #ifdef __cplusplus

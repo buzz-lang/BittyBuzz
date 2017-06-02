@@ -143,7 +143,7 @@ uint8_t bbzvm_gc() {
  * @brief Executes a single Buzz instruction.
  * @param[in,out] vm The VM.
  */
-__attribute__((always_inline)) static inline
+ALWAYS_INLINE
 bbzvm_state bbzvm_exec_instr() {
     int16_t instrOffset = vm->pc; // Save PC in case of error or DONE.
 

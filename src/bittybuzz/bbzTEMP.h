@@ -3,7 +3,7 @@
 #ifndef BBZTEMP_H
 #define BBZTEMP_H
 
-#include <bittybuzz/config.h>
+#include "bbzincludes.h"
 
 #define O  0            // OFF
 #define R  1            // Red
