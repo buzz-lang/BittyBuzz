@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include "bbzmessage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 // 01010101
 #define PACKET_HEADER 0x55
 #define PAGE_SIZE 128
@@ -18,7 +22,7 @@ enum {
     PACKET_FORWARDMSGSINGLE,
 };
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint16_t id;
     int16_t x;
     int16_t y;
@@ -26,7 +30,7 @@ typedef struct {
     uint16_t unused;
 } gpsmsg_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     uint8_t mode;
     uint16_t uid;
     uint8_t turn_left;
@@ -43,5 +47,9 @@ enum {
     CALIB_TURN_RIGHT,
     CALIB_STRAIGHT
 };
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif//__OHC_H__

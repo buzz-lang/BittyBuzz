@@ -44,7 +44,7 @@ void set_led(int8_t color) {
     else
         DDRC &= ~(1<<4);
     
-    _delay_ms(150.0);
+    _delay_ms(300.0);
 }
 
 void bin_count(uint16_t val, uint8_t size) {

@@ -16,6 +16,10 @@
 #define RGB(r,g,b) (r&3)|(((g&3)<<2))|((b&3)<<4)
 #define TICKS_PER_SEC 31
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /**
  * @brief Distance measurement.
  *
@@ -27,14 +31,15 @@
  * Using these two measurements it is possible to estimate the distance
  * of the sender.
  */
-
-typedef struct {
+typedef struct __attribute__((packed)) {
     int16_t low_gain;  ///< Low gain 10-bit signal-strength measurement.
     int16_t high_gain; ///< High gain 10-bit signal-strength measurement.
 } distance_measurement_t;
 
 typedef void (*message_rx_t)(message_t *, distance_measurement_t *d);
+
 typedef message_t *(*message_tx_t)(void);
+
 typedef void (*message_tx_success_t)(void);
 
 typedef void (*kilo_setup_func)();
@@ -467,5 +472,9 @@ void bbzkilo_init();
  * @endcode
  */
 void bbzkilo_start(void (*setup)(void), void (*loop)(void));
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif // !BITTYBUZZ_BBZKILOBOT_H

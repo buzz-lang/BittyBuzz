@@ -1,0 +1,11 @@
+led(4)
+set_motor(70, 70)
+delay(5000)
+
+led(3)
+set_motor(70, 0)
+delay(5000)
+
+led(2)
+set_motor(0, 0)
+delay(1000)

@@ -1,0 +1,22 @@
+led(1)
+
+function add(x, y) {
+    return x + y
+}
+
+led(3)
+
+i = 0
+function f1() {
+    i = add(i, 1)
+    if (i % 2 == 0)
+        led(0)
+    else
+        led(3)
+}
+
+while (i < 1000)
+    f1()
+
+led(2)
+delay(500)

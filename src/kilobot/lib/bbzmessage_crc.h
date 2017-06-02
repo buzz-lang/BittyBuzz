@@ -3,6 +3,10 @@
 
 #include "bbzmessage.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /**
  * @brief Function to compute the CRC of a message struct.
  *
@@ -30,5 +34,9 @@
  */
 
 uint16_t bbzmessage_crc(const message_t *msg);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif // !BITTYBUZZ_MESSAGES_CRC_H
