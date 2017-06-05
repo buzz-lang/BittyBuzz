@@ -7,7 +7,7 @@
 #ifndef BBZRINGBUF_H
 #define BBZRINGBUF_H
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbztype.h"
 
 #ifdef __cplusplus

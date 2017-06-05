@@ -1,4 +1,5 @@
 #include <bittybuzz/bbzdarray.h>
+#include <bittybuzz/bbzvm.h>
 #include <stdio.h>
 #include <inttypes.h>
 

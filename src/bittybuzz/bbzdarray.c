@@ -1,6 +1,7 @@
 #include "bbzdarray.h"
 #include "bbzheap.h"
 #include "bbztype.h"
+#include "bbzvm.h"
 
 /****************************************/
 /****************************************/

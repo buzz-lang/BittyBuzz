@@ -7,7 +7,7 @@
 #ifndef BBZHEAP_H
 #define BBZHEAP_H
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbztype.h"
 
 #ifdef __cplusplus
@@ -82,13 +82,6 @@ typedef struct __attribute__((packed)) {
     uint8_t* ltseg;             /**< @brief Pointer to the leftmost table segment in heap, not necessarly valid */
     uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
 } bbzheap_t;
-
-/**
- * @brief Type for a heap index.
- * This can be considered to be a custom pointer
- * to a heap-allocated element.
- */
-typedef uint16_t bbzheap_idx_t;
 
 /**
  * @brief Clears the heap.
@@ -303,6 +296,6 @@ void bbzheap_gc(bbzheap_idx_t* st,
 }
 #endif // __cplusplus
 
-#include "bbzvm.h" // Include AFTER bbzheap.h because of circular dependencies
+#include "bbzvm.h"
 
 #endif // !BBZHEAP_H

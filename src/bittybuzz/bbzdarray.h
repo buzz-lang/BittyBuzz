@@ -7,7 +7,7 @@
 #ifndef BBZDARRAY_H
 #define BBZDARRAY_H
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbzheap.h"
 #include "bbztype.h"
 

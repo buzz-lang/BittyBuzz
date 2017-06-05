@@ -18,17 +18,23 @@ void bbzvm_process_outmsgs() {
 /****************************************/
 /****************************************/
 
-void bbzvm_construct(bbzvm_rid_t robot) {
+ALWAYS_INLINE
+void dftl_error_notifier(bbzvm_error errcode) { }
+
+void bbzvm_construct(bbzrobot_id_t robot) {
 
     vm->bcode_fetch_fun = NULL;
     vm->bcode_size = 0;
     vm->pc = 0;
     vm->state = BBZVM_STATE_NOCODE;
     vm->error = BBZVM_ERROR_NONE;
-    vm->error_notifier_fun = NULL;
+    vm->error_notifier_fun = dftl_error_notifier;
 
     // Setup the heap
     bbzheap_clear();
+
+    // Setup the vstig
+    // bbzvstig_construct(); // TODO
 
     // Allocate singleton objects
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
@@ -58,9 +64,9 @@ void bbzvm_construct(bbzvm_rid_t robot) {
 /****************************************/
 
 void bbzvm_destruct() {
-    // Destroy heap ;
-    // everything else is destroyed along with it.
+    // Destroy heap ; Buzz objcts are destroyed along with it.
     bbzheap_clear();
+    bbzvstig_destruct();
 }
 
 /****************************************/
@@ -70,10 +76,8 @@ void bbzvm_seterror(bbzvm_error errcode) {
     // Set the error
     vm->state = BBZVM_STATE_ERROR;
     vm->error = errcode;
-    // Call the user's notifier function.
-    if (vm->error_notifier_fun) {
-        (*vm->error_notifier_fun)(errcode);
-    }
+    // Call the error notifier function.
+    (*vm->error_notifier_fun)(errcode);
 }
 
 /****************************************/

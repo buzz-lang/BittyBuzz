@@ -7,7 +7,7 @@
 #ifndef BBZOBJRINGBUF_H
 #define BBZOBJRINGBUF_H
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbzringbuf.h"
 #include "bbzheap.h"
 

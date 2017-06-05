@@ -6,7 +6,7 @@
 #ifndef BBZTYPE_H
 #define BBZTYPE_H
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbzfloat.h"
 
 #ifdef __cplusplus

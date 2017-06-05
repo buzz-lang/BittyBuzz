@@ -9,10 +9,11 @@
 
 #include <inttypes.h>
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbzheap.h"
 #include "bbzdarray.h"
 #include "bbztable.h"
+#include "bbzvstig.h"
 
 #include "bbzTEMP.h" // FIXME Remove this
 
@@ -112,11 +113,6 @@ extern "C" {
     } bbzvm_instr;
 
     /**
-     * @brief Type for the ID of a robot.
-     */
-    typedef uint16_t bbzvm_rid_t;
-
-    /**
      * @brief Type for the pointer to a function which fetches bytecode data.
      * @warning The function provider should take endianness
      * into account if copying byte-by-byte.
@@ -192,8 +188,8 @@ extern "C" {
         // TODO
         /* Output message FIFO */
         // TODO
-        /* Virtual stigmergy maps */
-        // TODO
+        /** @brief Virtual stigmergy */
+        bbzvstig_t vstig;
         /* Neighbor value listeners */
         // TODO
         /** @brief Current VM state */
@@ -205,7 +201,7 @@ extern "C" {
         /* Current VM error message */
         // TODO
         /** @brief This robot's id */
-        bbzvm_rid_t robot;
+        bbzrobot_id_t robot;
         /* Random number generator state */
         // TODO
         /* Random number generator index */
@@ -234,7 +230,7 @@ extern "C" {
      * @brief Sets up the VM.
      * @param[in] robot The robot id.
      */
-    void bbzvm_construct(bbzvm_rid_t robot);
+    void bbzvm_construct(bbzrobot_id_t robot);
 
     /**
      * @brief Destroys the VM.
@@ -279,7 +275,6 @@ extern "C" {
 
     /**
      * @brief Runs the VM's garbage collector.
-     * @param[in|out] vm The VM.
      */
     uint8_t bbzvm_gc();
 
@@ -309,7 +304,7 @@ extern "C" {
      * @see BBZVM_INSTR_DONE
      * @return The updated state of the VM.
      */
-     ALWAYS_INLINE
+    ALWAYS_INLINE
     bbzvm_state bbzvm_done() { vm->state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
 
     /**
@@ -822,7 +817,6 @@ extern "C" {
 
     /**
      * @brief Register a global symbol.
-     * @param[in,out] vm The VM
      * @param[in] sid The string ID representing the global symbol.
      * @param[in] v The value of the global symbol.
      * @return 1 for success, 0 for failure (out of memory).
@@ -848,7 +842,7 @@ extern "C" {
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
      */
-     ALWAYS_INLINE
+    ALWAYS_INLINE
     uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
 
     /**
@@ -912,7 +906,7 @@ extern "C" {
      * it updates the VM state and exits the current function.
      * This function is designed to be used within int-returning functions such as
      * bbzvm_push<i|nil|...>() or bbzvm_lload().
-     * @param[in] tpe The type to allocate.
+     * @param[in] type The type to allocate.
      * @param[out] idx A buffer for the index of the allocated object.
      */
     #define bbzvm_assert_mem_alloc(type, idx) bbzvm_assert_exec(bbzheap_obj_alloc(type, idx), BBZVM_ERROR_MEM)

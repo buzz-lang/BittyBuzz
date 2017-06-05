@@ -7,7 +7,7 @@
 #ifndef BBZTABLE
 #define BBZTABLE
 
-#include "bbzincludes.h"
+#include "bbzinclude.h"
 #include "bbzheap.h"
 
 #ifdef __cplusplus
