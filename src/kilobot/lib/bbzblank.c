@@ -7,7 +7,6 @@
 
 bbzvm_t* vm;
 
-//TODO Implement fetching bytecode in flash
 uint8_t buf[4];
 const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
     switch(size) {
