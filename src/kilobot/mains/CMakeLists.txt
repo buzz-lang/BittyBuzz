@@ -25,15 +25,18 @@ function(generate_hex c_source bzz_source)
 
     # .bzz -> .basm, ...
     if (NOT ${ARGN} STREQUAL "")
-        add_custom_command(OUTPUT ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${HEX_FILE} ${MAP_FILE} ${GENSYMS_FILE}
+        add_custom_command(OUTPUT ${HEX_FILE}
+                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} -B ${ARGN} ${c_source})
     else()
-        add_custom_command(OUTPUT ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${HEX_FILE} ${MAP_FILE} ${GENSYMS_FILE}
+        add_custom_command(OUTPUT ${HEX_FILE}
+                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} ${c_source})
     endif()
 
-    add_custom_target(${BZZ_BASENAME} DEPENDS ${HEX_FILE} ${COMPILER_SCRIPT})
+    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${HEX_FILE} ${COMPILER_SCRIPT})
     set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${HEX_FILE}")
+    add_dependencies(${BZZ_BASENAME} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
 endfunction()
 
 function(generate_all_hex)

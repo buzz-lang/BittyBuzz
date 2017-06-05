@@ -196,11 +196,6 @@ uint8_t bbzdarray_clone(bbzheap_idx_t d,
 /****************************************/
 
 void bbzdarray_clear(bbzheap_idx_t d) {
-    //TODO Optimize this function
-    for (uint16_t i = bbzdarray_size(d); i > 0; --i) {
-        bbzdarray_pop(d);
-    }
-    bbzdarray_unmark_cloned((bbzdarray_t*)bbzheap_obj_at(d));
     uint16_t i;
     bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(d); // darray
     bbzheap_aseg_t* sd = bbzheap_aseg_at(da->value); // Segment data
