@@ -1,8 +1,8 @@
-#include "../lib/bbzkilobot.h"
+#include <bbzkilobot.h>
 #include <bittybuzz/bbzvm.h>
 #include <avr/pgmspace.h>
 #include <bittybuzz/bbztype.h>
-#include "../lib/bbzkiloreg.h"
+#include <bbzkiloreg.h>
 
 bbzvm_t* vm;
 

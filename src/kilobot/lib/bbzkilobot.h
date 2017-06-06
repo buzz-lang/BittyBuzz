@@ -92,7 +92,7 @@ extern uint8_t kilo_straight_left;
 extern uint8_t kilo_straight_right;
 
 /**
- * @brief Callback for message receiption.
+ * @brief Callback for message reception.
  *
  * This callback is triggered every time a message is succesfully
  * decoded. The callback receives two parameters, a pointer to the
