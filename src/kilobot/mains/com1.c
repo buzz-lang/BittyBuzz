@@ -1,6 +1,5 @@
 #include <bbzkilobot.h>
 #include <bbzkiloreg.h>
-#include <avr/pgmspace.h>
 
 uint8_t rcvd_msg;
 void my_msg_rx(message_t* msg, distance_measurement_t* d) {
