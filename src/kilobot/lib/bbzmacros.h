@@ -78,7 +78,7 @@
 #define tx_timer_setup() {\
     TCCR0A = 0;\
     TCCR0B = (1<<CS02)|(1<<CS00);   /* Set prescalar multiplier. */\
-    OCR0A = 0xFF;                   /* Set compare register to 255. */\
+    OCR0A = 0x1F;                   /* Set compare register to 255. */\
     TIMSK0 = (1<<OCIE0A);           /* Enable timer1 interrupt. */\
 }
 

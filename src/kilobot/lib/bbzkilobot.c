@@ -102,7 +102,7 @@ void bbzkilo_init() {
     tx_increment = 255;
     kilo_ticks = 0;
     kilo_state = IDLE;
-    kilo_tx_period = 3906;
+    kilo_tx_period = 512;//3906;
     kilo_uid = eeprom_read_byte(EEPROM_UID) | eeprom_read_byte(EEPROM_UID+1)<<8;
     kilo_turn_left = eeprom_read_byte(EEPROM_LEFT_ROTATE);
     kilo_turn_right = eeprom_read_byte(EEPROM_RIGHT_ROTATE);
@@ -260,7 +260,7 @@ static inline void process_message() {
 //            kilo_state = SLEEPING;
             break;
         case WAKEUP:
-            kilo_state = IDLE;
+//            kilo_state = IDLE;
             break;
         case CHARGE:
             kilo_state = CHARGING;

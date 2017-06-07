@@ -11,6 +11,7 @@ volatile uint8_t num_ids = 0;
 
 message_t* my_msg_tx() {
     if (should_send) {
+        should_send = 0;
         return &msg_tx;
     }
     return 0;
@@ -31,6 +32,7 @@ void my_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
             set_color(RGB(0,0,0));
             msg_tx.data[0] = MSG_ANS;
             msg_tx.data[1] = kilo_uid;
+            msg_tx.crc = bbzmessage_crc(&msg_tx);
             should_send = 1;
             while (!sent_msg) {}
             should_send = 0;
@@ -51,7 +53,8 @@ void my_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
 
 void find_neighbors() {
     msg_tx.data[0] = MSG_NEIGHBORS;
-    set_color(RGB(3,0,0));
+    msg_tx.crc = bbzmessage_crc(&msg_tx);
+    set_color(RGB(0,0,3));
     should_send = 1;
     while (!sent_msg) { }
     sent_msg = 0;
@@ -66,12 +69,12 @@ void setup() {
     state = STATE_INIT;
     msg_tx.type = NORMAL;
     msg_tx.crc = bbzmessage_crc(&msg_tx);
+
+    find_neighbors();
+    set_color(RGB(3,3,3));
 }
 
 void loop() {
-    find_neighbors();
-    set_color(RGB(3,3,3));
-    while (1) { }
 }
 
 int main() {
@@ -80,6 +83,7 @@ int main() {
     kilo_message_tx_success = my_tx_msg_success;
     kilo_message_rx = my_msg_rx;
     msg_tx.data[0] = 1;
+    msg_tx.crc = bbzmessage_crc(&msg_tx);
     bbzkilo_start(setup, loop);
 
     return 0;

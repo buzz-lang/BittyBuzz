@@ -18,8 +18,8 @@ KILOLIB_NAME=bbzkilobot-kilobot
 BO2BBO_PATH=${BIN_DIR}/bittybuzz/exec/bo2bbo
 KILO_SYMGEN_PATH=${BIN_DIR}/bittybuzz/exec/kilo_bcodegen
 
-GEN_DIR=${BIN_DIR}/kilobot/mains/gen
-GEN_SYMS_FILE=${GEN_DIR}/bbzkilosymgen.h
+GEN_PATH=${BIN_DIR}/kilobot/mains/gen
+GEN_SYMS_FILENAME=bbzkilosymgen.h
 
 # Checking options
 bzz_file=
@@ -93,93 +93,112 @@ if [ -z "$bzz_file" ]; then
     exit 1;
 fi
 
+bbz_filename=$(basename $(realpath ${bzz_file}))
+bbz_name="${bbz_filename%.*}"
+GEN_DIR=${GEN_PATH}/${bbz_name}
+LOG_FILE=${GEN_DIR}/log.txt
+
+LOG() {
+    [ "$verbose" = "1" ] && echo "$1";
+    echo "$1" >> ${LOG_FILE};
+}
+LOGF() {
+    [ "$verbose" = "1" ] && printf "$1";
+    printf "$1" >> ${LOG_FILE};
+}
+
+[ "$verbose" = "1" ] && mkdir -v -p ${GEN_DIR} || mkdir -p ${GEN_DIR}
+
+echo "### LOG OF ${bbz_name} COMPILING ###" > ${LOG_FILE}
+ERR_STR="[$bbz_name] ERROR. For more detail, check the log at $(realpath --relative-to=${BIN_DIR}/.. ${LOG_FILE})";
+
 #########################
 # Checking dependencies #
 #########################
 
-[ "$verbose" = "1" ] && echo "Checking dependencies:"
+LOG "[$bbz_name] Checking dependencies:"
 
-[ "$verbose" = "1" ] && printf "\tCheck for avr compiler... "
+LOGF "\tCheck for avr compiler... "
 if [ -z "$AVR_CC" ]; then
     hash avr-gcc 2>/dev/null || {
-        [ "$verbose" = "1" ] && echo "Not Found";
-        echo >&2 "Error: avr-gcc is required but it's not installed.  Aborting.";
+        LOG "Not Found";
+        echo >&2 "[$bbz_name] Error: avr-gcc is required but it's not installed.  Aborting.";
         exit 1;
     }
     export AVR_CC=avr-gcc
 fi
-[ "$verbose" = "1" ] && echo "Done $AVR_CC"
+LOG "Done $AVR_CC"
 
-[ "$verbose" = "1" ] && printf "\tCheck for avr-objcopy... "
+LOGF "\tCheck for avr-objcopy... "
 if [ -z "$AVR_OC" ]; then
     hash avr-objcopy 2>/dev/null || {
-        [ "$verbose" = "1" ] && echo "Not Found";
-        echo >&2 "Error: avr-objcopy is required but it's not installed.  Aborting.";
+        LOG "Not Found";
+        echo >&2 "[$bbz_name] Error: avr-objcopy is required but it's not installed.  Aborting.";
         exit 1;
     }
     export AVR_OC=avr-objcopy
 fi
-[ "$verbose" = "1" ] && echo "Done $AVR_OC"
+LOG "Done $AVR_OC"
 
-[ "$verbose" = "1" ] && printf "\tCheck for buzz parser... "
+LOGF "\tCheck for buzz parser... "
 if [ -z "$BZZ_PAR" ]; then
     hash bzzparse 2>/dev/null || {
-        [ "$verbose" = "1" ] && echo "Not Found";
-        echo >&2 "Error: bzzparse is required but it's not installed.  Aborting.";
+        LOG "Not Found";
+        echo >&2 "[$bbz_name] Error: bzzparse is required but it's not installed.  Aborting.";
         exit 1;
     }
     export BZZ_PAR=bzzparse
 fi
-[ "$verbose" = "1" ] && echo "Done $BZZ_PAR"
+LOG "Done $BZZ_PAR"
 
-[ "$verbose" = "1" ] && printf "\tCheck for buzz assembler... "
+LOGF "\tCheck for buzz assembler... "
 if [ -z "$BZZ_ASM" ]; then
     hash bzzasm 2>/dev/null || {
-        [ "$verbose" = "1" ] && echo "Not Found";
-        echo >&2 "Error: bzzasm is required but it's not installed.  Aborting.";
+        LOG "Not Found";
+        echo >&2 "[$bbz_name] Error: bzzasm is required but it's not installed.  Aborting.";
         exit 1;
     }
     export BZZ_ASM=bzzasm
 fi
-[ "$verbose" = "1" ] && echo "Done $BZZ_ASM"
+LOG "Done $BZZ_ASM"
 
-[ "$verbose" = "1" ] && printf "\tCheck for bo2bbo... "
+LOGF "\tCheck for bo2bbo... "
 hash $BO2BBO_PATH 2>/dev/null || {
-    [ "$verbose" = "1" ] && echo "Not Found";
-    echo >&2 "Error: bo2bbo is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
+    LOG "Not Found";
+    echo >&2 "[$bbz_name] Error: bo2bbo is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
     exit 1;
 }
-[ "$verbose" = "1" ] && echo "Done $BO2BBO_PATH"
+LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $BO2BBO_PATH)"
 
-[ "$verbose" = "1" ] && printf "\tCheck for kilo_bcodegen... "
+LOGF "\tCheck for kilo_bcodegen... "
 hash $KILO_SYMGEN_PATH 2>/dev/null || {
-    [ "$verbose" = "1" ] && echo "Not Found";
-    echo >&2 "Error: kilo_bcodegen is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
+    LOG "Not Found";
+    echo >&2 "[$bbz_name] Error: kilo_bcodegen is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
     exit 1;
 }
-[ "$verbose" = "1" ] && echo "Done $KILO_SYMGEN_PATH"
+LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $KILO_SYMGEN_PATH)"
 
-[ "$verbose" = "1" ] && printf "\tCheck for BittyBuzz library... "
+LOGF "\tCheck for BittyBuzz library... "
 if [ ! -f "$BBZ_LIB_DIR/lib$BBZ_LIB_NAME.a" ]; then
-    [ "$verbose" = "1" ] && echo "Not Found";
-    echo >&2 "Error: BittyBuzz library was not found in $BBZ_LIB_DIR."
-    echo >&2 "Please edit this file ($0) and place the path to the library.  Aborting.";
+    LOG "Not Found";
+    echo >&2 "[$bbz_name] Error: BittyBuzz library was not found in $(realpath --relative-to=${BIN_DIR}/.. $BBZ_LIB_DIR)."
+    echo >&2 "[$bbz_name] Please edit this file ($0) and place the path to the library.  Aborting.";
     exit 1;
 fi
-[ "$verbose" = "1" ] && echo "Done $BBZ_LIB_DIR/lib$BBZ_LIB_NAME.a"
+LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $BBZ_LIB_DIR/lib$BBZ_LIB_NAME.a)"
 
-[ "$verbose" = "1" ] && printf "\tCheck for KiloLib library... "
+LOGF "\tCheck for KiloLib library... "
 if [ ! -f "$KILOLIB_DIR/lib$KILOLIB_NAME.a" ]; then
-    [ "$verbose" = "1" ] && echo "Not Found";
-    echo >&2 "Error: KiloLib library was not found in $KILOLIB_DIR."
-    echo >&2 "Please edit this file ($0) and place the path to the library.  Aborting.";
+    LOG "Not Found";
+    echo >&2 "[$bbz_name] Error: KiloLib library was not found in $(realpath --relative-to=${BIN_DIR}/.. $KILOLIB_DIR)."
+    echo >&2 "[$bbz_name] Please edit this file ($0) and place the path to the library.  Aborting.";
     exit 1;
 fi
-[ "$verbose" = "1" ] && echo "Done $KILOLIB_DIR/lib$KILOLIB_NAME.a"
+LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $KILOLIB_DIR/lib$KILOLIB_NAME.a)"
 
 # Checking dependencies done
-[ "$verbose" = "1" ] && echo "Checking dependencies Done."
-[ "$verbose" = "1" ] && echo " "
+LOG "[$bbz_name] Checking dependencies Done."
+LOG ""
 
 #####################
 # Compiling Section #
@@ -187,32 +206,30 @@ fi
 
 # start compiling...
 
-mkdir -p ${GEN_DIR}
+GEN_SYMS_DIR=${GEN_DIR}
+GEN_SYMS_FILE=${GEN_SYMS_DIR}/${GEN_SYMS_FILENAME}
 
-bbz_filename=$(basename $(realpath ${bzz_file}))
-bbz_name="${bbz_filename%.*}"
-
-[ "$verbose" = "1" ] && echo "Parsing ${bzz_file}..."
-${BZZ_PAR} ${bzz_file} ${GEN_DIR}/${bbz_name}.basm ${bst_file} || { echo >&2 "ERROR"; exit 1; }
-[ "$verbose" = "1" ] && echo "Assembling ${GEN_DIR}/${bbz_name}.basm"
-${BZZ_ASM} ${GEN_DIR}/${bbz_name}.basm ${GEN_DIR}/${bbz_name}.bo ${GEN_DIR}/${bbz_name}.bdb || { echo >&2 "ERROR"; exit 1; }
-[ "$verbose" = "1" ] && echo "Generating Symbol header file: ${GEN_SYMS_FILE}"
-pushd $(dirname ${KILO_SYMGEN_PATH}) > /dev/null
-${KILO_SYMGEN_PATH} ${GEN_DIR}/${bbz_name}.bo ${GEN_SYMS_FILE} || { echo >&2 "ERROR"; exit 1; }
-popd > /dev/null
-[ "$verbose" = "1" ] && echo "Converting .bo to .bbo ..."
-${BO2BBO_PATH} ${GEN_DIR}/${bbz_name}.bo ${GEN_DIR}/${bbz_name}.bbo || { echo >&2 "ERROR"; exit 1; }
+LOG "[$bbz_name] Parsing $(realpath --relative-to=${BIN_DIR}/.. ${bzz_file})..."
+${BZZ_PAR} ${bzz_file} ${GEN_DIR}/${bbz_name}.basm ${bst_file} >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+LOG "[$bbz_name] Assembling $(realpath --relative-to=${BIN_DIR}/.. ${GEN_DIR}/${bbz_name}.basm)"
+${BZZ_ASM} ${GEN_DIR}/${bbz_name}.basm ${GEN_DIR}/${bbz_name}.bo ${GEN_DIR}/${bbz_name}.bdb >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+LOG "[$bbz_name] Generating Symbol header file: $(realpath --relative-to=${BIN_DIR}/.. ${GEN_SYMS_DIR})/${GEN_SYMS_FILENAME}"
+pushd $(dirname ${KILO_SYMGEN_PATH}) >> ${LOG_FILE}
+${KILO_SYMGEN_PATH} ${GEN_DIR}/${bbz_name}.bo ${GEN_SYMS_FILE} >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+popd >> ${LOG_FILE}
+LOG "[$bbz_name] Converting .bo to .bbo ..."
+${BO2BBO_PATH} ${GEN_DIR}/${bbz_name}.bo ${GEN_DIR}/${bbz_name}.bbo >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 BBO_SIZE=$(stat -c%s ${GEN_DIR}/${bbz_name}.bbo)
 BBO_SIZE_PLUS_2=$((BBO_SIZE + 2))
 BOOTLOADER_ADDR=28672
 BCODE_SIZE_ADDR=$((BOOTLOADER_ADDR - 2))
 BCODE_ADDR=$((BOOTLOADER_ADDR - BBO_SIZE_PLUS_2))
-[ "$verbose" = "1" ] && echo "Compiling and Linking c functions..."
-${AVR_CC} ${AVR_CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map || { echo >&2 "ERROR"; exit 1; }
-[ "$verbose" = "1" ] && echo "Generating hex file..."
-${AVR_OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_name}.elf ${GEN_DIR}/${bbz_name}.hex || { echo >&2 "ERROR"; exit 1; }
-[ "$verbose" = "1" ] && echo "Done"
-[ "$verbose" = "1" ] && echo " "
-[ "$verbose" = "1" ] && echo "Thank you."
-[ "$verbose" = "1" ] && echo "Chuck Norris"
+LOG "[$bbz_name] Compiling and Linking c functions..."
+${AVR_CC} ${AVR_CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+LOG "[$bbz_name] Generating hex file..."
+${AVR_OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_name}.elf ${GEN_DIR}/${bbz_name}.hex >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+LOG "[$bbz_name] Done"
+LOG ""
+LOG "[$bbz_name] Thank you."
+LOG "[$bbz_name] Chuck Norris"
 exit 0

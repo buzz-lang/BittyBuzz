@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     strcat(str, outFile);
     FILE* bo2bbo_proc = popen(str, "r");
     if (!bo2bbo_proc) {
-        fprintf(stderr, "Failed to run bo2bbo on %s", basename(argv[1]));
+        fprintf(stderr, "Failed to run bo2bbo on %s\n", basename(argv[1]));
         return 1;
     }
 
@@ -93,13 +93,14 @@ int main(int argc, char** argv) {
     fclose(bo2bbo_proc);
 
     FILE* f_in  = fopen(outFile, "rb");
-    FILE* f_out = fopen(argv[2], "w");
-
     if (!f_in) {
-        if (f_out) fclose(f_out);
+        fprintf(stderr, "Cannot open %s\n", outFile);
         return 2;
     }
+
+    FILE* f_out = fopen(argv[2], "w");
     if (!f_out) {
+        fprintf(stderr, "Cannot open %s\n", argv[2]);
         return 2;
     }
 
@@ -110,7 +111,8 @@ int main(int argc, char** argv) {
     fprintf(f_out, "#ifndef KILOBCODEGEN_H\n");
     fprintf(f_out, "#define KILOBCODEGEN_H\n\n");
     fprintf(f_out, "#include <inttypes.h>\n\n");
-    fprintf(f_out, "__attribute__((section(\".bcode.data\"))) // Write bytecode inside the flash\n");
+    fprintf(f_out, "__attribute__((section(\".bcode.data\"))) "
+            "// Write bytecode inside the flash\n");
     fprintf(f_out, "const uint8_t bcode[] = {");
 
     if (bcode_size > 0) {
@@ -130,6 +132,7 @@ int main(int argc, char** argv) {
     FILE* f_obj = fopen(argv[1], "rb");
 
     if (!f_obj) {
+        fprintf(stderr, "Cannot open %s\n", argv[1]);
         return 2;
     }
 
