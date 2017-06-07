@@ -1,5 +1,7 @@
 #include "testingconfig.h"
 
+// #define DEBUG
+
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>

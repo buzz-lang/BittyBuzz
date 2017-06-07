@@ -1,6 +1,6 @@
 /**
  * @file bbzenums.h
- * @brief Defines various enums.
+ * @brief Definition of various enums.
  */
 
 #ifndef BBZENUMS_H

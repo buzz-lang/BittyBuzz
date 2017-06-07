@@ -1,13 +1,11 @@
 /**
  * @file testingconfig.h
- * @brief Defines testing macros that yield output similar to
+ * @brief Definition of testing macros that yield output similar to
  * Boost's Unit Test Framework.
  */
 
 #ifndef TESTING_CONFIG_H
 #define TESTING_CONFIG_H
-
-#cmakedefine DEBUG
 
 #include <stdio.h>
 #include <inttypes.h>

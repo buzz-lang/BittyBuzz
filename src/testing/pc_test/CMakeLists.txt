@@ -22,6 +22,3 @@ endfunction()
 
 add_test_executables()
 add_subdirectory(resources)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-configure_file(testingconfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/testingconfig.h)

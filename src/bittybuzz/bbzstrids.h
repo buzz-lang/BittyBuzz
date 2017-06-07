@@ -1,6 +1,6 @@
 /**
  * @file bbzstrids.h
- * @brief Defines the string ids for the BittyBuzz symbols.
+ * @brief Definition of string ids for the BittyBuzz symbols.
  */
 
 #ifndef BBZSTRIDS_H
