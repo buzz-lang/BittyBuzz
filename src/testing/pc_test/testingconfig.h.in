@@ -30,7 +30,7 @@ static uint16_t __error_count__ = 0;
     {                                                                   \
         uint8_t eval = expr;                                            \
         if (!eval) {                                                    \
-            printf(__FILE__ "(%d): error: "                             \
+            fprintf(stderr, __FILE__ "(%d): error: "                    \
             "check " #expr " failed\n", __LINE__);                      \
             ++__error_count__;                                          \
         }                                                               \
@@ -47,7 +47,7 @@ static uint16_t __error_count__ = 0;
     {                                                                   \
         uint8_t eval = (lhs == rhs);                                    \
         if (!eval) {                                                    \
-            printf(__FILE__ "(%d): error: "                             \
+            fprintf(stderr, __FILE__ "(%d): error: "                    \
             "check " #lhs " == " #rhs " failed [%d != %d]\n",           \
             __LINE__,                                                   \
             (int)(lhs), (int)(rhs));                                    \
@@ -63,7 +63,7 @@ static uint16_t __error_count__ = 0;
     {                                                                   \
         uint8_t eval = expr;                                            \
         if (!eval) {                                                    \
-            printf(__FILE__ "(%d): fatal error: "                       \
+            fprintf(stderr, __FILE__ "(%d): fatal error: "              \
             "critical check " #expr " failed\n", __LINE__);             \
             ++__error_count__;                                          \
             TEST_END();                                                 \

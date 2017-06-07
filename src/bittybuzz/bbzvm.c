@@ -66,7 +66,6 @@ void bbzvm_construct(bbzrobot_id_t robot) {
 void bbzvm_destruct() {
     // Destroy heap ; Buzz objcts are destroyed along with it.
     bbzheap_clear();
-    bbzvstig_destruct();
 }
 
 /****************************************/

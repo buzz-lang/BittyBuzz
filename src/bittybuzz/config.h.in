@@ -22,16 +22,21 @@
 #define BBZSTACK_SIZE @BBZSTACK_SIZE@
 
 /**
- * @brief Name of the robot, in case we are crosscompiling.
- */
-#cmakedefine BBZ_ROBOT
-
-/**
  * @brief Index of end of the heap's space reserved for lambdas'
  * activation record.
  * @note The maximum value is 0xFE (254)
  */
 #define RESERVED_ACTREC_MAX (uint16_t)@RESERVED_ACTREC_MAX@
+
+/**
+ * @brief Virtual stigmergy's capacity.
+ */
+#define BBZVSTIG_CAP @BBZVSTIG_CAP@
+
+/**
+ * @brief Whether we are crosscompiling.
+ */
+#cmakedefine BBZ_ROBOT
 
 /**
  * @brief Debug flag.

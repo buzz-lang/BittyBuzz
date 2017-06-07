@@ -9,11 +9,11 @@
 #include <inttypes.h>
 
 #include "bittybuzz/config.h"
+#include "bittybuzz/bbzenums.h"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif // __cplusplus
 
 /**
  * @brief Type for the ID of a robot.
@@ -32,8 +32,18 @@ typedef uint16_t bbzheap_idx_t;
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
+#ifdef BBZ_ROBOT
+/**
+ * @brief Specifies that a function should not perform extra
+ * computation before and after the call.
+ */
+#define NAKED __attribute__((naked))
+#else // BBZ_ROBOT
+#define NAKED
+#endif // BBZ_ROBOT
+
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 #endif // !BBZINCLUDES_H

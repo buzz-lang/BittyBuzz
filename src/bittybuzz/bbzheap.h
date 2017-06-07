@@ -102,7 +102,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
 
 /**
  * @brief Returns a pointer located at position i within the heap.
- * @param[in] i The position.
+ * @param[in] i The position (a bbzheap_idx_t).
  * @return A pointer to the object.
  */
 #define bbzheap_obj_at(i) ((bbzobj_t*)(vm->heap.data) + (i))

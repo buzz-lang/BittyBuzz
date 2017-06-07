@@ -28,8 +28,9 @@ Should you wish to, you may specify a custom value for these variables:
 - `BBZHEAP_SIZE` : Size of the heap (in bytes) [Default: 1024].
 - `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].
 - `BBZSTACK_SIZE` : Size of the VM's stack (in number of objects) [Default: 256].
+- `BBZVSTIG_CAP` : Capacity of the virtual stigmergy (in number of entries) [Default: 3].
 - `RESERVED_ACTREC_MAX` : Number of table segments reserved for lambdas'
-activation record [Default: 32 ; **must be ≤254**].
+activation record [Default: 32, Max: 254].
 
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 
