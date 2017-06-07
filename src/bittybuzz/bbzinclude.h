@@ -32,15 +32,15 @@ typedef uint16_t bbzheap_idx_t;
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
-#ifdef BBZ_ROBOT
+#if defined(BBZ_ROBOT) || defined(DOXYGEN)
 /**
  * @brief Specifies that a function should not perform extra
  * computation before and after the call.
  */
 #define NAKED __attribute__((naked))
-#else // BBZ_ROBOT
+#else // defined(BBZ_ROBOT) || defined(DOXYGEN)
 #define NAKED
-#endif // BBZ_ROBOT
+#endif // defined(BBZ_ROBOT) || defined(DOXYGEN)
 
 #ifdef __cplusplus
 }

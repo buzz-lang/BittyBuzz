@@ -27,4 +27,4 @@ endfunction()
 add_test_executables()
 
 add_subdirectory(util)
-add_subdirectory(ressources)
+add_subdirectory(resources)

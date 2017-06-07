@@ -4,7 +4,7 @@
 
 # Copies all files to the binary directory so that
 # they can be found by the test executables.
-function (copy_test_ressources)
+function (copy_test_resources)
     # Find files under the directory.
     file(GLOB files "*")
 
@@ -31,7 +31,7 @@ function (generate_all_bbos)
         else()
             generate_bbo(${BBO_TARGET} ${CMAKE_CURRENT_BINARY_DIR} ${buzz_source} "")
         endif()
-        add_dependencies(test_ressources ${BBO_TARGET})
+        add_dependencies(test_resources ${BBO_TARGET})
     endforeach()
 endfunction()
 
@@ -40,5 +40,5 @@ endfunction()
 # =              CMAKE SCRIPT              =
 # ==========================================
 
-copy_test_ressources()
+copy_test_resources()
 generate_all_bbos()

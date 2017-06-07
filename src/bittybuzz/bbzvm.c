@@ -19,7 +19,7 @@ void bbzvm_process_outmsgs() {
 /****************************************/
 
 ALWAYS_INLINE
-void dftl_error_notifier(bbzvm_error errcode) { }
+void dftl_error_receiver(bbzvm_error errcode) { }
 
 void bbzvm_construct(bbzrobot_id_t robot) {
 
@@ -28,7 +28,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     vm->pc = 0;
     vm->state = BBZVM_STATE_NOCODE;
     vm->error = BBZVM_ERROR_NONE;
-    vm->error_notifier_fun = dftl_error_notifier;
+    vm->error_receiver_fun = dftl_error_receiver;
 
     // Setup the heap
     bbzheap_clear();
@@ -75,14 +75,14 @@ void bbzvm_seterror(bbzvm_error errcode) {
     // Set the error
     vm->state = BBZVM_STATE_ERROR;
     vm->error = errcode;
-    // Call the error notifier function.
-    (*vm->error_notifier_fun)(errcode);
+    // Call the error receiver function.
+    (*vm->error_receiver_fun)(errcode);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size) {
+void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size) {
     // 1) Reset the VM
     vm->state = BBZVM_STATE_READY;
     vm->error = BBZVM_ERROR_NONE;
@@ -97,18 +97,17 @@ bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcod
 
     // 4) Register Buzz's built-in functions
     while(*vm->bcode_fetch_fun(vm->pc, sizeof(uint8_t)) != BBZVM_INSTR_NOP) {
-        if(bbzvm_step() != BBZVM_STATE_READY) return vm->state;
+        bbzvm_step();
+        if(vm->state != BBZVM_STATE_READY) return;
     }
 
     bbzvm_step();
-
-    return BBZVM_STATE_READY;
 }
 
 /****************************************/
 /****************************************/
 
-#define assert_pc(IDX) if((IDX) < 0 || (IDX) >= vm->bcode_size) { bbzvm_seterror(BBZVM_ERROR_PC); return BBZVM_STATE_ERROR; }
+#define assert_pc(IDX) if((IDX) < 0 || (IDX) >= vm->bcode_size) { bbzvm_seterror(BBZVM_ERROR_PC); return; }
 
 #define inc_pc() assert_pc(vm->pc); ++vm->pc;
 
@@ -130,10 +129,9 @@ uint8_t bbzvm_gc() {
 
 /**
  * @brief Executes a single Buzz instruction.
- * @param[in,out] vm The VM.
  */
 ALWAYS_INLINE
-bbzvm_state bbzvm_exec_instr() {
+void bbzvm_exec_instr() {
     int16_t instrOffset = vm->pc; // Save PC in case of error or DONE.
 
     uint8_t instr = *(*vm->bcode_fetch_fun)(vm->pc, 1);
@@ -339,28 +337,25 @@ bbzvm_state bbzvm_exec_instr() {
         // or, in the case of BBZVM_INSTR_DONE, loop on it.
         vm->pc = instrOffset;
     }
-
-    return vm->state;
 }
 
-bbzvm_state bbzvm_step() {
+void bbzvm_step() {
     if(vm->state == BBZVM_STATE_READY) {
         if(!bbzvm_gc()) {
             bbzvm_seterror(BBZVM_ERROR_STACK);
-            return BBZVM_STATE_ERROR;
+            return;
         }
-        bbzvm_state ret = bbzvm_exec_instr();
-        return ret;
+        bbzvm_exec_instr();
     }
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_execute_script() {
-    while(bbzvm_step() == BBZVM_STATE_READY) { }
-    return vm->state;
+void bbzvm_execute_script() {
+    while(vm->state == BBZVM_STATE_READY) {
+        bbzvm_step();
+    }
 }
 
 
@@ -385,10 +380,9 @@ typedef int16_t (*binary_op_arith)(int16_t lhs,
 /**
  * @brief Performs an arithmetic binary operation.
  * @details Pops both operand, and pushes the result.
- * @param[in,out] vm The VM.
  * @param[in] op The operation to perform.
  */
-bbzvm_state bbzvm_binary_op_arith(binary_op_arith op) {
+void bbzvm_binary_op_arith(binary_op_arith op) {
     bbzvm_stack_assert(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
@@ -408,7 +402,6 @@ bbzvm_state bbzvm_binary_op_arith(binary_op_arith op) {
     else {
         bbzvm_seterror(BBZVM_ERROR_TYPE);
     }
-    return vm->state;
 }
 
 int16_t add(int16_t lhs, int16_t rhs) { return lhs + rhs; }
@@ -439,42 +432,42 @@ int16_t bbzpow(int16_t lhs, int16_t rhs) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_add() {
+void bbzvm_add() {
 	return bbzvm_binary_op_arith(&add);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_sub() {
+void bbzvm_sub() {
 	return bbzvm_binary_op_arith(&sub);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_mul() {
+void bbzvm_mul() {
 	return bbzvm_binary_op_arith(&mul);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_div() {
+void bbzvm_div() {
 	return bbzvm_binary_op_arith(&div);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_mod() {
+void bbzvm_mod() {
 	return bbzvm_binary_op_arith(&mod);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pow() {
+void bbzvm_pow() {
 	return bbzvm_binary_op_arith(&bbzpow);
 }
 
@@ -483,7 +476,7 @@ bbzvm_state bbzvm_pow() {
 // -         Unary Minus          -
 // --------------------------------
 
-bbzvm_state bbzvm_unm() {
+void bbzvm_unm() {
     bbzvm_stack_assert(1);
     bbzobj_t* operand = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzvm_pop();
@@ -500,7 +493,6 @@ bbzvm_state bbzvm_unm() {
     else {
 	    bbzvm_seterror(BBZVM_ERROR_TYPE);
     }
-	return vm->state;
 }
 
 // --------------------------------
@@ -519,10 +511,9 @@ typedef uint8_t (*binary_op_logic)(uint8_t lhs,
 /**
  * @brief Performs an arithmetic binary operation.
  * @details Pops both operand, and pushes the result.
- * @param[in,out] vm The VM.
  * @param[in] op The operation to perform.
  */
-bbzvm_state bbzvm_binary_op_logic(binary_op_logic op) {
+void bbzvm_binary_op_logic(binary_op_logic op) {
     bbzvm_stack_assert(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
@@ -535,12 +526,12 @@ bbzvm_state bbzvm_binary_op_logic(binary_op_logic op) {
     switch(bbztype(*lhs)) {
         case BBZTYPE_INT: lhs_bool = (lhs->i.value != 0); break;
         case BBZTYPE_NIL: lhs_bool = 0; break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return vm->state;
+        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
     }
     switch(bbztype(*rhs)) {
         case BBZTYPE_INT: rhs_bool = (rhs->i.value != 0); break;
         case BBZTYPE_NIL: rhs_bool = 0; break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return vm->state;
+        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
     }
 
     bbzheap_idx_t idx;
@@ -555,21 +546,21 @@ uint8_t bbzor (uint8_t lhs, uint8_t rhs) { return lhs | rhs; }
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_and() {
+void bbzvm_and() {
 	return bbzvm_binary_op_logic(&bbzand);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_or() {
+void bbzvm_or() {
 	return bbzvm_binary_op_logic(&bbzor);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_not() {
+void bbzvm_not() {
     bbzvm_stack_assert(1);
     bbzobj_t* operand = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzvm_pop();
@@ -580,7 +571,6 @@ bbzvm_state bbzvm_not() {
         case BBZTYPE_NIL: bbzvm_obj_at(idx)->i.value = 0; break;
         default: bbzvm_seterror(BBZVM_ERROR_TYPE);
     }
-    return vm->state;
 }
 
 /****************************************/
@@ -600,10 +590,9 @@ typedef uint8_t (*binary_op_cmp)(int8_t cmp);
 /**
  * @brief Performs an arithmetic binary operation.
  * @details Pops both operand, and pushes the result.
- * @param[in,out] vm The VM.
  * @param[in] op The operation to perform.
  */
-bbzvm_state bbzvm_binary_op_cmp(binary_op_cmp op) {
+void bbzvm_binary_op_cmp(binary_op_cmp op) {
     bbzvm_stack_assert(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
@@ -616,8 +605,6 @@ bbzvm_state bbzvm_binary_op_cmp(binary_op_cmp op) {
     bbzvm_assert_mem_alloc(BBZTYPE_INT, &idx);
     bbzvm_obj_at(idx)->i.value = (*op)(cmp);
     bbzvm_push(idx);
-
-    return vm->state;
 }
 
 uint8_t bbzeq (int8_t cmp) { return cmp == 0; }
@@ -630,49 +617,49 @@ uint8_t bbzlte(int8_t cmp) { return cmp <= 0; }
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_eq() {
+void bbzvm_eq() {
 	return bbzvm_binary_op_cmp(&bbzeq);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_neq() {
+void bbzvm_neq() {
 	return bbzvm_binary_op_cmp(&bbzneq);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_gt() {
+void bbzvm_gt() {
 	return bbzvm_binary_op_cmp(&bbzgt);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_gte() {
+void bbzvm_gte() {
 	return bbzvm_binary_op_cmp(&bbzgte);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_lt() {
+void bbzvm_lt() {
 	return bbzvm_binary_op_cmp(&bbzlt);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_lte() {
+void bbzvm_lte() {
 	return bbzvm_binary_op_cmp(&bbzlte);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pusht() {
+void bbzvm_pusht() {
     // Allocate the table
     bbzheap_idx_t idx;
     bbzvm_assert_mem_alloc(BBZTYPE_TABLE, &idx);
@@ -682,7 +669,7 @@ bbzvm_state bbzvm_pusht() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_lload(uint16_t idx) {
+void bbzvm_lload(uint16_t idx) {
     bbzheap_idx_t id = vm->nil;
     if (!bbzdarray_get(vm->lsyms, idx, &id)) {
         bbzvm_seterror(BBZVM_ERROR_LNUM);
@@ -693,7 +680,7 @@ bbzvm_state bbzvm_lload(uint16_t idx) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_lstore(uint16_t idx) {
+void bbzvm_lstore(uint16_t idx) {
     bbzheap_idx_t o = bbzvm_stack_at(0);
     uint16_t size = bbzdarray_size(vm->lsyms);
     while (size++ <= idx) {
@@ -706,23 +693,22 @@ bbzvm_state bbzvm_lstore(uint16_t idx) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_jump(uint16_t offset) {
+void bbzvm_jump(uint16_t offset) {
     vm->pc = offset;
     assert_pc(vm->pc);
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_jumpz(uint16_t offset) {
+void bbzvm_jumpz(uint16_t offset) {
     bbzvm_stack_assert(1);
     bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(0));
 
     switch(bbztype(*o)) {
         case BBZTYPE_INT: if (o->i.value == 0) vm->pc = offset; break;
         case BBZTYPE_NIL: vm->pc = offset; break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return vm->state;
+        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
     }
     assert_pc(vm->pc);
     return bbzvm_pop();
@@ -731,14 +717,14 @@ bbzvm_state bbzvm_jumpz(uint16_t offset) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_jumpnz(uint16_t offset) {
+void bbzvm_jumpnz(uint16_t offset) {
     bbzvm_stack_assert(1);
     bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(0));
 
     switch(bbztype(*o)) {
         case BBZTYPE_INT: if (o->i.value != 0) vm->pc = offset; assert_pc(vm->pc); break;
         case BBZTYPE_NIL: break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return vm->state;
+        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
     }
     return bbzvm_pop();
 }
@@ -758,18 +744,21 @@ uint8_t bbzvm_gsym_register(uint16_t sid, bbzheap_idx_t v) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_closure_call(uint16_t argc) {
+void bbzvm_closure_call(uint16_t argc) {
     bbzvm_pushi(argc);
     int16_t blockptr = vm->blockptr;
     bbzvm_callc();
-    while(blockptr < vm->blockptr) if(bbzvm_step() != BBZVM_STATE_READY) return vm->state;
-    return vm->state;
+    while(blockptr < vm->blockptr) {
+        if(vm->state != BBZVM_STATE_READY) return;
+        bbzvm_step();
+    }
+    return;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc) {
+void bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc) {
 	/* Reset the VM state if it's DONE */
 	if(vm->state == BBZVM_STATE_DONE)
 		vm->state = BBZVM_STATE_READY;
@@ -784,7 +773,7 @@ bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc) {
 	bbzobj_t* o = bbzvm_obj_at(bbzvm_stack_at(0));
 	if(!bbztype_isclosure(*o)) {
 		bbzvm_seterror(BBZVM_ERROR_TYPE);
-		return BBZVM_STATE_ERROR;
+		return;
 	}
 	/* Move closure before arguments */
 	if(argc > 0) {
@@ -804,7 +793,8 @@ bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc) {
 
 bbzheap_idx_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp) {
     /* Allocate a bbzclosure_t */
-    if (bbzvm_pushcc(funp) == BBZVM_STATE_ERROR) return 0;
+    bbzvm_pushcc(funp);
+    if (vm->state == BBZVM_STATE_ERROR) return 0;
     /* Register the closure in the global symbols */
     bbzheap_idx_t cpos = bbzvm_stack_at(0);
     bbzvm_pop();
@@ -818,7 +808,7 @@ bbzheap_idx_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_call(uint8_t isswrm) {
+void bbzvm_call(uint8_t isswrm) {
 	/* Get argument number and pop it */
     bbzvm_stack_assert(1);
     bbzvm_type_assert(0, BBZTYPE_INT);
@@ -833,7 +823,7 @@ bbzvm_state bbzvm_call(uint8_t isswrm) {
     if(bbztype_isclosurelambda(*c) &&
        ((c->l.value.ref) >= bbzdarray_size(vm->flist))) {
 		bbzvm_seterror(BBZVM_ERROR_FLIST);
-		return vm->state;
+		return;
 	}
     /* Keep a refererence to the old local symbol list */
     bbzheap_idx_t oldLsyms = vm->lsyms;
@@ -886,26 +876,24 @@ bbzvm_state bbzvm_call(uint8_t isswrm) {
             ((bbzvm_funp)c->c.value)();
         }
     }
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pop() {
+void bbzvm_pop() {
     if(bbzvm_stack_size() > 0) {
     	--vm->stackptr;
     }
     else {
         bbzvm_seterror(BBZVM_ERROR_STACK);
     }
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_dup() {
+void bbzvm_dup() {
     uint16_t stack_size = bbzvm_stack_size();
     if (stack_size > 0 && stack_size < BBZSTACK_SIZE) {
         bbzheap_idx_t idx;
@@ -916,25 +904,23 @@ bbzvm_state bbzvm_dup() {
     else {
         bbzvm_seterror(BBZVM_ERROR_STACK);
     }
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_push(bbzheap_idx_t v) {
+void bbzvm_push(bbzheap_idx_t v) {
 	if (bbzvm_stack_size() >= BBZSTACK_SIZE) {
 		bbzvm_seterror(BBZVM_ERROR_STACK);
-		return vm->state;
+		return;
 	}
 	vm->stack[++vm->stackptr] = v;
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushu(void* v) {
+void bbzvm_pushu(void* v) {
     bbzheap_idx_t o;
     bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
     bbzheap_obj_at(o)->u.value = v;
@@ -944,14 +930,14 @@ bbzvm_state bbzvm_pushu(void* v) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushnil() {
+void bbzvm_pushnil() {
     return bbzvm_push(vm->nil);
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushc(intptr_t rfrnc, int16_t nat) {
+void bbzvm_pushc(intptr_t rfrnc, int16_t nat) {
     bbzheap_idx_t o;
     bbzvm_assert_mem_alloc((uint8_t)(BBZTYPE_CLOSURE | ((nat & 1) << 1)), &o);
     bbzvm_obj_at(o)->c.value = (void*)rfrnc;
@@ -961,7 +947,7 @@ bbzvm_state bbzvm_pushc(intptr_t rfrnc, int16_t nat) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushi(int16_t v) {
+void bbzvm_pushi(int16_t v) {
     bbzheap_idx_t o;
     bbzvm_assert_mem_alloc(BBZTYPE_INT, &o);
     bbzvm_obj_at(o)->i.value = v;
@@ -971,7 +957,7 @@ bbzvm_state bbzvm_pushi(int16_t v) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushf(bbzfloat v) {
+void bbzvm_pushf(bbzfloat v) {
     bbzheap_idx_t o;
     bbzvm_assert_mem_alloc(BBZTYPE_FLOAT, &o);
     bbzheap_obj_at(o)->f.value = v;
@@ -981,7 +967,7 @@ bbzvm_state bbzvm_pushf(bbzfloat v) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushs(uint16_t strid) {
+void bbzvm_pushs(uint16_t strid) {
     bbzheap_idx_t o, v;
     bbzvm_assert_mem_alloc(BBZTYPE_STRING, &o);
     bbzheap_obj_at(o)->s.value = strid;
@@ -996,7 +982,7 @@ bbzvm_state bbzvm_pushs(uint16_t strid) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_pushl(uint16_t addr) {
+void bbzvm_pushl(uint16_t addr) {
     bbzheap_idx_t o;
     bbzvm_assert_mem_alloc(BBZTYPE_NCLOSURE, &o);
     bbzclosure_make_lambda(*bbzvm_obj_at(o));
@@ -1025,7 +1011,7 @@ bbzvm_state bbzvm_pushl(uint16_t addr) {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_tput() {
+void bbzvm_tput() {
     // Get value, key and table, and pop them.
     bbzvm_stack_assert(3);
     bbzvm_type_assert(2, BBZTYPE_TABLE);
@@ -1073,14 +1059,12 @@ bbzvm_state bbzvm_tput() {
     else {
         bbzvm_assert_exec(bbztable_set(t, k, v), BBZVM_ERROR_MEM);
     }
-
-    return BBZVM_STATE_READY;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_tget() {
+void bbzvm_tget() {
     // Get & pop the arguments
     bbzvm_stack_assert(2);
     bbzvm_type_assert(1, BBZTYPE_TABLE);
@@ -1098,15 +1082,12 @@ bbzvm_state bbzvm_tget() {
     else {
         bbzvm_pushnil();
     }
-    bbzvm_assert_state();
-
-    return BBZVM_STATE_READY;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_gload() {
+void bbzvm_gload() {
     // Get and pop the string
     bbzvm_stack_assert(1);
     bbzvm_type_assert(0, BBZTYPE_STRING);
@@ -1123,13 +1104,12 @@ bbzvm_state bbzvm_gload() {
         bbzvm_pushnil();
     }
     bbzvm_assert_state();
-    return BBZVM_STATE_READY;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_gstore() {
+void bbzvm_gstore() {
     // Get and pop the arguments
     bbzvm_stack_assert(2);
     bbzvm_type_assert(1, BBZTYPE_STRING);
@@ -1143,13 +1123,12 @@ bbzvm_state bbzvm_gstore() {
     if (!bbztable_set(vm->gsyms, str, o)) {
         bbzvm_seterror(BBZVM_ERROR_MEM);
     }
-    return vm->state;
 }
 
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_ret0() {
+void bbzvm_ret0() {
 	/* Pop swarm stack */
     if (bbzdarray_isswarm(&bbzvm_obj_at(vm->lsyms)->t)) {
     	//TODO pop the swarm stack.
@@ -1177,7 +1156,7 @@ bbzvm_state bbzvm_ret0() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvm_ret1() {
+void bbzvm_ret1() {
 	/* Pop swarm stack */
     if (bbzdarray_isswarm(&bbzvm_obj_at(vm->lsyms)->t)) {
     	//TODO pop the swarm stack.

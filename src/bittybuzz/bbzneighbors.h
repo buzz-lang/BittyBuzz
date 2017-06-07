@@ -17,10 +17,9 @@ extern "C" {
 /**
  * @brief Clears the neighbor structure.
  * Add new neighbor data with bbzneighbor_add().
- * @return The updated VM state.
  * @see bbzneighbors_add()
  */
-bbzvm_state bbzneighbors_reset();
+void bbzneighbors_reset();
 
 /**
  * @brief Adds a neighbor to the neighbor data structure.
@@ -28,79 +27,67 @@ bbzvm_state bbzneighbors_reset();
  * @param[in] distance The distance between to the given robot.
  * @param[in] azimuth The angle (in rad) on the XY plane.
  * @param[in] elevation The angle (in rad) between the XY plane and the robot.
- * @return The updated VM state.
  * @see bbzneighbors_reset()
  */
-bbzvm_state bbzneighbors_add(uint16_t robot,
+void bbzneighbors_add(uint16_t robot,
                              uint8_t distance,
                              uint8_t azimuth,
                              uint8_t elevation);
 
 /**
  * @brief Broadcasts a value across the neighbors.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_broadcast();
+void bbzneighbors_broadcast();
 
 /**
  * @brief Installs a listener for a value across the neighbors.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_listen();
+void bbzneighbors_listen();
 
 /**
  * @brief Removes a listener for a value across the neighbors.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_ignore();
+void bbzneighbors_ignore();
 
 /**
  * @brief Pushes a table of robots belonging to the same swarm as the current robot.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_kin();
+void bbzneighbors_kin();
 
 /**
  * @brief Pushes a table of robots not belonging to the same swarm as the current robot.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_nonkin();
+void bbzneighbors_nonkin();
 
 /**
  * @brief Pushes a table containing (robot id, data) onto the stack.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_get();
+void bbzneighbors_get();
 
 /**
  * @brief Calls a closure for each neighbor.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_foreach();
+void bbzneighbors_foreach();
 
 /**
  * @brief Makes a new neighbor structure in which each element is transformed by the passed closure.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_map();
+void bbzneighbors_map();
 
 /**
  * @brief Performs a left fold/accumulation/reduction operation on the neighbors.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_reduce();
+void bbzneighbors_reduce();
 
 /**
  * @brief Filters the neighbors according to a predicate.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_filter();
+void bbzneighbors_filter();
 
 /**
  * @brief Pushes the number of neighbors on the stack.
- * @return The updated VM state.
  */
-bbzvm_state bbzneighbors_count();
+void bbzneighbors_count();
 
 #ifdef __cplusplus
 }

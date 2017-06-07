@@ -30,7 +30,7 @@ typedef enum {
     BBZVM_ERROR_TYPE,     /**< @brief Type mismatch */
     BBZVM_ERROR_STRING,   /**< @brief Unknown string id */
     BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id */
-    BBZVM_ERROR_VSTIG,    /**< @breif Too many vstig entries. */
+    BBZVM_ERROR_VSTIG,    /**< @brief Too many vstig entries. */
     BBZVM_ERROR_MEM       /**< @brief Out of memory */
 } bbzvm_error;
 
@@ -38,7 +38,7 @@ typedef enum {
  * @brief VM instructions.
  */
 typedef enum {
-    /**
+    /*
      * Opcodes without argument
      */
     BBZVM_INSTR_NOP = 0, /**< @brief No operation */
@@ -71,7 +71,7 @@ typedef enum {
     BBZVM_INSTR_TGET,    /**< @brief Push value for key (stack(#0)) in table (stack #1), pop key */
     BBZVM_INSTR_CALLC,   /**< @brief Calls the closure on top of the stack as a normal closure */
     BBZVM_INSTR_CALLS,   /**< @brief Calls the closure on top of the stack as a swarm closure */
-    /**
+    /*
      * Opcodes with argument
      */
     /* Float argument */

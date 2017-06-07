@@ -1,7 +1,7 @@
 #include <bittybuzz/bbzvm.h>
 #include <avr/pgmspace.h>
 
-#include "ressources/testefficiency_counting.h"
+#include "resources/testefficiency_counting.h"
 
 uint8_t bcode_buf[4];
 
@@ -39,7 +39,7 @@ void err_reciever(bbzvm_error errcode) {
     set_led(W);
 }
 
-bbzvm_state bbz_led() {
+void bbz_led() {
     bbzvm_lload(1);
     int8_t color = (int8_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     set_led(color);
@@ -55,7 +55,7 @@ void setup() {
     set_led(M);
 
     bbzvm_construct(0);
-    bbzvm_set_error_notifier(&err_reciever);
+    bbzvm_set_error_receiver(&err_reciever);
     bbzvm_set_bcode(&bcode_fetcher, bcode_size);
 
     led_c = bbzvm_function_register(0, &bbz_led);

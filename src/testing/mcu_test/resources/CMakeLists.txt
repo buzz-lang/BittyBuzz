@@ -4,7 +4,7 @@
 
 # Copies all files to the binary directory so that
 # they can be found by the test executables.
-function (copy_test_ressources)
+function (copy_test_resources)
     # Find files under the directory.
     file(GLOB files "*")
 
@@ -40,7 +40,7 @@ function (generate_all_bbos)
         add_custom_target(${HEADER_TARGET} DEPENDS ${BYTECODE_GEN} ${BBO_TARGET})
         add_custom_command(TARGET ${HEADER_TARGET}
             COMMAND "$<TARGET_FILE:bcodegen>" ${BCODE_INFILE} ${BCODE_HEADER})
-        add_dependencies(test_ressources ${HEADER_TARGET})
+        add_dependencies(test_resources ${HEADER_TARGET})
     endforeach()
 endfunction()
 
@@ -48,5 +48,5 @@ endfunction()
 # =              CMAKE SCRIPT              =
 # ==========================================
 
-copy_test_ressources()
+copy_test_resources()
 generate_all_bbos()

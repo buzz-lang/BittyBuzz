@@ -3,8 +3,8 @@
 # ==========================================
 use_native_compiler()
 
-add_custom_target(test_ressources)
-add_custom_target(test_executables ALL DEPENDS test_ressources)
+add_custom_target(test_resources)
+add_custom_target(test_executables ALL DEPENDS test_resources)
 
 if (CMAKE_CROSSCOMPILING)
     # Add the tests that work on the kilobots

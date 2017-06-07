@@ -3,7 +3,7 @@
  * @brief Definition of BittyBuzz's Virtual Stigmergy, a structure of data
  * shared accross a swarm of robots inspired from nest-building instects'
  * stigmergies.
- * @warning Due to low hardware ressources, we only allow a single
+ * @warning Due to low hardware resources, we only allow a single
  * stigmergy. Its ID must be 1.
  */
 
@@ -71,30 +71,26 @@ void bbzvstig_regsiter();
  * @note For reasons of compatibility with Buzz, BittyBuzz also
  * expects the stigmergy ID to be passed to this function, although
  * it is ignored.
- * @return The updated VM state.
  */
-bbzvm_state bbzvstig_create();
+void bbzvstig_create();
 
 /**
  * @brief Buzz C closure which gets a value from the stigmergy.
  * @details One parameter is expected on the stack: the key.
- * @return The updated VM state.
  */
-bbzvm_state bbzvstig_get();
+void bbzvstig_get();
 
 /**
  * @brief Buzz C closure which sets a value in the stigmergy.
  * @details Two parameters are expected on the stack: the key and the value.
- * @return The updated VM state.
  */
-bbzvm_state bbzvstig_put();
+void bbzvstig_put();
 
 /**
  * @brief Buzz C closure which returns the size of the virtual
  * stigmergy structure.
- * @return The updated VM state.
  */
-bbzvm_state bbzvstig_size();
+void bbzvstig_size();
 
 #ifdef __cplusplus
 }

@@ -68,7 +68,7 @@ void bbzswarm_members_refresh(bbzswarm_members_t m,
  * @param[in] swarm The swarm id.
  * @return 1 if a robot is a member of the given swarm, 0 otherwise.
  */
-bbzvm_state bbzswarm_members_isrobotin(bbzswarm_members_t m,
+void bbzswarm_members_isrobotin(bbzswarm_members_t m,
                                        uint16_t robot,
                                        uint16_t swarm);
 
@@ -80,57 +80,48 @@ void bbzswarm_members_update(bbzswarm_members_t m);
 
 /**
  * @brief Registers the swarm data into the virtual machine.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_register();
+void bbzswarm_register();
 
 /**
  * @brief Buzz C closure to create a new swarm object.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_create();
+void bbzswarm_create();
 
 /**
  * @brief Buzz C closure to return the current swarm id or the parent's.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_id();
+void bbzswarm_id();
 
 /**
  * @brief Buzz C closure to create a new swarm object as a complementary of another.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_others();
+void bbzswarm_others();
 
 /**
  * @brief Buzz C closure to join a swarm.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_join();
+void bbzswarm_join();
 
 /**
  * @brief Buzz C closure to leave a swarm.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_leave();
+void bbzswarm_leave();
 
 /**
  * @brief Buzz C closure to check whether the robot is within a swarm.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_in();
+void bbzswarm_in();
 
 /**
  * @brief Buzz C closure to execute conditionally add a robot to a swarm.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_select();
+void bbzswarm_select();
 
 /**
  * @brief Buzz C closure to execute a closure if the robot belong to a swarm.
- * @return The updated VM state.
  */
-bbzvm_state bbzswarm_exec();
+void bbzswarm_exec();
 
 #ifdef __cplusplus
 }

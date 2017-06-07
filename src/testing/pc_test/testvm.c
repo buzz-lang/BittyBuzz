@@ -52,7 +52,6 @@ const uint8_t* testBcode(int16_t offset, uint8_t size) {
 
 /**
  * @brief Skips a single instruction, with its operand, if any.
- * @param[in,out] vm The VM.
  */
  void bbzvm_skip_instr() {
      uint8_t has_operand = (*testBcode(vm->pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
@@ -158,7 +157,6 @@ bbzvm_error get_last_error() {
 
 /**
  * @brief Resets the VM's state and error.
- * @param[in,out] vm The VM.
  */
  void bbzvm_reset_state() {
      vm->state = BBZVM_STATE_READY;
@@ -167,10 +165,8 @@ bbzvm_error get_last_error() {
 
 /**
  * @brief Function used for testing C closures.
- * @param[in,out] vm The current VM.
- * @return The state of the VM.
  */
-bbzvm_state printIntVal() {
+void printIntVal() {
     bbzheap_idx_t idx;
     bbzvm_lload(1);
     idx = bbzvm_stack_at(0);
@@ -236,7 +232,7 @@ void logfunc() {
     printf("\n");
 }
 
-bbzvm_state bbzvm_log() {
+void bbzvm_log() {
     uint16_t nArg = bbzdarray_size(vm->lsyms) - 1;
     for (uint16_t i = 0; i < nArg; ++i) {
         bbzvm_lload(nArg - i);
@@ -284,11 +280,11 @@ typedef enum {
     BBZVM_SYMID_RIGHT
 } bbzvm_symid;
 
-bbzvm_state bbzvm_dummy() {
+void bbzvm_dummy() {
     return bbzvm_ret0();
 }
 
-bbzvm_state bbzvm_dummy_int() {
+void bbzvm_dummy_int() {
     bbzvm_pushi(0);
     return bbzvm_ret1();
 }
@@ -300,7 +296,7 @@ bbzheap_idx_t swarm_leave;
 bbzheap_idx_t swarm_in;
 bbzheap_idx_t swarm_exec;
 
-bbzvm_state bbzvm_swarm_create() {
+void bbzvm_swarm_create() {
     bbzvm_pusht();
     bbzvm_dup();
     bbzvm_pushs(BBZVM_SYMID_SELECT);
@@ -430,10 +426,10 @@ void bbzvm_register_gsyms() {
 
 bbzvm_t* vm;
 
-#define FILE_TEST1 "ressources/1_InstrTest.bbo"
-#define FILE_TEST2 "ressources/2_IfTest.bbo"
-#define FILE_TEST3 "ressources/3_test1.bbo"
-#define FILE_TEST4 "ressources/4_AllFeaturesTest.bbo"
+#define FILE_TEST1 "resources/1_InstrTest.bbo"
+#define FILE_TEST2 "resources/2_IfTest.bbo"
+#define FILE_TEST3 "resources/3_test1.bbo"
+#define FILE_TEST4 "resources/4_AllFeaturesTest.bbo"
 #define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint16_t)
 
 TEST(bbzvm) {
@@ -457,8 +453,8 @@ TEST(bbzvm) {
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(vm->robot, robot);
 
-    // Also set the error notifier.
-    bbzvm_set_error_notifier(&set_last_error);
+    // Also set the error receiver.
+    bbzvm_set_error_receiver(&set_last_error);
 
     // ------------------------
     // - Test bbzvm_set_bcode -
@@ -683,7 +679,7 @@ TEST(bbzvm) {
         }
     }
 
-    bbzvm_set_error_notifier(set_last_error_no_print);
+    bbzvm_set_error_receiver(set_last_error_no_print);
     // ---- Test failing operations ----
     // 16) Perform some basic operations when stack is empty
     {
@@ -749,7 +745,7 @@ TEST(bbzvm) {
     }
     bbzvm_reset_state();
 
-    bbzvm_set_error_notifier(&set_last_error);
+    bbzvm_set_error_receiver(&set_last_error);
 
     // -----------------------
     // - Test bbzvm_destruct -
@@ -763,7 +759,7 @@ TEST(bbzvm) {
 
     // - Set up -
     bbzvm_construct(robot);
-    bbzvm_set_error_notifier(&set_last_error);
+    bbzvm_set_error_receiver(&set_last_error);
 
     fclose(fbcode);
     fbcode = fopen(FILE_TEST3, "rb");
@@ -793,12 +789,15 @@ TEST(bbzvm) {
     bbzvm_pop();
     REQUIRE(bbztype_isclosure(*bbzvm_obj_at(c)));
     bbzvm_pushi(123);
-    ASSERT(bbzvm_function_call(0, 1) != BBZVM_STATE_ERROR);
+    bbzvm_function_call(0, 1);
+    ASSERT(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 
     // D) Execute the rest of the script
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    while(bbzvm_step() == BBZVM_STATE_READY);
+    while(vm->state == BBZVM_STATE_READY) {
+        bbzvm_step();
+    }
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     bbzvm_pushs(3);
     bbzvm_gload();
@@ -816,7 +815,7 @@ TEST(bbzvm) {
     #else
 
     bbzvm_construct(robot);
-    bbzvm_set_error_notifier(&set_last_error);
+    bbzvm_set_error_receiver(&set_last_error);
 
     fclose(fbcode);
     fbcode = fopen(FILE_TEST4, "rb");

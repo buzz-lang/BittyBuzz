@@ -32,7 +32,7 @@ void bbzvstig_register() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvstig_create() {
+void bbzvstig_create() {
     bbzvm_lload(1);
 
     // Empty the vstig.
@@ -55,7 +55,7 @@ bbzvm_state bbzvstig_create() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvstig_get() {
+void bbzvstig_get() {
     bbzvm_lload(1);
     bbzheap_idx_t key = bbzvm_stack_at(0);
 
@@ -81,7 +81,7 @@ bbzvm_state bbzvstig_get() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvstig_put() {
+void bbzvstig_put() {
     bbzvm_lload(1);
     bbzvm_lload(2);
     bbzheap_idx_t key   = bbzvm_stack_at(0);
@@ -117,7 +117,7 @@ bbzvm_state bbzvstig_put() {
 /****************************************/
 /****************************************/
 
-bbzvm_state bbzvstig_size() {
+void bbzvstig_size() {
     bbzvm_pushi(vm->vstig.size);
     return bbzvm_ret1();
 }

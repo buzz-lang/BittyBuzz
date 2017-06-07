@@ -25,7 +25,7 @@ const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
     return buf;
 }
 
-bbzvm_state bbzvm_set_color() {
+void bbzvm_set_color() {
     bbzvm_lload(3);
     bbzvm_lload(2);
     bbzvm_lload(1);
@@ -33,7 +33,7 @@ bbzvm_state bbzvm_set_color() {
     return bbzvm_ret0();
 }
 
-bbzvm_state led() {
+void led() {
     bbzvm_lload(1);
     uint8_t color = bbzvm_stack_at(0);
     set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
@@ -43,7 +43,7 @@ bbzvm_state led() {
 void setup() {
     bbzvm_construct(kilo_uid);
     bbzvm_set_bcode(bcodeFetcher, bcode_size);
-    bbzvm_set_error_notifier(NULL);
+    bbzvm_set_error_receiver(NULL);
     bbzkilo_function_register(led, led);
     //bbzvm_execute_script();
 }

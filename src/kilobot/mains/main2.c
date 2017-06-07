@@ -44,7 +44,7 @@ void err_reciever(bbzvm_error errcode) {
     set_led(W);
 }
 
-bbzvm_state bbz_led() {
+void bbz_led() {
     bbzvm_lload(1);
     uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     //set_led(color);
@@ -53,14 +53,14 @@ bbzvm_state bbz_led() {
     return bbzvm_ret0();
 }
 
-bbzvm_state bbz_delay() {
+void bbz_delay() {
     bbzvm_lload(1);
     uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     delay(d);
     return bbzvm_ret0();
 }
 
-bbzvm_state bbz_setmotor() {
+void bbz_setmotor() {
     bbzvm_lload(2);
     bbzvm_lload(1);
     spinup_motors();
@@ -71,15 +71,15 @@ bbzvm_state bbz_setmotor() {
 void setup() {
     bbzvm_construct(kilo_uid);
     bbzvm_set_bcode(bcodeFetcher, bcode_size);
-    bbzvm_set_error_notifier(err_reciever);
+    bbzvm_set_error_receiver(err_reciever);
     bbzkilo_function_register(led, bbz_led);
     bbzkilo_function_register(delay, bbz_delay);
     bbzkilo_function_register(set_motor, bbz_setmotor);
 }
 
 void loop () {
-    bbzvm_state state = bbzvm_step();
-    if (state == BBZVM_STATE_DONE) {
+    bbzvm_step();
+    if (vm->state == BBZVM_STATE_DONE) {
         set_color(RGB(3,0,0));
         delay(75);
         set_color(RGB(2,0,1));
@@ -99,7 +99,7 @@ void loop () {
         set_color(RGB(2,1,0));
         delay(75);
     }
-    else if (state == BBZVM_STATE_ERROR) {
+    else if (vm->state == BBZVM_STATE_ERROR) {
         set_color(RGB(3,1,0));
     }
 }

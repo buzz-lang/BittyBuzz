@@ -47,13 +47,12 @@ extern "C" {
      * signal), or handling the error manually.
      * @param[in] errcode The type of the error that occurred.
      */
-    typedef void (*bbzvm_error_notifier_fun)(bbzvm_error errcode);
+    typedef void (*bbzvm_error_receiver_fun)(bbzvm_error errcode);
 
     /**
      * @brief Type for the pointer to a C-closure.
-     * @return The updated VM state.
      */
-    typedef bbzvm_state (*bbzvm_funp)();
+    typedef void (*bbzvm_funp)();
 
     /**
      * @brief The BittyBuzz Virtual Machine.
@@ -111,8 +110,8 @@ extern "C" {
         bbzvm_state state;
         /** @brief Current VM error */
         bbzvm_error error;
-        /** @brief Error notifier. */
-        bbzvm_error_notifier_fun error_notifier_fun;
+        /** @brief Error receiver. */
+        bbzvm_error_receiver_fun error_receiver_fun;
         /* Current VM error message */
         // TODO
         /** @brief This robot's id */
@@ -168,15 +167,15 @@ extern "C" {
      * @param[in] bcode_size The size (in bytes) of the bytecode.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
+    void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size);
 
     /**
-     * @brief Sets the error notifier.
-     * @see bbzvm_error_notifier_fun
-     * @param[in] error_notifier_fun Function recieving the error notification.
+     * @brief Sets the error receiver.
+     * @see bbzvm_error_receiver_fun
+     * @param[in] error_receiver_fun Function recieving the error notification.
      */
      ALWAYS_INLINE
-    void bbzvm_set_error_notifier(bbzvm_error_notifier_fun error_notifier_fun) { vm->error_notifier_fun = error_notifier_fun; }
+    void bbzvm_set_error_receiver(bbzvm_error_receiver_fun error_receiver_fun) { vm->error_receiver_fun = error_receiver_fun; }
 
     /**
      * @brief Processes the input message queue.
@@ -197,15 +196,13 @@ extern "C" {
      * @brief Executes the next step in the bytecode, if possible.
      * @details Should there be an error during stepping, the VM's
      * program counter will point to the instruction that caused the error.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_step();
+    void bbzvm_step();
 
     /**
      * @brief Executes the script up to completion.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_execute_script();
+    void bbzvm_execute_script();
     
 
     // ======================================
@@ -214,35 +211,29 @@ extern "C" {
 
     /**
      * @brief Terminates the current Buzz script.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_DONE
-     * @return The updated state of the VM.
      */
     ALWAYS_INLINE
-    bbzvm_state bbzvm_done() { vm->state = BBZVM_STATE_DONE; return BBZVM_STATE_DONE; }
+    void bbzvm_done() { vm->state = BBZVM_STATE_DONE; }
 
     /**
      * @brief Pushes nil on the stack.
      * @see BBZVM_INSTR_PUSHNIL
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushnil();
+    void bbzvm_pushnil();
 
     /**
      * @brief Duplicates the current stack top.
      * @see BBZVM_INSTR_DUP
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_dup();
+    void bbzvm_dup();
 
     /**
      * @brief Pops the stack.
      * @details Internally checks whether the operation is valid.
      * @see BBZVM_INSTR_POP
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pop();
+    void bbzvm_pop();
 
     /**
      * @brief Returns from a closure without setting a return value.
@@ -254,9 +245,8 @@ extern "C" {
      * #1. The return address is popped and used to update the program
      * counter.
      * @see BBZVM_INSTR_RET0
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_ret0();
+    void bbzvm_ret0();
 
     /**
      * @brief Returns from a closure setting a return value.
@@ -270,185 +260,130 @@ extern "C" {
      * popped and used to update the program counter. Then, the saved
      * return value is pushed on the stack.
      * @see BBZVM_INSTR_RET1
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_ret1();
+    void bbzvm_ret1();
 
     /**
      * @brief Performs an addition.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_ADD
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_add();
+    void bbzvm_add();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_SUB
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_sub();
+    void bbzvm_sub();
 
     /**
      * @brief Performs an multiplication.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_MUL
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_mul();
+    void bbzvm_mul();
 
     /**
      * @brief Performs an division.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_DIV
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_div();
+    void bbzvm_div();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_MOD
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_mod();
+    void bbzvm_mod();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_POW
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_pow();
+    void bbzvm_pow();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_UNM
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_unm();
+    void bbzvm_unm();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_AND
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_and();
+    void bbzvm_and();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_OR
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_or();
+    void bbzvm_or();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_NOT
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_not();
+    void bbzvm_not();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_EQ
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_eq();
+    void bbzvm_eq();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_NEQ
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_neq();
+    void bbzvm_neq();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_GT
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_gt();
+    void bbzvm_gt();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_GTE
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_gte();
+    void bbzvm_gte();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_LT
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_lt();
+    void bbzvm_lt();
 
     /**
      * @brief Performs an subtraction.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_LTE
-     * @return The updated state of the VM.
      */
-    bbzvm_state bbzvm_lte();
+    void bbzvm_lte();
 
     /**
      * @brief Pushes the global variable located at the given stack index.
      * @details Internally checks whether the operation is valid.
      * @see BBZVM_INSTR_GLOAD
      */
-    bbzvm_state bbzvm_gload();
+    void bbzvm_gload();
 
     /**
      * @brief Stores the object located at the stack top into the a global variable, pops operand.
      * @details Internally checks whether the operation is valid.
      * @see BBZVM_INSTR_GSTORE
      */
-    bbzvm_state bbzvm_gstore();
+    void bbzvm_gstore();
 
 
     /**
      * @brief Pushes a table object on the stack
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * Internally checks whether the operation is valid.
      * @see BBZVM_INSTR_PUSHT
      */
-    bbzvm_state bbzvm_pusht();
+    void bbzvm_pusht();
 
     /**
      * @brief Stores a (idx,value) pair in a table.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * 
      * The stack is expected to be as follows:
      * #0 value
@@ -457,14 +392,11 @@ extern "C" {
      * This operation pops #0 and #1, leaving the table at the stack top.
      * @see BBZVM_INSTR_TPUT
      */
-    bbzvm_state bbzvm_tput();
+    void bbzvm_tput();
     
     /**
      * @brief Fetches a (idx,value) pair from a table.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * 
      * The stack is expected to be as follows:
      * #0 idx
@@ -474,7 +406,7 @@ extern "C" {
      * pushed as value.
      * @see BBZVM_INSTR_TGET
      */
-    bbzvm_state bbzvm_tget();
+    void bbzvm_tget();
 
 
     /**
@@ -489,7 +421,7 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_closure_call(uint16_t argc);
+    void bbzvm_closure_call(uint16_t argc);
 
     /**
      * @brief Calls a function defined in Buzz.
@@ -503,7 +435,7 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    bbzvm_state bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc);
+    void bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc);
 
     /**
      * @brief Registers a function in the VM.
@@ -529,16 +461,12 @@ extern "C" {
      * beneath as follows:
      * #0 An integer for the return address
      * @param[in] isswrm 0 for a normal closure, 1 for a swarm closure
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_call(uint8_t isswrm);
+    void bbzvm_call(uint8_t isswrm);
 
     /**
      * @brief Calls a normal closure.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * 
      * This function expects the stack to be as follows:
      * #1   An integer for the number of closure parameters N
@@ -552,17 +480,13 @@ extern "C" {
      * beneath as follows:
      * #1 An integer for the return address
      * @see BBZVM_INSTR_CALLC
-     * @return The updated VM state.
      */
      ALWAYS_INLINE
-    bbzvm_state bbzvm_callc() { return bbzvm_call(0); }
+    void bbzvm_callc() { return bbzvm_call(0); }
 
     /**
      * @brief Calls a swarm closure.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * 
      * This function expects the stack to be as follows:
      * #1   An integer for the number of closure parameters N
@@ -576,159 +500,120 @@ extern "C" {
      * beneath as follows:
      * #1 An integer for the return address
      * @see BBZVM_INSTR_CALLS
-     * @return The updated VM state.
      */
      ALWAYS_INLINE
-    bbzvm_state bbzvm_calls() { return bbzvm_call(1); }
+    void bbzvm_calls() { return bbzvm_call(1); }
 
     /**
      * @brief Pushes a variable on the stack.
      * @param[in] v The variable.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_push(bbzheap_idx_t v);
+    void bbzvm_push(bbzheap_idx_t v);
 
     /**
      * @brief Pushes a float value on the stack.
      * @see BBZVM_INSTR_PUSHF
      * @param[in] v The value.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushf(bbzfloat v);
+    void bbzvm_pushf(bbzfloat v);
 
     /**
      * @brief Pushes a 32 bit signed int value on the stack.
      * @see BBZVM_INSTR_PUSHI
      * @param[in] v The value.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushi(int16_t v);
+    void bbzvm_pushi(int16_t v);
 
     /**
      * @brief Pushes a string on the stack.
      * @see BBZVM_INSTR_PUSHS
      * @param[in] strid The string id.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushs(uint16_t strid);
+    void bbzvm_pushs(uint16_t strid);
 
     /**
      * @brief Pushes a closure on the stack.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @param[in] rfrnc The closure reference.
      * @param[in] nat 1 if the closure in native, 0 if not
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushc(intptr_t rfrnc, int16_t nat);
+    void bbzvm_pushc(intptr_t rfrnc, int16_t nat);
 
     /**
      * @brief Pushes a native closure on the stack.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_PUSHCN
      * @param[in] addr The closure address.
-     * @return The VM state.
      */
     ALWAYS_INLINE
-    bbzvm_state bbzvm_pushcn(uint16_t addr) { return bbzvm_pushc((intptr_t)addr, 1); }
+    void bbzvm_pushcn(uint16_t addr) { return bbzvm_pushc((intptr_t)addr, 1); }
 
     /**
      * @brief Pushes a c-function closure on the stack.
      * @details Internally checks whether the operation is valid.
      * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
-     * 
      * This function expects the function id in the stack top.
      * It pops the function id and pushes the c-function closure.
      * @see BBZVM_INSTR_PUSHCC
      * @param[in] cid The closure id.
-     * @return The updated VM state.
      */
     ALWAYS_INLINE
-    bbzvm_state bbzvm_pushcc(bbzvm_funp cid) { return bbzvm_pushc((intptr_t)cid, 0); }
+    void bbzvm_pushcc(bbzvm_funp cid) { return bbzvm_pushc((intptr_t)cid, 0); }
 
     /**
      * @brief Pushes a lambda native closure on the stack.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_PUSHL
      * @param[in] addr The closure address.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushl(uint16_t addr);
+    void bbzvm_pushl(uint16_t addr);
 
     /**
      * @brief Pushes a userdata on the stack.
      * @param[in,out] v The C pointer to the user data.
-     * @return The VM state.
      */
-    bbzvm_state bbzvm_pushu(void* v);
+    void bbzvm_pushu(void* v);
 
     /**
      * @brief Pushes the local variable located at the given stack index.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_LLOAD
      * @param[in] idx The index of the local variable to load.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_lload(uint16_t idx);
+    void bbzvm_lload(uint16_t idx);
 
     /**
      * @brief Stores the object located at the stack top into the a local variable, pops operand.
      * @details Internally checks whether the operation is valid.
-     * 
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_LSTORE
      * @param[in] idx The local variable index.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_lstore(uint16_t idx);
+    void bbzvm_lstore(uint16_t idx);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode offset.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @see BBZVM_INSTR_JUMP
      * @param[in] offset The offset to jump to.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jump(uint16_t offset);
+    void bbzvm_jump(uint16_t offset);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode
      * offset, if stack top is zero.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @note A nil object is considered zero.
      * @see BBZVM_INSTR_JUMPZ
      * @param[in] offset The offset to jump to.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jumpz(uint16_t offset);
+    void bbzvm_jumpz(uint16_t offset);
 
     /**
      * @brief Sets the program counter to jump to a specificed bytecode
      * offset, if stack top is not zero.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @note A nil object is considered zero.
      * @see BBZVM_INSTR_JUMPNZ
      * @param[in] offset The offset to jump to.
-     * @return The updated VM state.
      */
-    bbzvm_state bbzvm_jumpnz(uint16_t offset);
+    void bbzvm_jumpnz(uint16_t offset);
 
     /**
      * @brief Register a global symbol.
@@ -782,14 +667,12 @@ extern "C" {
     #define bbzvm_assert_exec(expr, ERR_TYPE)                           \
         if(!(expr)) {                                                   \
             bbzvm_seterror(ERR_TYPE);                                   \
-            return BBZVM_STATE_ERROR;                                   \
+            return;                                                     \
         }
 
     /**
      * @brief Checks whether the given stack's size is >= to the passed size.
      * If the size is not valid, it updates the VM state.
-     * @details This macro is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @param[in] size The stack index, where 0 is the stack top and >0 goes down the stack.
      */
     #define bbzvm_stack_assert(size)                                    \
@@ -798,8 +681,6 @@ extern "C" {
     /**
      * @brief Checks whether the type at the given stack position is correct.
      * If the type is wrong, it updates the VM state and exits the current function.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @param[in] idx The stack index, where 0 is the stack top and >0 goes down the stack.
      * @param[in] tpe The type to check
      */
@@ -810,15 +691,13 @@ extern "C" {
     			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
     			&& !bbztype_isclosure(*o)) {                            \
                 bbzvm_seterror(BBZVM_ERROR_TYPE);                       \
-                return BBZVM_STATE_ERROR;                               \
+                return;                                                 \
             }                                                           \
         }
 
     /**
      * @brief Allocate memory on the heap. If the heap is out of memory,
      * it updates the VM state and exits the current function.
-     * @details This function is designed to be used within int-returning functions such as
-     * bbzvm_push<i|nil|...>() or bbzvm_lload().
      * @param[in] type The type to allocate.
      * @param[out] idx A buffer for the index of the allocated object.
      */
@@ -828,8 +707,6 @@ extern "C" {
     /**
      * @brief Checks whether the current closure was passed exactly
      * certain number of parameters.
-     * @details This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * @param[in] num The number of parameters expected.
      */
     #define bbzvm_assert_lnum(num)                                      \
@@ -840,13 +717,11 @@ extern "C" {
      * instructions such as bbzvm_pop() or bbzvm_gload();
      */
     #define bbzvm_assert_state()                                        \
-        if(vm->state == BBZVM_STATE_ERROR) return vm->state;
+        if(vm->state == BBZVM_STATE_ERROR) return;
 
     /**
      * Calls a normal closure.
      * Internally checks whether the operation is valid.
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * This function expects the stack to be as follows:
      * #1   An integer for the number of closure parameters N
      * #2   Closure arg1
@@ -864,8 +739,6 @@ extern "C" {
     /**
      * Calls a swarm closure.
      * Internally checks whether the operation is valid.
-     * This function is designed to be used within int-returning functions such as
-     * BuzzVM hook functions or bbzvm_step().
      * This function expects the stack to be as follows:
      * #1   An integer for the number of closure parameters N
      * #2   Closure arg1
