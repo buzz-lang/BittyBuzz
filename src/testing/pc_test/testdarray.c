@@ -84,7 +84,7 @@ void bbzheap_print() {
    printf("\n");
 }
 
-void foreach(uint16_t darray, uint16_t pos, void* params) {
+void foreach(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params) {
    ((bbzint_t*)bbzheap_obj_at(pos))->value += 20;
 }
 

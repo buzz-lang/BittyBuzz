@@ -473,6 +473,8 @@ void bbzkilo_init();
  */
 void bbzkilo_start(void (*setup)(void), void (*loop)(void));
 
+void tx_clock_reset();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

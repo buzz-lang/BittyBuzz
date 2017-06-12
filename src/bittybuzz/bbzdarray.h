@@ -30,13 +30,13 @@ extern "C" {
     /**
      *  @brief Function pointer for an element-wise function:
      *
-     *  void f(bbzheap_t* h, bbzheap_idx_t darray, uint16_t pos, void* params)
+     *  void f(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params)
      *
      *  This function pointer is used to destroy elements by
      *  bbzdarray_destroy() and in methods such as
      *  bbzdarray_foreach().
      */
-    typedef void (*bbzdarray_elem_funp)(bbzheap_idx_t darray, uint16_t pos, void* params);
+    typedef void (*bbzdarray_elem_funp)(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params);
 
     /**
      *  @brief Function pointer to compare bbzdarray elements.
@@ -80,15 +80,24 @@ extern "C" {
     /**
      *  @brief Changes the value corresponding to the key k in the array d
      *         from the heap h.
-     *         The key has to be in the range of the array's size.
+     *         The key has to be in the range of the array's valid entries.
      *  @param[in] d The position of the dynamic array's object in the heap.
      *  @param[in] idx The index of the element to get.
      *  @param[in] v The value to set.
      *  @return 1 for success, 0 for failure (index out of range)
      */
     uint8_t bbzdarray_set(bbzheap_idx_t d,
-                      uint16_t idx,
-                      bbzheap_idx_t v);
+                          uint16_t idx,
+                          bbzheap_idx_t v);
+
+    /** FIXME
+     * @brief Remove an element from the array. Do not keep the order
+     * @param[in] d The position of the dynamic array's object in the heap.
+     * @param[in] idx The index of the element to get.
+     * @return 1 for success, 0 for failure (index out of range OR empty array)
+     */
+    uint8_t bbzdarray_remove(bbzheap_idx_t d,
+                             uint16_t idx);
 
     /**
      *  @brief Remove the value at the end of the array d.

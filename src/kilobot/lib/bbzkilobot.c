@@ -1,5 +1,5 @@
 #include <avr/io.h>         // io port and addresses
-#include <avr/wdt.h>        // watch dog timer
+//#include <avr/wdt.h>        // watch dog timer
 #include <avr/interrupt.h>  // interrupt handling
 #include <avr/eeprom.h>     // read eeprom values
 #include <util/delay.h>     // delay macros
@@ -102,7 +102,7 @@ void bbzkilo_init() {
     tx_increment = 255;
     kilo_ticks = 0;
     kilo_state = IDLE;
-    kilo_tx_period = 512;//3906;
+    kilo_tx_period = (uint16_t)(rand_hard()>>5) << 6;//512;//3906;//2048;//
     kilo_uid = eeprom_read_byte(EEPROM_UID) | eeprom_read_byte(EEPROM_UID+1)<<8;
     kilo_turn_left = eeprom_read_byte(EEPROM_LEFT_ROTATE);
     kilo_turn_right = eeprom_read_byte(EEPROM_RIGHT_ROTATE);
@@ -120,20 +120,20 @@ void bbzkilo_init() {
 
 #ifndef BOOTLOADER
 // Ensure that wdt is inactive after system reset.
-void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
-
-void wdt_init(void) {
-    MCUSR = 0;
-    wdt_disable();
-}
+//void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+//
+//void wdt_init(void) {
+//    MCUSR = 0;
+//    wdt_disable();
+//}
 
 /**
  * Watchdog timer interrupt.
  * Used to wakeup from low power sleep mode.
  */
-ISR(WDT_vect) {
-    wdt_disable();
-}
+//ISR(WDT_vect) {
+//    wdt_disable();
+//}
 
 enum {
     MOVE_STOP,
@@ -559,6 +559,10 @@ void set_color(uint8_t rgb) {
         DDRC |= (1<<4);
     else
         DDRC &= ~(1<<4);
+}
+
+void tx_clock_reset() {
+    tx_clock = kilo_tx_period;
 }
 
 /**

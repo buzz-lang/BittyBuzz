@@ -15,6 +15,8 @@ extern "C" {
  */
 #define bbzkilo_function_register(NAME, func) bbzvm_function_register(BBZKILO_SYMID_GEN_ ## NAME, func);
 
+#undef bbzkilo_function_register_PASTER
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

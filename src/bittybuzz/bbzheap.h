@@ -22,12 +22,12 @@ typedef struct __attribute__((packed)) {
       * @brief Table keys.
       * @details 16th bit: valid; other bits: obj index
       */
-    uint16_t keys[BBZHEAP_ELEMS_PER_TSEG];
+    bbzheap_idx_t keys[BBZHEAP_ELEMS_PER_TSEG];
     /**
       * @brief Table values.
       * @details 16th bit: valid; other bits: obj index.
       */
-    uint16_t values[BBZHEAP_ELEMS_PER_TSEG];
+    bbzheap_idx_t values[BBZHEAP_ELEMS_PER_TSEG];
     /**
       * @brief Segment metadata.
       * @details 16th bit : valid
@@ -44,7 +44,7 @@ typedef struct __attribute__((packed)) {
       * @brief Array values.
       * @details 16th bit: valid; other bits: obj index.
       */
-    uint16_t values[2*BBZHEAP_ELEMS_PER_TSEG];
+    bbzheap_idx_t values[2*BBZHEAP_ELEMS_PER_TSEG];
     /**
       * @brief Segment metadata.
       * @details 16th bit : valid

@@ -77,6 +77,59 @@ uint8_t bbzdarray_set(bbzheap_idx_t d,
 /****************************************/
 /****************************************/
 
+uint8_t bbzdarray_remove(bbzheap_idx_t d, uint16_t idx) { // FIXME
+    bbzheap_aseg_t* v = NULL; // The value to remove
+    bbzheap_idx_t si = bbzheap_obj_at(d)->t.value; // Segment index
+    bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
+    bbzheap_aseg_t* prevsd = NULL; // To keep track of the previous segment
+    /* If the array is empty, return with Failure */
+    if (!bbzheap_aseg_hasnext(sd) && !bbzheap_aseg_elem_isvalid(sd->values[0])) {
+        return 0;
+    }
+    /* Loop to fetch the last segment */
+    for (uint16_t i = 0; bbzheap_aseg_hasnext(sd); ++i) {
+        if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG)) {
+            v = sd;
+        }
+        si = bbzheap_aseg_next_get(sd);
+        prevsd = sd;
+        sd = bbzheap_aseg_at(si);
+    }
+    /* We are now at the last segment */
+    /* If the element to remove was not found, return with Failure */
+    if (v == NULL) {
+        return 0;
+    }
+    /* Find the last valid element */
+    for (si = 0; // Reusing 'si' as the position in the segment
+         si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
+                 ++si);
+    if (si > 0) {
+        // If a valid element was found,
+        // place the last element in place of the element to remove
+        // and remove the latter
+        bbzheap_aseg_elem_set(v->values[idx % (2*BBZHEAP_ELEMS_PER_TSEG)], bbzheap_aseg_elem_get(sd->values[si - 1]));
+        sd->values[si - 1] &= ~MASK_VALID_SEG_ELEM;
+    }
+    else {
+        if (prevsd != NULL) {
+            /* If no valid element were found, remove the last one of the previous segment */
+            bbzheap_aseg_elem_set(v->values[idx % (2*BBZHEAP_ELEMS_PER_TSEG)], bbzheap_aseg_elem_get(sd->values[2*BBZHEAP_ELEMS_PER_TSEG-1]));
+            prevsd->values[2*BBZHEAP_ELEMS_PER_TSEG-1] &= ~MASK_VALID_SEG_ELEM;
+            /* Remove the empty segment */
+            tseg_makeinvalid(*sd);
+            bbzheap_aseg_next_set(prevsd, NO_NEXT);
+        }
+        else {
+            return 0; // Should never be reached.
+        }
+    }
+    return 1;
+}
+
+/****************************************/
+/****************************************/
+
 uint8_t bbzdarray_pop(bbzheap_idx_t d) {
     bbzheap_idx_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
