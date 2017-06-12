@@ -263,8 +263,8 @@ void bbzdarray_clear(bbzheap_idx_t d) {
         sd = bbzheap_aseg_at(da->value);
     }
     /* We are now at the last segment */
-    /* Invalidate all valide elements in the segment */
-    for (i = 0; // Reusing 'si' as the position in the segment
+    /* Invalidate all valid elements in the segment */
+    for (i = 0; // Reusing 'i' as the position in the segment
             i < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[i]);
             ++i) {
         sd->values[i] &= ~MASK_VALID_SEG_ELEM;

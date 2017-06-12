@@ -34,9 +34,14 @@
 #define BBZVSTIG_CAP @BBZVSTIG_CAP@
 
 /**
+ * @brief Maximum number of neighbors.
+ */
+#define BBZNEIGHBORS_CAP @BBZNEIGHBORS_CAP@
+
+/**
  * @brief Whether we are crosscompiling.
  */
-#cmakedefine BBZ_ROBOT
+#cmakedefine BBZCROSSCOMPILING
 
 /**
  * @brief Debug flag.

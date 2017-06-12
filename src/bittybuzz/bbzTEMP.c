@@ -2,7 +2,7 @@
 
 #include "bbzTEMP.h"
 
-#ifdef BBZ_ROBOT
+#ifdef BBZCROSSCOMPILING
 
 #include <avr/io.h>
 
@@ -207,7 +207,7 @@ ISR(TIMER0_COMPA_vect) {
     }
 }*/
 
-#else // BBZ_ROBOT
+#else // BBZCROSSCOMPILING
 
 #include <stdio.h>
 
@@ -217,4 +217,4 @@ void set_led(uint8_t color) {
     printf("%s", led_desc[color]);
 }
 
-#endif // BBZ_ROBOT
+#endif // BBZCROSSCOMPILING

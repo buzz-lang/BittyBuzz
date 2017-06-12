@@ -1,31 +1,14 @@
 #include "bbzvstig.h"
 #include "bbzstrids.h"
-
-void add_function(uint16_t symid, bbzvm_funp fun) {
-    bbzvm_dup();
-    bbzvm_pushs(symid);
-    bbzheap_idx_t cc = bbzvm_function_register(-1, fun);
-    bbzvm_push(cc);
-    bbzvm_tput();
-}
-
-void add_data(uint16_t symid, bbzheap_idx_t data) {
-    bbzvm_dup();
-    bbzvm_pushs(symid);
-    bbzvm_push(data);
-    bbzvm_tput();
-}
-
-/****************************************/
-/****************************************/
+#include "bbzutil.h"
 
 void bbzvstig_register() {
+    bbzvm_pushs(__BBZSTRID_STIGMERGY);
     // Create the 'stigmergy' table and set its 'create' field.
     bbzvm_pusht();
-    add_function(__BBZSTRID_CREATE, bbzvstig_create);
+    bbztable_add_function(__BBZSTRID_CREATE, bbzvstig_create);
 
-    // 'stigmergy' table is now stack top. Register it.
-    bbzvm_pushs(__BBZSTRID_STIGMERGY);
+    // String 'stigmergy' is stack-top, and table is now stack #1. Register it.
     bbzvm_gstore();
 }
 
@@ -42,10 +25,10 @@ void bbzvstig_create() {
     bbzvm_pusht();
     // TODO When creating a second vstig table, we might want the first one
     //      to have its id changed too.
-    add_data(__BBZSTRID_ID, bbzvm_stack_at(0));
-    add_function(__BBZSTRID_PUT,  bbzvstig_put);
-    add_function(__BBZSTRID_GET,  bbzvstig_get);
-    add_function(__BBZSTRID_SIZE, bbzvstig_size);
+    bbztable_add_data(__BBZSTRID_ID, bbzvm_stack_at(0));
+    bbztable_add_function(__BBZSTRID_PUT,  bbzvstig_put);
+    bbztable_add_function(__BBZSTRID_GET,  bbzvstig_get);
+    bbztable_add_function(__BBZSTRID_SIZE, bbzvstig_size);
 
 
     // Table is now stack top. Return it.

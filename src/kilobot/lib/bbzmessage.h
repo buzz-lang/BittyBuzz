@@ -2,6 +2,7 @@
 #define BITTYBUZZ_MESSAGES_H
 
 #include <stdint.h>
+#include <bittybuzz/bbzinclude.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,7 +39,7 @@ typedef enum {
  * @see message_crc, kilo_message_rx, kilo_message_tx,
  * kilo_message_tx_success
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t data[9]; ///< message payload.
     uint8_t type;    ///< message type. 
     uint16_t crc;    ///< message crc.

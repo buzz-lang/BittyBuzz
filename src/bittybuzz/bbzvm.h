@@ -13,7 +13,10 @@
 #include "bbzheap.h"
 #include "bbzdarray.h"
 #include "bbztable.h"
+#include "bbzstrids.h"
+#include "bbzneighbors.h"
 #include "bbzvstig.h"
+#include "bbzoutmsg.h"
 
 #include "bbzTEMP.h" // FIXME Remove this
 
@@ -61,7 +64,7 @@ extern "C" {
      * 
      *      1) Load and run bytecode.
      */
-    typedef struct __attribute__((packed)) {
+    typedef struct PACKED {
         /** @brief Bytecode fetcher function */
         bbzvm_bcode_fetch_fun bcode_fetch_fun;
         /** @brief Size of the loaded bytecode */
@@ -76,12 +79,8 @@ extern "C" {
         int16_t blockptr;
         /** @brief Current local variable table */
         bbzheap_idx_t lsyms;
-        /* @brief Local variable array list */
-        //bbzheap_idx_t lsymts;
         /** @brief Global symbols */
         bbzheap_idx_t gsyms;
-        /* Strings */
-        // TODO
         /** @brief Heap content */
         bbzheap_t heap;
         /** @brief Singleton bbznil_t */
@@ -100,10 +99,12 @@ extern "C" {
         // TODO
         /* Input message FIFO */
         // TODO
-        /* Output message FIFO */
-        // TODO
+        /** @brief Output message FIFO */
+        bbzoutmsg_queue_t outmsgs;
         /** @brief Virtual stigmergy single instance. */
         bbzvstig_t vstig;
+        /** @brief Neighbor data. */
+        bbzneighbors_t neighbors;
         /* Neighbor value listeners */
         // TODO
         /** @brief Current VM state */
@@ -481,7 +482,7 @@ extern "C" {
      * #1 An integer for the return address
      * @see BBZVM_INSTR_CALLC
      */
-     ALWAYS_INLINE
+    ALWAYS_INLINE
     void bbzvm_callc() { return bbzvm_call(0); }
 
     /**
@@ -501,7 +502,7 @@ extern "C" {
      * #1 An integer for the return address
      * @see BBZVM_INSTR_CALLS
      */
-     ALWAYS_INLINE
+    ALWAYS_INLINE
     void bbzvm_calls() { return bbzvm_call(1); }
 
     /**
@@ -718,39 +719,6 @@ extern "C" {
      */
     #define bbzvm_assert_state()                                        \
         if(vm->state == BBZVM_STATE_ERROR) return;
-
-    /**
-     * Calls a normal closure.
-     * Internally checks whether the operation is valid.
-     * This function expects the stack to be as follows:
-     * #1   An integer for the number of closure parameters N
-     * #2   Closure arg1
-     * ...
-     * #1+N Closure argN
-     * #2+N The closure
-     * This function pushes a new stack and a new local variable table filled with the
-     * activation record entries and the closure arguments. In addition, it leaves the stack
-     * beneath as follows:
-     * #1 The old block pointer
-     * #2 An integer for the return address
-     */
-    #define bbzvm_callc() bbzvm_call(0)
-
-    /**
-     * Calls a swarm closure.
-     * Internally checks whether the operation is valid.
-     * This function expects the stack to be as follows:
-     * #1   An integer for the number of closure parameters N
-     * #2   Closure arg1
-     * ...
-     * #1+N Closure argN
-     * #2+N The closure
-     * This function pushes a new stack and a new local variable table filled with the
-     * activation record entries and the closure arguments. In addition, it leaves the stack
-     * beneath as follows:
-     * #1 An integer for the return address
-     */
-    #define bbzvm_calls() bbzvm_call(1)
 
 
 #ifdef __cplusplus

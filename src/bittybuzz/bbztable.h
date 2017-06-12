@@ -4,8 +4,8 @@
  * as a dynamically-allocated array.
  */
 
-#ifndef BBZTABLE
-#define BBZTABLE
+#ifndef BBZTABLE_H
+#define BBZTABLE_H
 
 #include "bbzinclude.h"
 #include "bbzheap.h"
@@ -24,8 +24,8 @@ extern "C" {
  * @return 1 for success, 0 for failure (index not in table)
  */
 uint8_t bbztable_get(bbzheap_idx_t t,
-                 bbzheap_idx_t k,
-                 bbzheap_idx_t* v);
+                     bbzheap_idx_t k,
+                     bbzheap_idx_t* v);
 
 /**
  * @brief Add/Edit the value corresponding to the key k in the table t from the heap h.
@@ -37,8 +37,8 @@ uint8_t bbztable_get(bbzheap_idx_t t,
  * @return 1 for success, 0 for failure (out of memory)
  */
 uint8_t bbztable_set(bbzheap_idx_t t,
-                 bbzheap_idx_t k,
-                 bbzheap_idx_t v);
+                     bbzheap_idx_t k,
+                     bbzheap_idx_t v);
 
 /**
  * @brief Return the count of valid keys in the table.
@@ -51,4 +51,4 @@ uint8_t bbztable_size(bbzheap_idx_t t);
 }
 #endif // __cplusplus
 
-#endif
+#endif // !BBZTABLE_H

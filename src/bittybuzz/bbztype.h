@@ -28,14 +28,14 @@ extern "C" {
 /**
  * @brief Nil type
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata; /**< @brief Object metadata. */
 } bbznil_t;
 
 /**
  * @brief 16-bit signed integer
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata; /**< @brief Object metadata. */
     int16_t value; /**< @brief Integer's value. */
 } bbzint_t;
@@ -43,7 +43,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief Float
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
     bbzfloat value; /**< @brief Float object's value. */
 } bbzfloat_t;
@@ -51,7 +51,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief String
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
     uint16_t value; /**< @brief The string id */
 } bbzstring_t;
@@ -59,7 +59,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief Table
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
     uint16_t value; /**< @brief The index of the first segment in the heap */
 } bbztable_t;
@@ -67,7 +67,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief Dynamic Array
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     /**
      * @brief Object metadata.
      * @details 3rd bit: 1 if is dynamic array,
@@ -83,7 +83,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief Closure
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     /**
      * @brief Object metadata.
      * @details 7th topmost bit: 'native' flag.
@@ -96,7 +96,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief Lambda Closure
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     /**
      * @brief Object metadata.
      * @details 7th topmost bit: 'native' flag.
@@ -120,7 +120,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief User data
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mdata; /**< @brief Object metadata. */
     void* value;   /**< @brief User value. */
 } bbzuserdata_t;
@@ -128,7 +128,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief A handle for a object
  */
-typedef union __attribute__((packed)) {
+typedef union PACKED {
     struct {
         /**
          * @brief Object metadata.

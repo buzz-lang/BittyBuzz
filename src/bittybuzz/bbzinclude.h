@@ -32,15 +32,20 @@ typedef uint16_t bbzheap_idx_t;
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
-#if defined(BBZ_ROBOT) || defined(DOXYGEN)
+/**
+ * @breif Specifies that a structure should not contain padding bytes.
+ */
+#define PACKED __attribute__((packed))
+
+#if defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 /**
  * @brief Specifies that a function should not perform extra
  * computation before and after the call.
  */
 #define NAKED __attribute__((naked))
-#else // defined(BBZ_ROBOT) || defined(DOXYGEN)
+#else // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 #define NAKED
-#endif // defined(BBZ_ROBOT) || defined(DOXYGEN)
+#endif // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 
 #ifdef __cplusplus
 }

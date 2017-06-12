@@ -16,7 +16,7 @@
 
 #define RGB(r,g,b) (r&3)|(((g&3)<<2))|((b&3)<<4)
 
-#ifdef BBZ_ROBOT
+#ifdef BBZCROSSCOMPILING
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -43,12 +43,12 @@ void kilo_start();
 }
 #endif // __cplusplus
 
-#else // BBZ_ROBOT
+#else // BBZCROSSCOMPILING
 
 #include <inttypes.h>
 
 void set_led(uint8_t color);
 
-#endif // BBZ_ROBOT
+#endif // BBZCROSSCOMPILING
 
 #endif // !BBZTEMP_H

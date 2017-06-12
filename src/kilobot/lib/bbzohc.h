@@ -2,6 +2,8 @@
 #define __OHC_H__
 
 #include <stdint.h>
+#include <bittybuzz/bbzinclude.h>
+
 #include "bbzmessage.h"
 
 #ifdef __cplusplus
@@ -22,7 +24,7 @@ enum {
     PACKET_FORWARDMSGSINGLE,
 };
 
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint16_t id;
     int16_t x;
     int16_t y;
@@ -30,7 +32,7 @@ typedef struct __attribute__((packed)) {
     uint16_t unused;
 } gpsmsg_t;
 
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t mode;
     uint16_t uid;
     uint8_t turn_left;

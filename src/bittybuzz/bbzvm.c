@@ -36,6 +36,10 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     // Setup the vstig
     // bbzvstig_construct(); // TODO
 
+    // Setup the message queues
+    // bbzinmsg_construct(); // TODO
+    // bbzoutmsg_construct(); // TODO
+
     // Allocate singleton objects
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
     bbzdarray_new(&vm->dflt_actrec);
@@ -55,8 +59,6 @@ void bbzvm_construct(bbzrobot_id_t robot) {
 
     // Set up other variables...
     vm->lsyms = 0;
-
-
     vm->robot = robot;
 }
 
@@ -64,7 +66,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
 /****************************************/
 
 void bbzvm_destruct() {
-    // Destroy heap ; Buzz objcts are destroyed along with it.
+    // Destroy heap ; Buzz objects are destroyed along with it.
     bbzheap_clear();
 }
 
@@ -120,8 +122,15 @@ uint8_t bbzvm_gc() {
     bbzvm_push(vm->nil);
     bbzvm_push(vm->dflt_actrec);
     bbzvm_push(vm->flist);
+
+    bbzvm_pushs(__BBZSTRID_NEIGHBORS);
+    bbzvm_gload();
+    bbzvm_pushs(__BBZSTRID_STIGMERGY);
+    bbzvm_gload();
+
     bbzheap_gc(vm->stack, bbzvm_stack_size());
-    for (int8_t i = 5; i > 0; --i) {
+    for (int8_t i = 7; i > 0; --i) { // FIXME Save stack size and keep popping
+                                     // until it's back to what it was?
         bbzvm_pop();
     }
     return 1;

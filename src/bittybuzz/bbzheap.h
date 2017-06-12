@@ -17,7 +17,7 @@ extern "C" {
 /**
  * @brief A table segment.
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     /**
       * @brief Table keys.
       * @details 16th bit: valid; other bits: obj index
@@ -39,7 +39,7 @@ typedef struct __attribute__((packed)) {
 /**
  * @brief An array segment.
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     /**
       * @brief Array values.
       * @details 16th bit: valid; other bits: obj index.
@@ -77,7 +77,7 @@ typedef struct __attribute__((packed)) {
  *    2-byte field which contains flags and a pointer to the next
  *    segment, if any.
  */
-typedef struct __attribute__((packed)) {
+typedef struct PACKED {
     uint8_t* rtobj;             /**< @brief Pointer to after the rightmost object in heap, not necessarly valid */
     uint8_t* ltseg;             /**< @brief Pointer to the leftmost table segment in heap, not necessarly valid */
     uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
