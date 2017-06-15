@@ -102,7 +102,7 @@ void bbzkilo_init() {
     tx_increment = 255;
     kilo_ticks = 0;
     kilo_state = IDLE;
-    kilo_tx_period = (uint16_t)(rand_hard()>>5) << 6;//512;//3906;//2048;//
+    kilo_tx_period = (uint16_t)(rand_hard()>>5) << 3;//512;//3906;//2048;//
     kilo_uid = eeprom_read_byte(EEPROM_UID) | eeprom_read_byte(EEPROM_UID+1)<<8;
     kilo_turn_left = eeprom_read_byte(EEPROM_LEFT_ROTATE);
     kilo_turn_right = eeprom_read_byte(EEPROM_RIGHT_ROTATE);
@@ -562,7 +562,7 @@ void set_color(uint8_t rgb) {
 }
 
 void tx_clock_reset() {
-    tx_clock = kilo_tx_period;
+    tx_clock = kilo_tx_period - 0;
 }
 
 /**

@@ -1,8 +1,9 @@
 #include <kilobot/lib/bbzkilobot.h>
-#include <bittybuzz/bbzinclude.h>
 
-#define ARRAY_SIZE 10
-#define TIMESTAMP_INIT 200
+#define ARRAY_SIZE 16
+#define TIMESTAMP_INIT 500
+#define LAMPORTCLOCK_THRESHOLD 40
+#define INC_SIZE 2
 typedef uint8_t lamport_t;
 
 typedef enum {
@@ -53,22 +54,27 @@ void dforeach(darray_t* arr, foreach_fun fun) {
     }
 }
 
-void display_size(darray_t* darray) {
-    uint16_t size = dsize(darray);
-    if (size <= 0) {
+void display_size(uint16_t size) {
+    if (size <= 0 + INC_SIZE) {
         setled(0);
     }
-    else if (size == 1) {
+    else if (size == 1 + INC_SIZE) {
         setled(RGB(3, 0, 0));
     }
-    else if (size == 2) {
+    else if (size == 2 + INC_SIZE) {
+        setled(RGB(3, 1, 0));
+    }
+    else if (size == 3 + INC_SIZE) {
         setled(RGB(1, 2, 0));
     }
-    else if (size == 3) {
+    else if (size == 4 + INC_SIZE) {
         setled(RGB(0, 3, 0));
     }
-    else if (size == 4) {
-        setled(RGB(0, 1, 2));
+    else if (size == 5 + INC_SIZE) {
+        setled(RGB(0, 2, 1));
+    }
+    else if (size == 6 + INC_SIZE) {
+        setled(RGB(0, 0, 3));
     }
     else {
         setled(RGB(2, 0, 1));
@@ -121,6 +127,12 @@ void removeRobotSwarm(uint16_t rid) {
 void join(uint8_t swarmID) {
     swarmsLocal |= 1 << (swarmID % 16);
     ++lamportLocal;
+    if (!lamportLocal) {
+        uint8_t prevled = led_state;
+        setled(RGB(1, 1, 1));
+        delay(25);
+        setled(prevled);
+    }
 }
 
 void leave(uint8_t swarmID) {
@@ -158,7 +170,7 @@ void rx_rcvr(message_t* message, distance_measurement_t* d) {
             case MSG_SWARMLIST:
                 v = dfind(&robotIDs, message->data[0]);
                 if ((!dget(&swarmLamports, v, &v) ||
-                        v < message->data[3]) &&
+                        (message->data[3] + 256 - v)%256 > LAMPORTCLOCK_THRESHOLD) &&
                         (uint16_t) message->data[0] != kilo_uid &&
                         message->crc == bbzmessage_crc(message)) {
                     setRobotSwarm(message->data[0], *(uint16_t *) (message->data + 1), message->data[3]);
@@ -167,8 +179,8 @@ void rx_rcvr(message_t* message, distance_measurement_t* d) {
                         tx_clock_reset();
                     }
                 }
-                return;
-                //break;
+                /*/return;/*/
+                break;//*/
             default:
                 break;
         }
@@ -198,6 +210,9 @@ void setup() {
     delay(rand_soft()*2+255);
     setled(RGB(2,0,1));
     delay(50);
+
+    spinup_motors();
+    set_motors(0,0);
 }
 
 void timer_updater(darray_t* darray, uint16_t* v) {
@@ -211,7 +226,7 @@ void timer_updater(darray_t* darray, uint16_t* v) {
 }
 
 void update_timers() {
-    display_size(&swarmTimers);
+    display_size(dsize(&swarmTimers));
     delay(25);
     setled(0);
     dforeach(&swarmTimers, timer_updater);
@@ -222,7 +237,7 @@ void loop() {
     setled(RGB(0,0,0));
     if (message_sent) {
         message_sent = 0;
-//        setled(RGB(3,1,0));
+//        setled(RGB(2,1,3));
 //        delay(50);
     }
     if (message_rcvd) {
@@ -230,9 +245,13 @@ void loop() {
 //        setled(RGB(0, 0, 3));
 //        delay(50);
     }
+//    if (dsize(&robotIDs) < 3)
+//        set_motors(0,kilo_turn_right);
+//    else
+//        set_motors(kilo_straight_left, kilo_straight_right);
     if (!should_send && --ticks <= 0) {
-        ticks = 1;//(rand_soft() >> 3) + 1;//
-        leave(kilo_uid);
+        ticks = (rand_soft() >> 5) + 4;//5;//
+        //leave(kilo_uid);
         join(kilo_uid);
         send_msg(kilo_uid, swarmsLocal, lamportLocal);
     }
