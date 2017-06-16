@@ -10,6 +10,7 @@ function(buzz_find_program varOut prgm)
     else()
         set(${varOut} "${${path}}" CACHE STRING "Path to a Buzz program.")
     endif()
+    unset(${path} CACHE)
 endfunction()
 
 buzz_find_program(BZZC   bzzc)

@@ -44,8 +44,8 @@
 #cmakedefine BBZCROSSCOMPILING
 
 /**
- * @brief Debug flag.
+ * @brief Whether to use high memory optimizations.
  */
-#cmakedefine DEBUGBBZVM_USE_BBO
+ #cmakedefine BBZ_XTREME_MEMORY
 
 #endif // !CONFIG_H

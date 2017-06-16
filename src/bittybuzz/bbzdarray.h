@@ -74,8 +74,8 @@ extern "C" {
      *  @return 1 for success, 0 for failure (index not in table)
      */
     uint8_t bbzdarray_get(bbzheap_idx_t d,
-                      uint16_t idx,
-                      bbzheap_idx_t* v);
+                          uint16_t idx,
+                          bbzheap_idx_t* v);
 
     /**
      *  @brief Changes the value corresponding to the key k in the array d

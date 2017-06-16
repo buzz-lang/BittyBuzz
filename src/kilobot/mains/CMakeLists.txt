@@ -1,21 +1,14 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/gen)
-link_directories(${CMAKE_CURRENT_BINARY_DIR})
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/gen)
+# ==========================================
+# =          FUNCTION DEFINITIONS          =
+# ==========================================
 
-configure_file(compile.sh compile.sh @ONLY)
-execute_process(COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
-
-set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
-
-# Generates a BittyBuzz object file.
+# Generates a hex file given a C and a Buzz source.
 # bst_source can be left empty in order not to use any Buzz Symbols Table.
 function(generate_hex c_source bzz_source)
     get_filename_component(BZZ_BASENAME ${bzz_source} NAME_WE)
     set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/gen/${BZZ_BASENAME}")
     set(BZZ_BASEPATH "${GEN_DIR}/${BZZ_BASENAME}")
-    set(GENSYMS_FILE "${GEN_DIR}/bbzkilosymgen.h")
+    set(GENSYMS_FILE "${GEN_DIR}/bbzsymbols.h")
     set(LOG_FILE "${GEN_DIR}/log.txt")
 
     set(BASM_FILE ${BZZ_BASEPATH}.basm)
@@ -44,6 +37,7 @@ function(generate_hex c_source bzz_source)
     add_dependencies(${BZZ_BASENAME} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
 endfunction()
 
+# Generates all hex files.
 function(generate_all_hex)
     file(GLOB BUZZ_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "buzz_scripts/*.bzz")
     file(GLOB BST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "buzz_scripts/*.bst")
@@ -56,5 +50,13 @@ function(generate_all_hex)
         endif()
     endforeach()
 endfunction()
+
+
+# ==========================================
+# =              CMAKE SCRIPT              =
+# ==========================================
+
+set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
+configure_file(compile.sh ${COMPILER_SCRIPT} @ONLY)
 
 generate_all_hex()

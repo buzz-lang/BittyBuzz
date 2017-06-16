@@ -2,6 +2,50 @@
  * @file bbzneighbors.h
  * @brief Definition of the neighbors table, which is a table of all
  * robots a robot can communicate with.
+ * 
+ * @details <h2>Explanation of the implementation:</h2>
+ *
+ * <h3>'Regular' implementation (non Xtreme):</h3>
+ *
+ * Both the <code>neighbors</code> table and the neighbor-like tables
+ * (such as the one returned by the filter closure) have the same
+ * implementation:
+ * The table contains a subfield  (string __BBZSTRID_INTERNAL_1_DO_NOT_USE)
+ * which itself contains one table for each neighbor.
+ *
+ * <h3>BBZ_XTREME_MEMORY implementation:</h3>
+ *
+ * Creating a table for each neighbor robot would be memory-expensive, because
+ * a table segment would have to be allocated for each neighbor, even though
+ * we only really need 5 bytes of data for each neighbor (robot ID,
+ * distance, azimuth, elevation). Instead, the neighbors structure is
+ * implemented as a C structure (see #bbzneighbors_elem_t).
+ *
+ * This, however, poses a problem : the algorithms ('foreach', 'get', etc.)
+ * have to be compatible both with the 'neighbors' structure, which has C
+ * implementation, and the nieghbor-like structures (such as
+ * the table returned by neighbors.filter), which have a Buzz implementation.
+ * The (ugly!) solution we have implemented is to keep the heap position
+ * of the 'neighbors' table inside the VM, and then vary the algorithm
+ * depending on whether we are working on the 'neighbors' table or a 
+ * neighbor-like table.
+ *
+ * We could have made two distinct set of algorithms, one for the 'nieghbors'
+ * table, and one for the others, but this would have taken more program
+ * space.
+ *
+ * Thus, we end up with the following implementation:
+ * <ul>
+ * <li> The <code>neighbors</code> table, apart from the closures, contains a
+ * count subfield (string __BBZSTRID_INTERNAL_2_DO_NOT_USE). The actual
+ * data is placed inside a C structure (a table of #bbzneighbors_elem_t).
+ * <li> The neighbor-like tables, apart from the closures, contain a
+ * count subfield (string __BBZSTRID_INTERNAL_2_DO_NOT_USE). The actual
+ * data is placed directly inside the neighbor-like table, and is a table
+ * containing the <code>{distance, azumuth, elevation}</code> subfields.
+ * Thus, we <i>could</i> access the distance for a neighbor by doing
+ * something like <code>neighborlike[32].distance</code>.
+ * </ul>
  */
 
 #ifndef BBZNEIGHBORS_H
@@ -23,15 +67,21 @@ typedef struct PACKED {
     uint8_t elevation;   /**< @brief Angle (in rad) between the XY plane and the robot. */
 } bbzneighbors_elem_t;
 
-typedef struct PACKED {
-    bbzneighbors_elem_t data[BBZNEIGHBORS_CAP]; /**< @brief Neighbor data. */
-    uint8_t size; /**< @brief Current number of neighbors. */
-} bbzneighbors_t;
-
 /**
- * @brief Constructs the VM's neighbor structure.
+ * @brief Type for the neighbors structure.
+ * @note You should not create a neighbors table manually ; we assume there
+ * is only a single instance: <code>vm->neighbors.hpos</code>.
  */
-void bbzneighbors_construct();
+typedef struct PACKED {
+    bbzheap_idx_t hpos;      /**< @brief Heap's position of the 'neighbors' table. */
+    bbzheap_idx_t listeners; /**< @brief Neighbor value listeners. */
+    uint8_t count;           /**< @brief Current number of neighbors. */
+
+#ifdef BBZ_XTREME_MEMORY
+    bbzneighbors_elem_t data[BBZNEIGHBORS_CAP]; /**< @brief Neighbor data. */
+#endif // BBZ_XTREME_MEMORY
+
+} bbzneighbors_t;
 
 /**
  * @brief Registers the 'neighbors' table into the VM.
@@ -47,18 +97,13 @@ void bbzneighbors_reset();
 
 /**
  * @brief Adds a neighbor to the neighbor data structure.
- * @param[in] robot The id of the robot.
- * @param[in] distance The distance between to the given robot.
- * @param[in] azimuth The angle (in rad) on the XY plane.
- * @param[in] elevation The angle (in rad) between the XY plane and the robot.
+ * @param[in] data The data for that neighbor.
  * @note For some robots, distance, azimuth and/or elevation might be
- * unavailable, in which case you must set the unavailable values to 0.
+ * unavailable. Though there is no restriction, it is advised to set the
+ * unavailable values to 0.
  * @see bbzneighbors_reset()
  */
-void bbzneighbors_add(uint16_t robot,
-                      uint8_t distance,
-                      uint8_t azimuth,
-                      uint8_t elevation);
+void bbzneighbors_add(const bbzneighbors_elem_t* data);
 
 // ======================================
 // =       BUZZ NEIGHBOR CLOSURES       =
@@ -80,18 +125,6 @@ void bbzneighbors_listen();
  * neighbors.
  */
 void bbzneighbors_ignore();
-
-/**
- * @brief Buzz C closure which pushes a table of robots belonging to the same
- * swarm as the current robot.
- */
-void bbzneighbors_kin();
-
-/**
- * @brief Buzz C closure which pushes a table of robots not belonging to the
- * same swarm as the current robot.
- */
-void bbzneighbors_nonkin();
 
 /**
  * @brief Buzz C closure which pushes a table containing (robot id, data) onto
@@ -118,6 +151,12 @@ void bbzneighbors_reduce();
 
 /**
  * @brief Buzz C closure which filters the neighbors according to a predicate.
+ * @warning This function may use a lot of memory because a table has
+ * to be allocated for <i>each neighbor</i> for which the predicate is true.
+ * Set the value to nil once you are done with it.
+ * Also prefer more memory-savvy methods, such as bbzneighbors_foreach(),
+ * bbzneighbors_reduce() or bbzneighbors_get(), which only allocate a single
+ * table.
  */
 void bbzneighbors_filter();
 

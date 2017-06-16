@@ -41,7 +41,7 @@ typedef struct PACKED {
 } bbzint_t;
 
 /**
- * @brief Float
+ * @brief Float type
  */
 typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
@@ -49,7 +49,7 @@ typedef struct PACKED {
 } bbzfloat_t;
 
 /**
- * @brief String
+ * @brief String type
  */
 typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
@@ -57,7 +57,7 @@ typedef struct PACKED {
 } bbzstring_t;
 
 /**
- * @brief Table
+ * @brief Table type
  */
 typedef struct PACKED {
     uint8_t mdata;  /**< @brief Object metadata. */
@@ -65,7 +65,7 @@ typedef struct PACKED {
 } bbztable_t;
 
 /**
- * @brief Dynamic Array
+ * @brief Dynamic Array type
  */
 typedef struct PACKED {
     /**
@@ -81,7 +81,7 @@ typedef struct PACKED {
 } bbzdarray_t;
 
 /**
- * @brief Closure
+ * @brief Closure type
  */
 typedef struct PACKED {
     /**
@@ -94,7 +94,7 @@ typedef struct PACKED {
 } bbzclosure_t;
 
 /**
- * @brief Lambda Closure
+ * @brief Lambda closure type
  */
 typedef struct PACKED {
     /**
@@ -118,7 +118,7 @@ typedef struct PACKED {
 } bbzlclosure_t;
 
 /**
- * @brief User data
+ * @brief User data type
  */
 typedef struct PACKED {
     uint8_t mdata; /**< @brief Object metadata. */
@@ -162,6 +162,19 @@ int8_t bbztype_cmp(const bbzobj_t* a,
  * @param[in] obj The object.
  */
 #define bbztype(obj) ((obj).o.mdata >> 5)
+
+/**
+ * @brief Determines whether an object should be considered as true.
+ * @param[in] o The object to verify.
+ * @return 1 if the object can be considered true, otherwise 0.
+ */
+ALWAYS_INLINE
+uint8_t bbztype_tobool(const bbzobj_t* o) {
+    switch(bbztype(*o)) {
+        case BBZTYPE_INT: return o->i.value != 0;
+        default: return 0;
+    }
+}
 
 /**
  * @brief Casts an object into a different type.

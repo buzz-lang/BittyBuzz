@@ -1,11 +1,11 @@
-#include "bbzkilobot.h"
-#include "bbzkiloreg.h"
 #include <avr/pgmspace.h>
+
 #include <bittybuzz/bbzvm.h>
+#include <bittybuzz/util/bbzstring.h>
+
+#include "bbzkilobot.h"
 
 #define TBL_SZ 79
-
-bbzvm_t* vm;
 
 uint8_t buf[4];
 const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
@@ -26,16 +26,14 @@ const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
 }
 
 void bbzvm_set_color() {
-    bbzvm_lload(3);
-    bbzvm_lload(2);
-    bbzvm_lload(1);
-    set_color(RGB(bbzvm_stack_at(0),bbzvm_stack_at(1),bbzvm_stack_at(2)));
+    bbzvm_assert_lnum(3);
+    set_color(RGB(bbzvm_lsym_at(1),bbzvm_lsym_at(2),bbzvm_lsym_at(3)));
     return bbzvm_ret0();
 }
 
 void led() {
-    bbzvm_lload(1);
-    uint8_t color = bbzvm_stack_at(0);
+    bbzvm_assert_lnum(1);
+    uint8_t color = bbzvm_lsym_at(1);
     set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
     return bbzvm_ret0();
 }

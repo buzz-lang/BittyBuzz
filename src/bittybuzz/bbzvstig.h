@@ -29,11 +29,12 @@ typedef struct PACKED {
 /**
  * @brief Virtual stigmergy.
  * @note You should not create a stigmergy manually ; we assume there
- * is only a single instance: vm->vstig.
+ * is only a single instance: <code>vm->vstig.hpos</code>.
  */
 typedef struct PACKED {
     bbzvstig_elem_t data[BBZVSTIG_CAP]; /**< @brief Data of the stigmergy. */
-    uint8_t size; /**< @brief Number of stigmergy elements. */
+    uint8_t size;       /**< @brief Number of stigmergy elements. */
+    bbzheap_idx_t hpos; /**< @brief Heap's position of the 'stigmergy' table. */
 } bbzvstig_t;
 
 /**
@@ -52,9 +53,8 @@ bbzheap_idx_t bbzvstig_deserialize();
 
 /**
  * @brief Creates the VM's virtual stigmergy structure.
- * @param[in] cap The maximum number of elements in the structure.
  */
-#define bbzvstig_construct(cap) vm->vstig.capacity = cap; vm->vstig.size = 0;
+#define bbzvstig_construct() vm->vstig.size = 0;
 
 /**
  * @brief Registers the 'stigmergy' table, as well as its methods, in the VM.

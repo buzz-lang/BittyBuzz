@@ -28,10 +28,12 @@ typedef enum {
     BBZVM_ERROR_PC,       /**< @brief Program counter out of range */
     BBZVM_ERROR_FLIST,    /**< @brief Function call id out of range */
     BBZVM_ERROR_TYPE,     /**< @brief Type mismatch */
+    BBZVM_ERROR_RET,      /**< @brief Non-returning function when returning was expected, or vice versa. */
     BBZVM_ERROR_STRING,   /**< @brief Unknown string id */
     BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id */
     BBZVM_ERROR_VSTIG,    /**< @brief Too many vstig entries. */
-    BBZVM_ERROR_MEM       /**< @brief Out of memory */
+    BBZVM_ERROR_MEM,      /**< @brief Out of memory */
+    BBZVM_ERROR_COUNT     /**< @brief Number of errors defined by BittyBuzz. */
 } bbzvm_error;
 
 /**
@@ -65,9 +67,9 @@ typedef enum {
     BBZVM_INSTR_LT,      /**< @brief Push stack(#0) < stack(#1), pop operands */
     BBZVM_INSTR_LTE,     /**< @brief @brief/ Push stack(#0) <= stack(#1), pop operands */
     BBZVM_INSTR_GLOAD,   /**< @brief Push global variable corresponding to string at stack #0, pop operand */
-    BBZVM_INSTR_GSTORE,  /**< @brief Store stack-top value into global variable at stack #1, pop operands */
+    BBZVM_INSTR_GSTORE,  /**< @brief Store value at stack #0 into global variable at stack #1, pop operands */
     BBZVM_INSTR_PUSHT,   /**< @brief Push empty table */
-    BBZVM_INSTR_TPUT,    /**< @brief Put key (stack(#1)), value (stack #0) in table (stack #2), pop key and value */
+    BBZVM_INSTR_TPUT,    /**< @brief Put key (stack(#1)), value (stack #0) in table (stack #2), pop operands */
     BBZVM_INSTR_TGET,    /**< @brief Push value for key (stack(#0)) in table (stack #1), pop key */
     BBZVM_INSTR_CALLC,   /**< @brief Calls the closure on top of the stack as a normal closure */
     BBZVM_INSTR_CALLS,   /**< @brief Calls the closure on top of the stack as a swarm closure */

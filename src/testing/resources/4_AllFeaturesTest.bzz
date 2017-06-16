@@ -74,10 +74,3 @@ t2.x = 5
 log(t1.x)    # prints 5, not 3!
 t1 = nil
 t2 = nil
-
-# Test swarm's methods
-s = swarm.create(0)
-
-# TODO
-#s.select(id % 2 == 0)
-#s.leave()

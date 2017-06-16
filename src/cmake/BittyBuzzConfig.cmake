@@ -11,3 +11,6 @@ config_value(BBZSTACK_SIZE 256)
 config_value(BBZVSTIG_CAP 3)
 config_value(BBZNEIGHBORS_CAP 4)
 config_value(RESERVED_ACTREC_MAX 32)
+
+# Set the XTREME memory optimization to false if it hasn't been set yet.
+option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)

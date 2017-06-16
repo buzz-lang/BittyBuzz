@@ -1,6 +1,6 @@
 /**
  * @file bbzinclude.h
- * @brief Defines various symbols. Header should be included by all files.
+ * @brief Definition of various symbols. Header should be included by all files.
  */
 
 #ifndef BBZINCLUDES_H
@@ -33,7 +33,7 @@ typedef uint16_t bbzheap_idx_t;
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
 /**
- * @breif Specifies that a structure should not contain padding bytes.
+ * @brief Specifies that a structure should not contain padding bytes.
  */
 #define PACKED __attribute__((packed))
 

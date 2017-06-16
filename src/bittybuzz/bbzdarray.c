@@ -186,16 +186,20 @@ uint8_t bbzdarray_push(bbzheap_idx_t d,
     for (si = 0; // Reusing 'si' as the position in the segment
             si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
             ++si);
-    if (si < 2*BBZHEAP_ELEMS_PER_TSEG) {
-        /* If free space was found, place the object there */
-        bbzheap_aseg_elem_set(sd->values[si], v);
-    }
-    else {
-        /* If it's full, add a new segment */
+    
+    if (si >= 2*BBZHEAP_ELEMS_PER_TSEG) {
+        /* Last segment is full ; add a new segment */
         uint16_t o;
         if (!bbzheap_aseg_alloc(&o)) return 0;
         bbzheap_aseg_next_set(sd, o);
+        si = bbzheap_aseg_next_get(sd);
+        sd = bbzheap_aseg_at(si);
+        si = 0;
     }
+
+    /* Append value to segment */
+    bbzheap_aseg_elem_set(sd->values[si], v);
+
     return 1;
 }
 
@@ -302,16 +306,21 @@ uint16_t bbzdarray_find(bbzheap_idx_t d,
     bbzdarray_t* da = (bbzdarray_t*)bbzheap_obj_at(d);
     uint16_t si = da->value;
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
+    /* Go through the darray segments */
     while (1) {
+        /* Go through the subelements of the segment */
         for (uint16_t i = 0; i < 2*BBZHEAP_ELEMS_PER_TSEG; ++i) {
+            /* No more elements? */
             if (!bbzheap_aseg_elem_isvalid(sd->values[i])) {
                 break;
             }
+            /* Element found? */
             if (cmp(bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[i])), bbzheap_obj_at(data)) == 0) {
                 return pos;
             }
             ++pos;
         }
+        /* Go to next segment */
         if (!bbzheap_aseg_hasnext(sd)) break;
         si = bbzheap_aseg_next_get(sd);
         sd = bbzheap_aseg_at(si);

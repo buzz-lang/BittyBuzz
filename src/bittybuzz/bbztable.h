@@ -14,6 +14,17 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Pointer to an element-wise function.
+ * @details This function pointer is used in algorithms such as
+ * bbztable_foreach().
+ * @param[in] key The key of the current entry.
+ * @param[in] value The data of the current entry.
+ * @param[in,out] params Parameters of the function. They are kept
+ * between each call.
+ */
+typedef void (*bbztable_elem_funp)(bbzheap_idx_t key, bbzheap_idx_t value, void* params);
+
 
 /**
  * @brief Search the value associated with the key k in the table t from the heap.
@@ -46,6 +57,15 @@ uint8_t bbztable_set(bbzheap_idx_t t,
  * @return The size of the table.
  */
 uint8_t bbztable_size(bbzheap_idx_t t);
+
+
+/**
+ * @brief Applies a function to each element in the table.
+ * @param[in] t The table to apply the function to.
+ * @param[in] fun The function to apply to each element.
+ * @param[in,out] params A buffer to pass along.
+ */
+void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params);
 
 #ifdef __cplusplus
 }

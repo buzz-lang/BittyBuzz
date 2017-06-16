@@ -15,9 +15,9 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * @brief 
- * @note You should not create a stigmergy manually ; we assume there
- * is only a single instance: vm->outmsgs.
+ * @brief Type for the output message structure.
+ * @note You should not create an instance of this structure manually ;
+ * we assume there is only a single instance: vm->outmsgs.
  */
 typedef struct PACKED {
     bbzringbuf_t queues[BBZMSG_TYPE_COUNT]; /**< @brief Message queues. One for each queue type. */
@@ -27,6 +27,15 @@ typedef struct PACKED {
  * @brief Constructs the VM's outgoing message queue.
  */
 void bbzoutmsg_construct();
+
+/**
+ * Appends a new broadcast message to be sent.
+ * @param topic The topic on which to send (a string object).
+ * @param value The value.
+ */
+void bbzoutmsg_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
+
+// Other message types are TODO
 
 #ifdef __cplusplus
 }

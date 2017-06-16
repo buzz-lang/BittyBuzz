@@ -45,8 +45,13 @@ include(${INCLUDE_FILES_CMAKE}/BittyBuzzFindBuzzPrgms.cmake)
 # Descend into the subdirectories
 #
 add_subdirectory(bittybuzz)
-add_subdirectory(testing)
-if(CMAKE_CROSSCOMPILING)
+
+if (CMAKE_CROSSCOMPILING)
     add_subdirectory(kilobot)
 endif()
+
+if (NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(testing)
+endif()
+
 add_subdirectory(doc)

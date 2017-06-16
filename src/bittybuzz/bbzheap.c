@@ -127,9 +127,10 @@ void bbzheap_gc_mark(bbzheap_idx_t obj) {
             bbzheap_aseg_t* sd = bbzheap_aseg_at(si);
             /* Go through the segments */
             while(1) {
-                for(uint8_t j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j)
-                if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
-                    bbzheap_gc_mark(bbzheap_aseg_elem_get(sd->values[j]));
+                for(uint8_t j = 0; j < 2*BBZHEAP_ELEMS_PER_TSEG; ++j) {
+                    if(bbzheap_aseg_elem_isvalid(sd->values[j])) {
+                        bbzheap_gc_mark(bbzheap_aseg_elem_get(sd->values[j]));
+                    }
                 }
                 if(!bbzheap_aseg_hasnext(sd)) break;
                 si = bbzheap_aseg_next_get(sd);
@@ -141,10 +142,11 @@ void bbzheap_gc_mark(bbzheap_idx_t obj) {
             bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
             /* Go through the segments */
             while(1) {
-                for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
-                if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
-                    bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->keys[j]));
-                    bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->values[j]));
+                for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j) {
+                    if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
+                        bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->keys[j]));
+                        bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->values[j]));
+                    }
                 }
                 if(!bbzheap_tseg_hasnext(sd)) break;
                 si = bbzheap_tseg_next_get(sd);
@@ -176,14 +178,25 @@ void bbzheap_gc(bbzheap_idx_t* st,
             if(bbztype_istable(*bbzheap_obj_at(i))) {
                 /* Segment index in heap */
                 bbzheap_idx_t si = bbzheap_obj_at(i)->t.value;
+
+
+                // FIXME We should add a tseg GC mark. In the case we
+                // where have two 'equal' tables, but one has a mark
+                // and one does not, we do not want to invalidate the
+                // table segments.
+                /* 
+                TODO if(gc_tseg_hasmark(bbzheap_obj_at(i)->t.value)) {
+                TODO     continue;
+                TODO }
+                */
                 /* Actual segment data in heap */
                 bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
                 /* Go through the segments and invalidate them all */
                 while(1) {
-                tseg_makeinvalid(*sd);
-                if(!bbzheap_tseg_hasnext(sd)) break;
-                si = bbzheap_tseg_next_get(sd);
-                sd = bbzheap_tseg_at(si);
+                    tseg_makeinvalid(*sd);
+                    if(!bbzheap_tseg_hasnext(sd)) break;
+                    si = bbzheap_tseg_next_get(sd);
+                    sd = bbzheap_tseg_at(si);
                 }
             }
         }
@@ -209,3 +222,72 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 /****************************************/
 /****************************************/
+
+#ifndef BBZCROSSCOMPILING
+
+static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
+
+#define obj_isvalid(x) ((x).o.mdata & 0x10)
+
+void bbzheap_print() {
+   /* Object-related stuff */
+   uint16_t objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
+   printf("Max object index: %d\n", objimax);
+   uint16_t objnum = 0;
+   for(uint16_t i = 0; i < objimax; ++i)
+      if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
+   printf("Valid objects: %d\n", objnum);
+   for(uint16_t i = 0; i < objimax; ++i)
+      if(obj_isvalid(*bbzheap_obj_at(i))) {
+         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(i))]);
+         switch(bbztype(*bbzheap_obj_at(i))) {
+             case BBZTYPE_NIL:
+                 break;
+             case BBZTYPE_STRING: // fallthrough
+             case BBZTYPE_INT:
+                 printf(" %d", bbzheap_obj_at(i)->i.value);
+                 break;
+             case BBZTYPE_FLOAT:
+                 printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(i)->f.value));
+                 break;
+             case BBZTYPE_TABLE:
+                 printf(" %" PRIu16, bbzheap_obj_at(i)->t.value);
+                 break;
+             case BBZTYPE_USERDATA:
+                 printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(i)->u.value);
+                 break;
+             case BBZTYPE_NCLOSURE: // fallthrough
+             case BBZTYPE_CLOSURE:
+                 if (bbztype_isclosurelambda(*bbzheap_obj_at(i)))
+                     printf("[l] %d", (uint8_t)bbzheap_obj_at(i)->l.value.ref);
+                 else
+                     printf(" %d", (int)(intptr_t)bbzheap_obj_at(i)->c.value);
+                 break;
+             default:
+                 break;
+         }
+         printf("\n");
+      }
+   /* Segment-related stuff */
+   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
+   printf("Max table segment index: %d\n", tsegimax);
+   int tsegnum = 0;
+   for(int i = 0; i < tsegimax; ++i)
+      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
+   printf("Valid table segments: %d\n", tsegnum);
+   bbzheap_tseg_t* seg;
+   for(int i = 0; i < tsegimax; ++i) {
+      seg = bbzheap_tseg_at(i);
+      if(bbzheap_tseg_isvalid(*seg)) {
+         printf("\t#%d: {", i);
+         for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
+            if(bbzheap_tseg_elem_isvalid(seg->keys[j]))
+               printf(" (%d,%d)",
+                      bbzheap_tseg_elem_get(seg->keys[j]),
+                      bbzheap_tseg_elem_get(seg->values[j]));
+         printf(" /next=%x }\n", bbzheap_tseg_next_get(seg));
+      }
+   }
+   printf("\n");
+}
+#endif // !BBZCROSSCOMPILING

@@ -208,35 +208,35 @@ int main(int argc, char **argv) {
         setTable(&refs, (void*)(intptr_t)(uint32_t)ftell(f_in), (void*)(intptr_t)(int16_t)ftell(f_out));
         read_write(opcode);
         switch(opcode) {
-            case INSTR_NOP: // fallthrough
-            case INSTR_DONE: // fallthrough
+            case INSTR_NOP:     // fallthrough
+            case INSTR_DONE:    // fallthrough
             case INSTR_PUSHNIL: // fallthrough
-            case INSTR_DUP: // fallthrough
-            case INSTR_POP: // fallthrough
-            case INSTR_RET0: // fallthrough
-            case INSTR_RET1: // fallthrough
-            case INSTR_ADD: // fallthrough
-            case INSTR_SUB: // fallthrough
-            case INSTR_MUL: // fallthrough
-            case INSTR_DIV: // fallthrough
-            case INSTR_MOD: // fallthrough
-            case INSTR_POW: // fallthrough
-            case INSTR_UNM: // fallthrough
-            case INSTR_AND: // fallthrough
-            case INSTR_OR: // fallthrough
-            case INSTR_NOT: // fallthrough
-            case INSTR_EQ: // fallthrough
-            case INSTR_NEQ: // fallthrough
-            case INSTR_GT: // fallthrough
-            case INSTR_GTE: // fallthrough
-            case INSTR_LT: // fallthrough
-            case INSTR_LTE: // fallthrough
-            case INSTR_GLOAD: // fallthrough
-            case INSTR_GSTORE: // fallthrough
-            case INSTR_PUSHT: // fallthrough
-            case INSTR_TPUT: // fallthrough
-            case INSTR_TGET: // fallthrough
-            case INSTR_CALLC: // fallthrough
+            case INSTR_DUP:     // fallthrough
+            case INSTR_POP:     // fallthrough
+            case INSTR_RET0:    // fallthrough
+            case INSTR_RET1:    // fallthrough
+            case INSTR_ADD:     // fallthrough
+            case INSTR_SUB:     // fallthrough
+            case INSTR_MUL:     // fallthrough
+            case INSTR_DIV:     // fallthrough
+            case INSTR_MOD:     // fallthrough
+            case INSTR_POW:     // fallthrough
+            case INSTR_UNM:     // fallthrough
+            case INSTR_AND:     // fallthrough
+            case INSTR_OR:      // fallthrough
+            case INSTR_NOT:     // fallthrough
+            case INSTR_EQ:      // fallthrough
+            case INSTR_NEQ:     // fallthrough
+            case INSTR_GT:      // fallthrough
+            case INSTR_GTE:     // fallthrough
+            case INSTR_LT:      // fallthrough
+            case INSTR_LTE:     // fallthrough
+            case INSTR_GLOAD:   // fallthrough
+            case INSTR_GSTORE:  // fallthrough
+            case INSTR_PUSHT:   // fallthrough
+            case INSTR_TPUT:    // fallthrough
+            case INSTR_TGET:    // fallthrough
+            case INSTR_CALLC:   // fallthrough
             case INSTR_CALLS:
                 break;
             case INSTR_PUSHF:
@@ -244,10 +244,10 @@ int main(int argc, char **argv) {
                 bufi = (uint16_t)bbzfloat_fromfloat(argf);
                 fwrite(&bufi,sizeof(bufi),1,f_out);
                 break;
-            case INSTR_PUSHI: // fallthrough
-            case INSTR_PUSHS: // fallthrough
-            case INSTR_LLOAD: // fallthrough
-            case INSTR_LSTORE: // fallthrough
+            case INSTR_PUSHI:   // fallthrough
+            case INSTR_PUSHS:   // fallthrough
+            case INSTR_LLOAD:   // fallthrough
+            case INSTR_LSTORE:  // fallthrough
                 fread(&argi,sizeof(argi),1,f_in);
                 bufi = (uint16_t)argi;
                 fwrite(&bufi,sizeof(bufi),1,f_out);
@@ -261,11 +261,11 @@ int main(int argc, char **argv) {
                             (uint32_t) (ftell(f_in) - sizeof(argi)));
                 }
                 break;
-            case INSTR_JUMP: // fallthrough
-            case INSTR_JUMPZ: // fallthrough
-            case INSTR_JUMPNZ: // fallthrough
-            case INSTR_PUSHL: // fallthrough
-            case INSTR_PUSHCN: // fallthrough
+            case INSTR_JUMP:    // fallthrough
+            case INSTR_JUMPZ:   // fallthrough
+            case INSTR_JUMPNZ:  // fallthrough
+            case INSTR_PUSHL:   // fallthrough
+            case INSTR_PUSHCN:  // fallthrough
             case INSTR_PUSHCC:
                 fread(&argi,sizeof(argi),1,f_in);
                 insertTable(&repl, (void *) (intptr_t)ftell(f_out), (void *) (intptr_t)argi);

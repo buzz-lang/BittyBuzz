@@ -5,8 +5,6 @@
 
 static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
 
-#define obj_isvalid(x) ((x).o.mdata & 0x10)
-
 void bbzdarray_print(bbzheap_idx_t d) {
    uint16_t size = bbzdarray_size(d);
    printf("Size: %d\n", size);
@@ -35,60 +33,9 @@ void bbzdarray_print(bbzheap_idx_t d) {
    printf("]\n");
 }
 
-void bbzheap_print() {
-   /* Object-related stuff */
-   int objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
-   printf("Max object index: %d\n", objimax);
-   int objnum = 0;
-   for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
-   printf("Valid objects: %d\n", objnum);
-   for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(i))) {
-         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(i))]);
-         switch(bbztype(*bbzheap_obj_at(i))) {
-            case BBZTYPE_NIL:
-               break;
-            case BBZTYPE_INT:
-               printf(" %d", bbzheap_obj_at(i)->i.value);
-               break;
-            case BBZTYPE_FLOAT:
-               printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(i)->f.value));
-               break;
-            case BBZTYPE_TABLE:
-               printf(" %" PRIu16, bbzheap_obj_at(i)->t.value);
-               break;
-         }
-         printf("\n");
-      }
-   /* Segment-related stuff */
-   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
-   printf("Max table segment index: %d\n", tsegimax);
-   int tsegnum = 0;
-   for(int i = 0; i < tsegimax; ++i)
-      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
-   printf("Valid table segments: %d\n", tsegnum);
-   bbzheap_tseg_t* seg;
-   for(int i = 0; i < tsegimax; ++i) {
-      seg = bbzheap_tseg_at(i);
-      if(bbzheap_tseg_isvalid(*seg)) {
-         printf("\t#%d: {", i);
-         for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
-            if(bbzheap_tseg_elem_isvalid(seg->keys[j]))
-               printf(" (%d,%d)",
-                      bbzheap_tseg_elem_get(seg->keys[j]),
-                      bbzheap_tseg_elem_get(seg->values[j]));
-         printf(" /next=%x }\n", bbzheap_tseg_next_get(seg));
-      }
-   }
-   printf("\n");
-}
-
 void foreach(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params) {
    ((bbzint_t*)bbzheap_obj_at(pos))->value += 20;
 }
-
-bbzvm_t* vm;
 
 int main() {
    bbzvm_t vmObj;

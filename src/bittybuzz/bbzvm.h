@@ -65,30 +65,18 @@ extern "C" {
      *      1) Load and run bytecode.
      */
     typedef struct PACKED {
-        /** @brief Bytecode fetcher function */
-        bbzvm_bcode_fetch_fun bcode_fetch_fun;
-        /** @brief Size of the loaded bytecode */
-        uint16_t bcode_size;
-        /** @brief Program counter */
-        int16_t pc;
-        /** @brief Current stack content */
-        bbzheap_idx_t stack[BBZSTACK_SIZE];
-        /** @brief Stack pointer (Index of the last valid element of the stack) */
-        int16_t stackptr;
-        /** @brief Block pointer (Index of the previous block pointer in the stack) */
-        int16_t blockptr;
-        /** @brief Current local variable table */
-        bbzheap_idx_t lsyms;
-        /** @brief Global symbols */
-        bbzheap_idx_t gsyms;
-        /** @brief Heap content */
-        bbzheap_t heap;
-        /** @brief Singleton bbznil_t */
-        bbzheap_idx_t nil;
-        /** @brief Singleton bbzdarray_t for the default activations record */
-        bbzheap_idx_t dflt_actrec;
-        /** @brief Registered functions */
-        bbzheap_idx_t flist;
+        bbzvm_bcode_fetch_fun bcode_fetch_fun; /**< @brief Bytecode fetcher function */
+        uint16_t bcode_size;       /**< @brief Size of the loaded bytecode */
+        int16_t pc;                /**< @brief Program counter */
+        bbzheap_idx_t stack[BBZSTACK_SIZE]; /**< @brief Current stack content */
+        int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */
+        int16_t blockptr;          /**< @brief Block pointer (Index of the previous block pointer in the stack) */
+        bbzheap_idx_t lsyms;       /**< @brief Current local variable table */
+        bbzheap_idx_t gsyms;       /**< @brief Global symbols */
+        bbzheap_t heap;            /**< @brief Heap content */
+        bbzheap_idx_t nil;         /**< @brief Singleton bbznil_t */
+        bbzheap_idx_t dflt_actrec; /**< @brief Singleton bbzdarray_t for the default activations record */
+        bbzheap_idx_t flist;       /**< @brief Registered functions */
         /* List of known swarms */
         // TODO
         /* List of known swarms */
@@ -99,39 +87,27 @@ extern "C" {
         // TODO
         /* Input message FIFO */
         // TODO
-        /** @brief Output message FIFO */
-        bbzoutmsg_queue_t outmsgs;
-        /** @brief Virtual stigmergy single instance. */
-        bbzvstig_t vstig;
-        /** @brief Neighbor data. */
-        bbzneighbors_t neighbors;
-        /* Neighbor value listeners */
-        // TODO
-        /** @brief Current VM state */
-        bbzvm_state state;
-        /** @brief Current VM error */
-        bbzvm_error error;
-        /** @brief Error receiver. */
-        bbzvm_error_receiver_fun error_receiver_fun;
+        bbzoutmsg_queue_t outmsgs; /**< @brief Output message FIFO */
+        bbzvstig_t vstig;          /**< @brief Virtual stigmergy single instance. */
+        bbzneighbors_t neighbors;  /**< @brief Neighbor data. */
+        bbzvm_state state;         /**< @brief Current VM state */
+        bbzvm_error error;         /**< @brief Current VM error */
+        bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         /* Current VM error message */
         // TODO
-        /** @brief This robot's id */
-        bbzrobot_id_t robot;
+        bbzrobot_id_t robot;       /**< @brief This robot's id */
         /* Random number generator state */
         // TODO
         /* Random number generator index */
         // TODO
 #ifdef DEBUG
-        /** @brief PC value used for debugging purpose. */
-        int16_t dbg_pc;
-        /** @brief Current instruction */
-        bbzvm_instr instr;
+        int16_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
+        bbzvm_instr instr;         /**< @brief Current instruction */
 #endif
     } bbzvm_t;
 
     /**
-     * @brief Virtual Machine instance.
-     * @note The user is responsible for creating and setting this value.
+     * @brief Virtual Machine instance. Available from anywhere.
      */
     extern bbzvm_t* vm;
 
@@ -243,7 +219,7 @@ extern "C" {
      * This function expects at least two stacks to be present. The
      * first stack is popped. The stack beneath, now the top stack, is
      * expected to have at least one element: the return address at
-     * #1. The return address is popped and used to update the program
+     * stack #0. The return address is popped and used to update the program
      * counter.
      * @see BBZVM_INSTR_RET0
      */
@@ -257,7 +233,7 @@ extern "C" {
      * first stack must have at least one element, which is saved as
      * the return value of the call. The stack is then popped. The
      * stack beneath, now the top stack, is expected to have at least
-     * one element: the return address at #1. The return address is
+     * one element: the return address at stack #0. The return address is
      * popped and used to update the program counter. Then, the saved
      * return value is pushed on the stack.
      * @see BBZVM_INSTR_RET1
@@ -387,10 +363,10 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      * 
      * The stack is expected to be as follows:
-     * #0 value
-     * #1 idx
-     * #2 table
-     * This operation pops #0 and #1, leaving the table at the stack top.
+     * 0   -> value
+     * 1   -> idx
+     * 2   -> table
+     * This operation pops stack #0 and stack #1, leaving the table at the stack top.
      * @see BBZVM_INSTR_TPUT
      */
     void bbzvm_tput();
@@ -400,9 +376,9 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      * 
      * The stack is expected to be as follows:
-     * #0 idx
-     * #1 table
-     * This operation pops #0 and pushes the value, leaving the table at
+     * 0   -> idx
+     * 1   -> table
+     * This operation pops stack #0 and pushes the value, leaving the table at
      * stack #1. If the element for the given idx is not found, nil is
      * pushed as value.
      * @see BBZVM_INSTR_TGET
@@ -436,7 +412,7 @@ extern "C" {
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
      */
-    void bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc);
+    void bbzvm_function_call(uint16_t fname, uint16_t argc);
 
     /**
      * @brief Registers a function in the VM.
@@ -460,7 +436,7 @@ extern "C" {
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * #0 An integer for the return address
+     * 0   -> An integer for the return address
      * @param[in] isswrm 0 for a normal closure, 1 for a swarm closure
      */
     void bbzvm_call(uint8_t isswrm);
@@ -470,16 +446,16 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      * 
      * This function expects the stack to be as follows:
-     * #1   An integer for the number of closure parameters N
-     * #2   Closure arg1
+     * 0   -> An integer for the number of closure parameters N
+     * 1   -> Closure arg1
      * ...
-     * #1+N Closure argN
-     * #2+N The closure
+     * N   -> Closure argN
+     * N+1 -> The closure
      * 
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * #1 An integer for the return address
+     * 0   -> An integer for the return address
      * @see BBZVM_INSTR_CALLC
      */
     ALWAYS_INLINE
@@ -490,16 +466,16 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      * 
      * This function expects the stack to be as follows:
-     * #1   An integer for the number of closure parameters N
-     * #2   Closure arg1
+     * 0   -> An integer for the number of closure parameters N
+     * 1   -> Closure arg1
      * ...
-     * #1+N Closure argN
-     * #2+N The closure
+     * N   -> Closure argN
+     * N+1 -> The closure
      * 
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * #1 An integer for the return address
+     * 0   -> An integer for the return address
      * @see BBZVM_INSTR_CALLS
      */
     ALWAYS_INLINE
@@ -647,7 +623,7 @@ extern "C" {
     uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
 
     /**
-     * @brief Returns the heap index of the element at given stack position,
+     * @brief Gets the element at given stack position,
      * where 0 is the top of the stack and >0 goes down the stack.
      * @warning This function performs no sanity check on the passed index.
      * @param[in] idx The stack index.
@@ -656,6 +632,16 @@ extern "C" {
     ALWAYS_INLINE
     bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm->stack[vm->stackptr - idx]; }
 
+
+    /**
+     * @brief Gets the element at given local symbols position,
+     * where 0 is the self table (the table we are calling the closure on) and
+     * >0 are the closure's arguments (e.g., 3 -> third argument).
+     * @warning This function performs no sanity check on the passed index.
+     * @param[in] idx The local symbols index.
+     * @return The heap index of the element at given local symbols index.
+     */
+    #define bbzvm_lsym_at(idx) ({ bbzheap_idx_t ret; bbzdarray_get(vm->lsyms, idx, &ret); ret; })
 
 
     /**
@@ -676,18 +662,18 @@ extern "C" {
      * If the size is not valid, it updates the VM state.
      * @param[in] size The stack index, where 0 is the stack top and >0 goes down the stack.
      */
-    #define bbzvm_stack_assert(size)                                    \
+    #define bbzvm_assert_stack(size)                                    \
         bbzvm_assert_exec(bbzvm_stack_size() >= (size), BBZVM_ERROR_STACK)
-    
+
     /**
      * @brief Checks whether the type at the given stack position is correct.
      * If the type is wrong, it updates the VM state and exits the current function.
-     * @param[in] idx The stack index, where 0 is the stack top and >0 goes down the stack.
-     * @param[in] tpe The type to check
+     * @param[in] idx The heap index of the object whose type to assert.
+     * @param[in] tpe The type to check.
      */
-    #define bbzvm_type_assert(idx, tpe)                                 \
+    #define bbzvm_assert_type(idx, tpe)                                 \
         {                                                               \
-            bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(idx));          \
+            bbzobj_t* o = bbzheap_obj_at(idx);                          \
             if (bbztype(*o) != tpe                                      \
     			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
     			&& !bbztype_isclosure(*o)) {                            \

@@ -1,3 +1,5 @@
+#define NUM_TEST_CASES 1
+#define TEST_MODULE vm
 #include "testingconfig.h"
 
 // #define DEBUG
@@ -55,81 +57,12 @@ const uint8_t* testBcode(int16_t offset, uint8_t size) {
 /**
  * @brief Skips a single instruction, with its operand, if any.
  */
- void bbzvm_skip_instr() {
-     uint8_t has_operand = (*testBcode(vm->pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
-     vm->pc += sizeof(uint8_t); // Skip opcode
-     if (has_operand) {
-        vm->pc += sizeof(uint16_t); // Skip operand
-     }
- }
-
-static const char* bbztype_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
-
-#define obj_isvalid(x) ((x).o.mdata & 0x10)
-
-/**
- * @brief Prints the heap.
- */
-void bbzheap_print() {
-   /* Object-related stuff */
-   int objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
-   printf("Max object index: %d\n", objimax);
-   int objnum = 0;
-   for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
-   printf("Valid objects: %d\n", objnum);
-   for(int i = 0; i < objimax; ++i)
-      if(obj_isvalid(*bbzheap_obj_at(i))) {
-         printf("\t#%d: [%s]", i, bbztype_desc[bbztype(*bbzheap_obj_at(i))]);
-         switch(bbztype(*bbzheap_obj_at(i))) {
-             case BBZTYPE_NIL:
-                 break;
-             case BBZTYPE_STRING: // fallthrough
-             case BBZTYPE_INT:
-                 printf(" %d", bbzheap_obj_at(i)->i.value);
-                 break;
-             case BBZTYPE_FLOAT:
-                 printf(" %f", bbzfloat_tofloat(bbzheap_obj_at(i)->f.value));
-                 break;
-             case BBZTYPE_TABLE:
-                 printf(" %" PRIu16, bbzheap_obj_at(i)->t.value);
-                 break;
-             case BBZTYPE_USERDATA:
-                 printf(" %" PRIXPTR, (uintptr_t)bbzheap_obj_at(i)->u.value);
-                 break;
-             case BBZTYPE_NCLOSURE: // fallthrough
-             case BBZTYPE_CLOSURE:
-                 if (bbztype_isclosurelambda(*bbzheap_obj_at(i)))
-                     printf("[l] %d", (uint8_t)bbzheap_obj_at(i)->l.value.ref);
-                 else
-                     printf(" %d", (int)(intptr_t)bbzheap_obj_at(i)->c.value);
-                 break;
-             default:
-                 break;
-         }
-         printf("\n");
-      }
-   /* Segment-related stuff */
-   int tsegimax = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t);
-   printf("Max table segment index: %d\n", tsegimax);
-   int tsegnum = 0;
-   for(int i = 0; i < tsegimax; ++i)
-      if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
-   printf("Valid table segments: %d\n", tsegnum);
-   bbzheap_tseg_t* seg;
-   for(int i = 0; i < tsegimax; ++i) {
-      seg = bbzheap_tseg_at(i);
-      if(bbzheap_tseg_isvalid(*seg)) {
-         printf("\t#%d: {", i);
-         for(int j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j)
-            if(bbzheap_tseg_elem_isvalid(seg->keys[j]))
-               printf(" (%d,%d)",
-                      bbzheap_tseg_elem_get(seg->keys[j]),
-                      bbzheap_tseg_elem_get(seg->values[j]));
-         printf(" /next=%x }\n", bbzheap_tseg_next_get(seg));
-      }
-   }
-   printf("\n");fflush(stdout);
+void bbzvm_skip_instr() {
+    uint8_t has_operand = (*testBcode(vm->pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
+    vm->pc += sizeof(uint8_t); // Skip opcode
+    if (has_operand) {
+    vm->pc += sizeof(uint16_t); // Skip operand
+    }
 }
 
 /**
@@ -169,31 +102,13 @@ bbzvm_error get_last_error() {
  * @brief Function used for testing C closures.
  */
 void printIntVal() {
-    bbzheap_idx_t idx;
-    bbzvm_lload(1);
-    idx = bbzvm_stack_at(0);
-    printf("#%d: (%s) %d\n", idx, bbztype_desc[bbztype(*bbzvm_obj_at(idx))], bbzvm_obj_at(idx)->i.value);
+    bbzvm_assert_lnum(1);
+    bbzheap_idx_t idx = bbzvm_lsym_at(1);
+    printf("#%d taken as integer: %d\n", idx, bbzvm_obj_at(idx)->i.value);
     bbzvm_pop();
     return bbzvm_ret0();
 }
 
-#define STRBUF_SIZE 32
-static char strBuf[STRBUF_SIZE+1];
-char* getString(uint16_t sid) {
-    uint16_t* strcnt = (uint16_t*)vm->bcode_fetch_fun(0, sizeof(uint16_t));
-    if (sid >= *strcnt) return strBuf;
-    uint16_t charCount = 0;
-    for (uint16_t i = 0; i < sid; ++i) {
-        char c = *vm->bcode_fetch_fun((charCount++)+sizeof(uint16_t), sizeof(char));
-        while(c != 0) c = *vm->bcode_fetch_fun((charCount++)+sizeof(uint16_t), sizeof(char));
-    }
-    for (uint16_t i = 0; i < STRBUF_SIZE; ++i) {
-        strBuf[i] = *vm->bcode_fetch_fun(sizeof(uint16_t)+charCount+i, sizeof(char));
-        if (strBuf[i] == 0) break;
-    }
-    strBuf[STRBUF_SIZE] = 0;
-    return strBuf;
-}
 
 void logfunc() {
     int16_t argn = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
@@ -245,39 +160,11 @@ void bbzvm_log() {
 }
 
 typedef enum {
-    BBZVM_SYMID_LOG = 0,
+    BBZVM_SYMID_LOG = _BBZSTRID_COUNT_,
     BBZVM_SYMID_FORWARD,
     BBZVM_SYMID_STOP,
     BBZVM_SYMID_TURN,
 
-    BBZVM_SYMID_ID,
-    BBZVM_SYMID_SWARM,
-    BBZVM_SYMID_CREATE,
-    BBZVM_SYMID_SELECT,
-    BBZVM_SYMID_JOIN,
-    BBZVM_SYMID_UNSELECT,
-    BBZVM_SYMID_LEAVE,
-    BBZVM_SYMID_IN,
-    BBZVM_SYMID_EXEC,
-    BBZVM_SYMID_INTERSECTION,
-    BBZVM_SYMID_UNION,
-    BBZVM_SYMID_DIFFERENCE,
-    BBZVM_SYMID_OTHERS,
-    BBZVM_SYMID_NEIGHBORS,
-    BBZVM_SYMID_DISTANCE,
-    BBZVM_SYMID_AZIMUTH,
-    BBZVM_SYMID_ELEVATION,
-    BBZVM_SYMID_FOREACH,
-    BBZVM_SYMID_MAP,
-    BBZVM_SYMID_REDUCE,
-    BBZVM_SYMID_FILTER,
-    BBZVM_SYMID_LISTEN,
-    BBZVM_SYMID_IGNORE,
-    BBZVM_SYMID_BROADCAST,
-    BBZVM_SYMID_STIGMERGY,
-    BBZVM_SYMID_PUT,
-    BBZVM_SYMID_GET,
-    BBZVM_SYMID_SIZE,
     BBZVM_SYMID_LEFT,
     BBZVM_SYMID_RIGHT
 } bbzvm_symid;
@@ -286,147 +173,17 @@ void bbzvm_dummy() {
     return bbzvm_ret0();
 }
 
-void bbzvm_dummy_int() {
-    bbzvm_pushi(0);
-    return bbzvm_ret1();
-}
-
-bbzheap_idx_t swarm_select;
-bbzheap_idx_t swarm_join;
-bbzheap_idx_t swarm_unselect;
-bbzheap_idx_t swarm_leave;
-bbzheap_idx_t swarm_in;
-bbzheap_idx_t swarm_exec;
-
-void bbzvm_swarm_create() {
-    bbzvm_pusht();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_SELECT);
-    bbzvm_push(swarm_select);
-    bbzvm_tput();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_JOIN);
-    bbzvm_push(swarm_join);
-    bbzvm_tput();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_UNSELECT);
-    bbzvm_push(swarm_unselect);
-    bbzvm_tput();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_LEAVE);
-    bbzvm_push(swarm_leave);
-    bbzvm_tput();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_IN);
-    bbzvm_push(swarm_in);
-    bbzvm_tput();
-    bbzvm_dup();
-    bbzvm_pushs(BBZVM_SYMID_EXEC);
-    bbzvm_push(swarm_exec);
-    bbzvm_tput();
-    return bbzvm_ret1();
-}
-
 int8_t bbzvm_register_functions() {
     if (bbzvm_function_register(BBZVM_SYMID_LOG, bbzvm_log) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_FORWARD, bbzvm_dummy) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_STOP, bbzvm_dummy) < 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_TURN, bbzvm_dummy) < 0) return -1;
-    swarm_select = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_select < 0) return -1;
-    swarm_join = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_join < 0) return -1;
-    swarm_unselect = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_unselect < 0) return -1;
-    swarm_leave = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_leave < 0) return -1;
-    swarm_in = bbzvm_function_register(-1, bbzvm_dummy_int); if (swarm_in < 0) return -1;
-    swarm_exec = bbzvm_function_register(-1, bbzvm_dummy); if (swarm_exec < 0) return -1;
     return 0;
-}
-
-void bbzvm_register_gsyms() {
-    bbzheap_idx_t o;
-    // Register 'id'
-    bbzvm_pushs(BBZVM_SYMID_ID);
-    bbzvm_pushi(vm->robot);
-    bbzvm_gstore();
-
-    // Register 'swarm'
-    bbzvm_pushs(BBZVM_SYMID_SWARM);
-    bbzvm_pusht();
-    o = bbzvm_stack_at(0);
-    bbzvm_gstore();
-    //   Register 'swarm.create'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
-    bbzvm_tput();
-    //   Register 'swarm.intersection'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_INTERSECTION);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
-    bbzvm_tput();
-    //   Register 'swarm.union'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_UNION);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
-    bbzvm_tput();
-    //   Register 'swarm.difference'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_DIFFERENCE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
-    bbzvm_tput();
-
-    // Register neighbors
-    bbzvm_pushs(BBZVM_SYMID_NEIGHBORS);
-    bbzvm_pusht();
-    o = bbzvm_stack_at(0);
-    bbzvm_gstore();
-    //   Register 'neighbors.foreach'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_FOREACH);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-    //   Register 'neighbors.map'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_MAP);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-    //   Register 'neighbors.filter'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_FILTER);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-    //   Register 'neighbors.listen'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_LISTEN);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-    //   Register 'neighbors.ignore'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_IGNORE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-    //   Register 'neighbors.broadcast'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_BROADCAST);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy));
-    bbzvm_tput();
-
-    // Register stigmergy
-    bbzvm_pushs(BBZVM_SYMID_STIGMERGY);
-    bbzvm_pusht();
-    o = bbzvm_stack_at(0);
-    bbzvm_gstore();
-    //   Register 'stigmergy.create'
-    bbzvm_push(o);
-    bbzvm_pushs(BBZVM_SYMID_CREATE);
-    bbzvm_push(bbzvm_function_register(-1, bbzvm_dummy_int));
-    bbzvm_tput();
 }
 
     // ======================================
     // =             UNIT TEST              =
     // ======================================
-
-bbzvm_t* vm;
 
 #define FILE_TEST1 "resources/1_InstrTest.bbo"
 #define FILE_TEST2 "resources/2_IfTest.bbo"
@@ -434,7 +191,7 @@ bbzvm_t* vm;
 #define FILE_TEST4 "resources/4_AllFeaturesTest.bbo"
 #define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint16_t)
 
-TEST(bbzvm) {
+TEST(all) {
     bbzvm_t vmObj;
     vm = &vmObj;
 
@@ -476,8 +233,8 @@ TEST(bbzvm) {
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-    ASSERT_EQUAL(bbzdarray_size(vm->flist), 0);
-    ASSERT_EQUAL(bbztable_size(vm->gsyms), 0);
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), 8);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 1);
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------
@@ -519,7 +276,7 @@ TEST(bbzvm) {
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHNIL);
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 1);
-    ASSERT(bbztype_isnil(*bbzvm_obj_at(0)));
+    ASSERT(bbztype_isnil(*bbzvm_obj_at(bbzvm_stack_at(0))));
 
     // 4) Pop
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_POP);
@@ -777,7 +534,7 @@ TEST(bbzvm) {
 
     // B) Register C closure
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    bbzheap_idx_t c = bbzvm_function_register(0, printIntVal);
+    bbzheap_idx_t c = bbzvm_function_register(BBZVM_SYMID_LOG, printIntVal);
 
     REQUIRE(c >= 0);
     ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_CLOSURE);
@@ -785,13 +542,13 @@ TEST(bbzvm) {
 
     // C) Call registered C closure
     //REQUIRE(bbztable_size(vm->gsyms) == *(uint16_t*)vm->bcode_fetch_fun(0, 2));
-    bbzvm_pushs(0);
+    bbzvm_pushs(BBZVM_SYMID_LOG);
     bbzvm_gload();
     c = bbzvm_stack_at(0);
     bbzvm_pop();
     REQUIRE(bbztype_isclosure(*bbzvm_obj_at(c)));
     bbzvm_pushi(123);
-    bbzvm_function_call(0, 1);
+    bbzvm_function_call(BBZVM_SYMID_LOG, 1);
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 
@@ -801,9 +558,6 @@ TEST(bbzvm) {
         bbzvm_step();
     }
     ASSERT(vm->state != BBZVM_STATE_ERROR);
-    bbzvm_pushs(3);
-    bbzvm_gload();
-    ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 63);
 
     bbzvm_destruct();
 
@@ -830,11 +584,11 @@ TEST(bbzvm) {
     
     REQUIRE(vm->state == BBZVM_STATE_READY);
     REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
-    bbzvm_register_gsyms();
+    
     while (vm->state == BBZVM_STATE_READY) {
-    #ifdef DEBUG
+#ifdef DEBUG
         printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);
-    #endif
+#endif
         bbzvm_step();
         ASSERT(vm->state != BBZVM_STATE_ERROR);
     }
@@ -844,6 +598,8 @@ TEST(bbzvm) {
     bbzvm_destruct();
     #endif
     fclose(fbcode);
+}
 
-    TEST_END();
+TEST_LIST {
+    ADD_TEST(all);
 }

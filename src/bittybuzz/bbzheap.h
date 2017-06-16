@@ -292,6 +292,18 @@ void bbzheap_gc(bbzheap_idx_t* st,
  */
 #define tseg_makeinvalid(s) (s).mdata &= (uint16_t)0x7FFF
 
+
+#ifndef BBZCROSSCOMPILING
+#include <stdio.h>
+/**
+ * @brief Prints the heap's contents for debugging.
+ */
+void bbzheap_print();
+#else // !BBZCROSSCOMPILING
+#define bbzheap_print()
+#endif // !BBZCROSSCOMPILING
+
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

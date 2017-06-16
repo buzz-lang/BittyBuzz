@@ -1,4 +1,5 @@
 /**
+ * @file bbzutil.h
  * @brief Definition of functions that help registering values in the VM.
  */
 

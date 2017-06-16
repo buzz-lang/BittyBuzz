@@ -1,6 +1,8 @@
 #include "bbzvm.h"
 #include "bbztype.h"
 
+bbzvm_t* vm; // Global extern variable 'vm'.
+
 /****************************************/
 /****************************************/
 
@@ -29,14 +31,14 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     vm->state = BBZVM_STATE_NOCODE;
     vm->error = BBZVM_ERROR_NONE;
     vm->error_receiver_fun = dftl_error_receiver;
+    vm->stackptr = -1;
+    vm->blockptr = vm->stackptr;
+    vm->lsyms = 0;
+    vm->robot = robot;
+    vm->flist = 0;
 
-    // Setup the heap
+    // Setup things
     bbzheap_clear();
-
-    // Setup the vstig
-    // bbzvstig_construct(); // TODO
-
-    // Setup the message queues
     // bbzinmsg_construct(); // TODO
     // bbzoutmsg_construct(); // TODO
 
@@ -44,8 +46,6 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
     bbzdarray_new(&vm->dflt_actrec);
     bbzdarray_push(vm->dflt_actrec, vm->nil);
-
-    vm->flist = 0;
     
     // Create various arrays
     bbzdarray_new(&vm->flist);
@@ -53,13 +53,9 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     // Create global symbols table
     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
 
-    // Setup stack
-    vm->stackptr = -1;
-    vm->blockptr = vm->stackptr;
-
-    // Set up other variables...
-    vm->lsyms = 0;
-    vm->robot = robot;
+    // Register things
+    bbzneighbors_register();
+    // bbzvstig_register(); // TODO
 }
 
 /****************************************/
@@ -117,19 +113,19 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
 
 uint8_t bbzvm_gc() {
     if (BBZSTACK_SIZE - bbzvm_stack_size() < 5) return 0;
+
+    // Push VM values that we don't want to garbage-collect
     bbzvm_push(vm->lsyms);
     bbzvm_push(vm->gsyms);
     bbzvm_push(vm->nil);
     bbzvm_push(vm->dflt_actrec);
     bbzvm_push(vm->flist);
-
-    bbzvm_pushs(__BBZSTRID_NEIGHBORS);
-    bbzvm_gload();
-    bbzvm_pushs(__BBZSTRID_STIGMERGY);
-    bbzvm_gload();
+    bbzvm_push(vm->neighbors.hpos);
+    bbzvm_push(vm->neighbors.listeners);
+    bbzvm_push(vm->vstig.hpos);
 
     bbzheap_gc(vm->stack, bbzvm_stack_size());
-    for (int8_t i = 7; i > 0; --i) { // FIXME Save stack size and keep popping
+    for (int8_t i = 8; i > 0; --i) { // TODO Save stack size and keep popping
                                      // until it's back to what it was?
         bbzvm_pop();
     }
@@ -392,7 +388,7 @@ typedef int16_t (*binary_op_arith)(int16_t lhs,
  * @param[in] op The operation to perform.
  */
 void bbzvm_binary_op_arith(binary_op_arith op) {
-    bbzvm_stack_assert(2);
+    bbzvm_assert_stack(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
     bbzvm_pop();
@@ -486,7 +482,7 @@ void bbzvm_pow() {
 // --------------------------------
 
 void bbzvm_unm() {
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     bbzobj_t* operand = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzvm_pop();
 
@@ -523,25 +519,16 @@ typedef uint8_t (*binary_op_logic)(uint8_t lhs,
  * @param[in] op The operation to perform.
  */
 void bbzvm_binary_op_logic(binary_op_logic op) {
-    bbzvm_stack_assert(2);
+    bbzvm_assert_stack(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
     bbzvm_pop();
     bbzvm_pop();
     bbzvm_assert_state();
 
-    uint8_t lhs_bool, rhs_bool;
-
-    switch(bbztype(*lhs)) {
-        case BBZTYPE_INT: lhs_bool = (lhs->i.value != 0); break;
-        case BBZTYPE_NIL: lhs_bool = 0; break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
-    }
-    switch(bbztype(*rhs)) {
-        case BBZTYPE_INT: rhs_bool = (rhs->i.value != 0); break;
-        case BBZTYPE_NIL: rhs_bool = 0; break;
-        default: bbzvm_seterror(BBZVM_ERROR_TYPE); return;
-    }
+    uint8_t
+        lhs_bool = bbztype_tobool(lhs),
+        rhs_bool = bbztype_tobool(rhs);
 
     bbzheap_idx_t idx;
     bbzvm_assert_mem_alloc(BBZTYPE_INT, &idx);
@@ -570,7 +557,7 @@ void bbzvm_or() {
 /****************************************/
 
 void bbzvm_not() {
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     bbzobj_t* operand = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzvm_pop();
     bbzheap_idx_t idx;
@@ -602,7 +589,7 @@ typedef uint8_t (*binary_op_cmp)(int8_t cmp);
  * @param[in] op The operation to perform.
  */
 void bbzvm_binary_op_cmp(binary_op_cmp op) {
-    bbzvm_stack_assert(2);
+    bbzvm_assert_stack(2);
     bbzobj_t* rhs = bbzvm_obj_at(bbzvm_stack_at(0));
     bbzobj_t* lhs = bbzvm_obj_at(bbzvm_stack_at(1));
     bbzvm_pop();
@@ -711,7 +698,7 @@ void bbzvm_jump(uint16_t offset) {
 /****************************************/
 
 void bbzvm_jumpz(uint16_t offset) {
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(0));
 
     switch(bbztype(*o)) {
@@ -727,7 +714,7 @@ void bbzvm_jumpz(uint16_t offset) {
 /****************************************/
 
 void bbzvm_jumpnz(uint16_t offset) {
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(0));
 
     switch(bbztype(*o)) {
@@ -767,7 +754,7 @@ void bbzvm_closure_call(uint16_t argc) {
 /****************************************/
 /****************************************/
 
-void bbzvm_function_call(bbzheap_idx_t fname, uint16_t argc) {
+void bbzvm_function_call(uint16_t fname, uint16_t argc) {
 	/* Reset the VM state if it's DONE */
 	if(vm->state == BBZVM_STATE_DONE)
 		vm->state = BBZVM_STATE_READY;
@@ -819,14 +806,14 @@ bbzheap_idx_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp) {
 
 void bbzvm_call(uint8_t isswrm) {
 	/* Get argument number and pop it */
-    bbzvm_stack_assert(1);
-    bbzvm_type_assert(0, BBZTYPE_INT);
+    bbzvm_assert_stack(1);
+    bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
     uint16_t argn = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     bbzvm_pop();
     /* Make sure the stack has enough elements */
-    bbzvm_stack_assert(argn+1);
+    bbzvm_assert_stack(argn+1);
     /* Make sure the closure is where expected */
-    bbzvm_type_assert(argn, BBZTYPE_CLOSURE);
+    bbzvm_assert_type(bbzvm_stack_at(argn), BBZTYPE_CLOSURE);
     bbzobj_t* c = bbzvm_obj_at(bbzvm_stack_at(argn));
     /* Make sure that that data about lambda closures is correct */
     if(bbztype_isclosurelambda(*c) &&
@@ -1014,7 +1001,8 @@ void bbzvm_pushl(uint16_t addr) {
                 bbzdarray_lambda_alloc(vm->lsyms, &bbzvm_obj_at(o)->l.value.actrec),
                 BBZVM_ERROR_MEM);
     }
-    return bbzvm_push(o);
+    
+    bbzvm_push(o);
 }
 
 /****************************************/
@@ -1022,8 +1010,8 @@ void bbzvm_pushl(uint16_t addr) {
 
 void bbzvm_tput() {
     // Get value, key and table, and pop them.
-    bbzvm_stack_assert(3);
-    bbzvm_type_assert(2, BBZTYPE_TABLE);
+    bbzvm_assert_stack(3);
+    bbzvm_assert_type(bbzvm_stack_at(2), BBZTYPE_TABLE);
     bbzheap_idx_t v = bbzvm_stack_at(0);
     bbzheap_idx_t k = bbzvm_stack_at(1);
     bbzheap_idx_t t = bbzvm_stack_at(2);
@@ -1075,8 +1063,8 @@ void bbzvm_tput() {
 
 void bbzvm_tget() {
     // Get & pop the arguments
-    bbzvm_stack_assert(2);
-    bbzvm_type_assert(1, BBZTYPE_TABLE);
+    bbzvm_assert_stack(2);
+    bbzvm_assert_type(bbzvm_stack_at(1), BBZTYPE_TABLE);
     bbzheap_idx_t k = bbzvm_stack_at(0);
     bbzheap_idx_t t = bbzvm_stack_at(1);
     bbzvm_pop();
@@ -1098,8 +1086,8 @@ void bbzvm_tget() {
 
 void bbzvm_gload() {
     // Get and pop the string
-    bbzvm_stack_assert(1);
-    bbzvm_type_assert(0, BBZTYPE_STRING);
+    bbzvm_assert_stack(1);
+    bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_STRING);
     bbzheap_idx_t str = bbzvm_stack_at(0);
     bbzvm_pop();
     bbzvm_assert_state();
@@ -1120,8 +1108,8 @@ void bbzvm_gload() {
 
 void bbzvm_gstore() {
     // Get and pop the arguments
-    bbzvm_stack_assert(2);
-    bbzvm_type_assert(1, BBZTYPE_STRING);
+    bbzvm_assert_stack(2);
+    bbzvm_assert_type(bbzvm_stack_at(1), BBZTYPE_STRING);
     bbzheap_idx_t str = bbzvm_stack_at(1);
     bbzheap_idx_t o = bbzvm_stack_at(0);
     bbzvm_pop();
@@ -1147,15 +1135,15 @@ void bbzvm_ret0() {
     vm->blockptr = bbzvm_obj_at(vm->stack[vm->stackptr])->i.value;
     bbzvm_pop();
     /* Make sure the stack contains at least one element */
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     /* Pop local symbol table */
     bbzdarray_destroy(vm->lsyms);
     vm->lsyms = bbzvm_stack_at(0);
     bbzvm_pop();
     /* Make sure the stack contains at least one element */
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     /* Make sure that element is an integer */
-	bbzvm_type_assert(0, BBZTYPE_INT);
+	bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
 	/* Use that element as program counter */
 	vm->pc = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */
@@ -1171,7 +1159,7 @@ void bbzvm_ret1() {
     	//TODO pop the swarm stack.
     }
     /* Make sure there's an element on the stack */
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     /* Save it, it's the return value to pass to the lower stack */
     bbzheap_idx_t ret = bbzvm_stack_at(0);
     /* Pop block pointer and stack */
@@ -1179,15 +1167,15 @@ void bbzvm_ret1() {
     vm->blockptr = bbzvm_obj_at(vm->stack[vm->stackptr])->i.value;
     bbzvm_pop();
     /* Make sure the stack contains at least one element */
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     /* Pop local symbol table */
     bbzdarray_destroy(vm->lsyms);
     vm->lsyms = bbzvm_stack_at(0);
     bbzvm_pop();
     /* Make sure the stack contains at least one element */
-    bbzvm_stack_assert(1);
+    bbzvm_assert_stack(1);
     /* Make sure that element is an integer */
-	bbzvm_type_assert(0, BBZTYPE_INT);
+	bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
 	/* Use that element as program counter */
 	vm->pc = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */

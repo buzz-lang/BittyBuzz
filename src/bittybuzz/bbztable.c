@@ -5,8 +5,8 @@
 /****************************************/
 
 uint8_t bbztable_get(bbzheap_idx_t t,
-                 bbzheap_idx_t k,
-                 bbzheap_idx_t* v) {
+                     bbzheap_idx_t k,
+                     bbzheap_idx_t* v) {
     /* Get segment index */
     int16_t si = bbzheap_obj_at(t)->t.value;
     /* Get segment data */
@@ -34,8 +34,8 @@ uint8_t bbztable_get(bbzheap_idx_t t,
 /****************************************/
 
 uint8_t bbztable_set(bbzheap_idx_t t,
-                 bbzheap_idx_t k,
-                 bbzheap_idx_t v) {
+                     bbzheap_idx_t k,
+                     bbzheap_idx_t v) {
     /* Search for the given key, keeping track of first free slot */
     /* Get segment index */
     int16_t si = bbzheap_obj_at(t)->t.value;
@@ -51,9 +51,9 @@ uint8_t bbztable_set(bbzheap_idx_t t,
         for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
             if(!bbzheap_tseg_elem_isvalid(sd->keys[i])) {
                 if(fseg < 0) {
-                /* First free slot found */
-                fseg = si;
-                fslot = i;
+                    /* First free slot found */
+                    fseg = si;
+                    fslot = i;
                 }
             }
             else if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
@@ -167,3 +167,21 @@ uint8_t bbztable_size(bbzheap_idx_t t) {
 
 /****************************************/
 /****************************************/
+
+void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
+    /* Get segment index */
+    int16_t si = bbzheap_obj_at(t)->t.value;
+    /* Go through each segment */
+    bbzheap_tseg_t* tseg;
+    do {
+        tseg = bbzheap_tseg_at(si);
+        /* Go through each valid element in the segment */
+        for (uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+            if (bbzheap_tseg_elem_isvalid(tseg->keys[i])) {
+                /* Call function */
+                fun(tseg->keys[i], tseg->values[i], params);
+            }
+        }
+        si = bbzheap_tseg_next_get(tseg);
+    } while (si != NO_NEXT);
+}

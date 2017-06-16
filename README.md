@@ -49,9 +49,10 @@ It is possible to specify a custom value for these configuration values.
 - `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].
 - `BBZSTACK_SIZE` : Size of the VM's stack (in number of objects) [Default: 256].
 - `BBZVSTIG_CAP` : Capacity of the virtual stigmergy (in number of entries) [Default: 3].
-- `BBZNEIGHBORS_CAP` : Capacity of the neighbors structure (in number of neighbors) [Default: 4, Max: 255].
+- `BBZNEIGHBORS_CAP` : Capacity of the neighbors structure (in number of neighbors) [Default: 4, Max: 255]. Used only when `BBZ_XTREME_MEMORY` is ON.
 - `RESERVED_ACTREC_MAX` : Number of table segments reserved for lambdas'
 activation record [Default: 32, Max: 254].
+- `BBZ_XTREME_MEMORY` : Whether to use high memory optimizations [Default: ON for kilobots otherwise OFF, Values: {ON, OFF}].
 
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 

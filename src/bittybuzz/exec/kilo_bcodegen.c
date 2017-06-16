@@ -61,13 +61,35 @@ char *remove_ext (char* mystr, char dot, char sep) {
     return retstr;
 }
 
+uint8_t is_valid_char(char c) {
+    return
+        (c >= 'A' && c <= 'Z') ||
+        (c >= 'a' && c <= 'z') ||
+        (c >= '0' && c <= '9') ||
+        c == '_' ||
+        c == '\0';
+}
+
 int main(int argc, char** argv) {
     if (argc != 3) {
-        printf("Metaprogram which generates a header file containing raw bytecode for "
-                       "bbzkilobot programs.\n");
-        printf("The bytecode is available as 'uint8_t bcode[]', and its size is stored as "
-                       "'uint16_t bcode_size'.\n");
-        printf("Usage: \n\tbcodegen <buzzscript.bo> <outfile.h>\n");
+        printf("Usage: \n\tbcodegen <buzzscript.bo> <outfile.h>\n\n\n"
+
+
+               "Metaprogram which takes a BittyBuzz object (.bbo) file generated \n"
+               "by the Buzz compiler (bzzc or bzzasm) and generates a header \n"
+               "file containing raw bytecode for kilobot programs, as well \n"
+               "as macros corresponding to the string ID of strings appearing \n"
+               "in the Buzz program.\n\n"
+
+               "The bytecode is available as 'uint8_t bcode[]', and its size \n"
+               "is stored as 'uint16_t bcode_size'.\n\n"
+
+               "Given a string, use the 'BBZSTRING_ID' macro defined in \n"
+               "\"bbzstring.h\" to get the string ID of a string. Note that \n"
+               "all characters that would otherwise make an invalid \n"
+               "identifier should be replaced by an underscore (case remains \n"
+               "unchanged). Thus, some string names may collide.\n"
+               "E.g. \"2 Swarms\" -> BBZSTRING_ID(__Swarms).\n");
         return 1;
     }
 
@@ -138,15 +160,18 @@ int main(int argc, char** argv) {
 
     char buf;
     uint16_t strcnt;
-    fread(&strcnt, 2, 1, f_obj);
+    fread(&strcnt, sizeof(strcnt), 1, f_obj);
     for (int i = 0; i < strcnt; ++i) {
         strcpy(str, "");
         do {
-            fread(&buf, 1, 1, f_obj);
+            fread(&buf, sizeof(buf), 1, f_obj);
+            if (!is_valid_char(buf)) {
+                buf = '_';
+            }
             strncat(str, &buf, 1);
         } while(buf != '\0');
         if (!strchr(str, ' ')) {
-            fprintf(f_out, "#define BBZKILO_SYMID_GEN_%s %d\n", str, i);
+            fprintf(f_out, "#define BBZSTRID_%s %d\n", str, i);
         }
     }
 

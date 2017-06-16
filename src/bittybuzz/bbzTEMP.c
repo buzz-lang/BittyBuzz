@@ -214,7 +214,7 @@ ISR(TIMER0_COMPA_vect) {
 char* led_desc[] = {"OFF", "RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "WHITE"};
 
 void set_led(uint8_t color) {
-    printf("%s", led_desc[color]);
+    printf("Led is now %s.\n", led_desc[color]);
 }
 
 #endif // BBZCROSSCOMPILING

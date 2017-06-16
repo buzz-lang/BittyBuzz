@@ -8,6 +8,7 @@ SRC_DIR="@CMAKE_SOURCE_DIR@"
 BIN_DIR="@CMAKE_BINARY_DIR@"
 AVR_CFLAGS="@AVR_CFLAGS@"
 AVR_LDFLAGS="@AVR_LDFLAGS@"
+BBZ_BASE_BST_FILE="@BBZ_BASE_BST_FILE@"
 
 BBZ_LIB_DIR=${BIN_DIR}/bittybuzz
 BBZ_LIB_INC=${SRC_DIR}/bittybuzz
@@ -19,7 +20,7 @@ BO2BBO_PATH=${BIN_DIR}/bittybuzz/exec/bo2bbo
 KILO_SYMGEN_PATH=${BIN_DIR}/bittybuzz/exec/kilo_bcodegen
 
 GEN_PATH=${BIN_DIR}/kilobot/mains/gen
-GEN_SYMS_FILENAME=bbzkilosymgen.h
+GEN_SYMS_FILENAME=bbzsymbols.h
 
 # Checking options
 bzz_file=
@@ -165,7 +166,7 @@ LOG "Done $BZZ_ASM"
 LOGF "\tCheck for bo2bbo... "
 hash $BO2BBO_PATH 2>/dev/null || {
     LOG "Not Found";
-    echo >&2 "[$bbz_name] Error: bo2bbo is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
+    echo >&2 "[$bbz_name] Error: bo2bbo is required but cannot be found. Did you move this compiler script?  Aborting.";
     exit 1;
 }
 LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $BO2BBO_PATH)"
@@ -173,7 +174,7 @@ LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $BO2BBO_PATH)"
 LOGF "\tCheck for kilo_bcodegen... "
 hash $KILO_SYMGEN_PATH 2>/dev/null || {
     LOG "Not Found";
-    echo >&2 "[$bbz_name] Error: kilo_bcodegen is required but cannot be found. Maybe did you move this compiler script?  Aborting.";
+    echo >&2 "[$bbz_name] Error: kilo_bcodegen is required but cannot be found. Did you move this compiler script?  Aborting.";
     exit 1;
 }
 LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $KILO_SYMGEN_PATH)"
@@ -209,8 +210,13 @@ LOG ""
 GEN_SYMS_DIR=${GEN_DIR}
 GEN_SYMS_FILE=${GEN_SYMS_DIR}/${GEN_SYMS_FILENAME}
 
+LOG "[$bbz_name] Linking BST file with BittyBuzz BST file..."
+cat ${BBZ_BASE_BST_FILE} > ${GEN_DIR}/${bbz_name}.bst
+if [ ! -z "$bst_file" ]; then
+    cat ${bst_file} >> ${GEN_DIR}/${bbz_name}.bst
+fi
 LOG "[$bbz_name] Parsing $(realpath --relative-to=${BIN_DIR}/.. ${bzz_file})..."
-${BZZ_PAR} ${bzz_file} ${GEN_DIR}/${bbz_name}.basm ${bst_file} >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${BZZ_PAR} ${bzz_file} ${GEN_DIR}/${bbz_name}.basm ${GEN_DIR}/${bbz_name}.bst >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Assembling $(realpath --relative-to=${BIN_DIR}/.. ${GEN_DIR}/${bbz_name}.basm)"
 ${BZZ_ASM} ${GEN_DIR}/${bbz_name}.basm ${GEN_DIR}/${bbz_name}.bo ${GEN_DIR}/${bbz_name}.bdb >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating Symbol header file: $(realpath --relative-to=${BIN_DIR}/.. ${GEN_SYMS_DIR})/${GEN_SYMS_FILENAME}"
@@ -231,5 +237,4 @@ ${AVR_OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_na
 LOG "[$bbz_name] Done"
 LOG ""
 LOG "[$bbz_name] Thank you."
-LOG "[$bbz_name] Chuck Norris"
 exit 0

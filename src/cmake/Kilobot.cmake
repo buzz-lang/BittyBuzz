@@ -43,6 +43,7 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 # BittyBuzz variables
 #
 set(BBZ_ROBOT kilobot)
+option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." ON)
 
 #
 # CMake command to compile an executable

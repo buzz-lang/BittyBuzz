@@ -3,10 +3,15 @@
 #include "bbzutil.h"
 
 void bbzvstig_register() {
-    bbzvm_pushs(__BBZSTRID_STIGMERGY);
+    bbzvm_pushs(__BBZSTRID_stigmergy);
+    
     // Create the 'stigmergy' table and set its 'create' field.
     bbzvm_pusht();
-    bbztable_add_function(__BBZSTRID_CREATE, bbzvstig_create);
+    bbztable_add_function(__BBZSTRID_create, bbzvstig_create);
+
+    // Construct the 'stigmergy' structure.
+    vm->vstig.hpos = bbzvm_stack_at(0);
+    bbzvstig_construct();
 
     // String 'stigmergy' is stack-top, and table is now stack #1. Register it.
     bbzvm_gstore();
@@ -16,8 +21,8 @@ void bbzvstig_register() {
 /****************************************/
 
 void bbzvstig_create() {
-    bbzvm_lload(1);
-
+    bbzvm_assert_lnum(1);
+    
     // Empty the vstig.
     vm->vstig.size = 0;
 
@@ -25,10 +30,10 @@ void bbzvstig_create() {
     bbzvm_pusht();
     // TODO When creating a second vstig table, we might want the first one
     //      to have its id changed too.
-    bbztable_add_data(__BBZSTRID_ID, bbzvm_stack_at(0));
-    bbztable_add_function(__BBZSTRID_PUT,  bbzvstig_put);
-    bbztable_add_function(__BBZSTRID_GET,  bbzvstig_get);
-    bbztable_add_function(__BBZSTRID_SIZE, bbzvstig_size);
+    bbztable_add_data(__BBZSTRID_id, bbzvm_lsym_at(1));
+    bbztable_add_function(__BBZSTRID_put,  bbzvstig_put);
+    bbztable_add_function(__BBZSTRID_get,  bbzvstig_get);
+    bbztable_add_function(__BBZSTRID_size, bbzvstig_size);
 
 
     // Table is now stack top. Return it.
@@ -39,8 +44,10 @@ void bbzvstig_create() {
 /****************************************/
 
 void bbzvstig_get() {
-    bbzvm_lload(1);
-    bbzheap_idx_t key = bbzvm_stack_at(0);
+    bbzvm_assert_lnum(1);
+
+    // Get args
+    bbzheap_idx_t key = bbzvm_lsym_at(1);
 
     // TODO Communicate with other robots
 
@@ -65,10 +72,11 @@ void bbzvstig_get() {
 /****************************************/
 
 void bbzvstig_put() {
-    bbzvm_lload(1);
-    bbzvm_lload(2);
-    bbzheap_idx_t key   = bbzvm_stack_at(0);
-    bbzheap_idx_t value = bbzvm_stack_at(1);
+    bbzvm_assert_lnum(2);
+
+    // Get args
+    bbzheap_idx_t key   = bbzvm_lsym_at(1);
+    bbzheap_idx_t value = bbzvm_lsym_at(2);
 
     // TODO Communicate with other robots
 
@@ -101,6 +109,7 @@ void bbzvstig_put() {
 /****************************************/
 
 void bbzvstig_size() {
+    bbzvm_assert_lnum(0);
     bbzvm_pushi(vm->vstig.size);
     return bbzvm_ret1();
 }

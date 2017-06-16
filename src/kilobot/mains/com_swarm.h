@@ -2,8 +2,9 @@
 #define COM_SWARM_H
 
 #include <kilobot/lib/bbzkilobot.h>
-#include <kilobot/lib/bbzkiloreg.h>
 #include <kilobot/lib/bbzmessage_crc.h>
+
+#include <bittybuzz/util/bbzstring.h>
 
 enum Message_Types {
     MSG_NEIGHBORS = 0,  // Can anyone (else) hear me?

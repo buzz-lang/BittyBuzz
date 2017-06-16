@@ -1,6 +1,7 @@
 #include <bbzkilobot.h>
-#include <bbzkiloreg.h>
 #include <bbzmessage_crc.h>
+
+#include <bittybuzz/util/bbzstring.h>
 
 message_t msg;
 message_t* my_msg_tx() {

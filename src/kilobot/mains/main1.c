@@ -1,10 +1,10 @@
-#include <bbzkilobot.h>
-#include <bittybuzz/bbzvm.h>
 #include <avr/pgmspace.h>
-#include <bittybuzz/bbztype.h>
-#include <bbzkiloreg.h>
 
-bbzvm_t* vm;
+#include <bbzkilobot.h>
+
+#include <bittybuzz/bbzvm.h>
+#include <bittybuzz/bbztype.h>
+#include <bittybuzz/util/bbzstring.h>
 
 uint8_t buf[4];
 const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
@@ -45,8 +45,8 @@ void err_reciever(bbzvm_error errcode) {
 }
 
 void bbz_led() {
-    bbzvm_lload(1);
-    uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
+    bbzvm_assert_lnum(1);
+    uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
     //set_led(color);
     set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
     //bin_count(color, 1);
@@ -54,17 +54,16 @@ void bbz_led() {
 }
 
 void bbz_delay() {
-    bbzvm_lload(1);
-    uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
+    bbzvm_assert_lnum(1);
+    uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
     delay(d);
     return bbzvm_ret0();
 }
 
 void bbz_setmotor() {
-    bbzvm_lload(2);
-    bbzvm_lload(1);
+    bbzvm_assert_lnum(2);
     spinup_motors();
-    set_motors((uint8_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value, (uint8_t)bbzvm_obj_at(bbzvm_stack_at(1))->i.value);
+    set_motors((uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value, (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(2))->i.value);
     return bbzvm_ret0();
 }
 
@@ -72,9 +71,9 @@ void setup() {
     bbzvm_construct(kilo_uid);
     bbzvm_set_bcode(bcodeFetcher, bcode_size);
     bbzvm_set_error_receiver(err_reciever);
-    bbzkilo_function_register(led, bbz_led);
-    bbzkilo_function_register(delay, bbz_delay);
-    bbzkilo_function_register(set_motor, bbz_setmotor);
+    bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
+    bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
+    bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
 }
 
 void loop () {

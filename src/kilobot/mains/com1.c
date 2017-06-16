@@ -1,5 +1,6 @@
 #include <bbzkilobot.h>
-#include <bbzkiloreg.h>
+
+#include <bittybuzz/util/bbzstring.h>
 
 uint8_t rcvd_msg;
 void my_msg_rx(message_t* msg, distance_measurement_t* d) {
