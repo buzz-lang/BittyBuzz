@@ -72,7 +72,7 @@ void loop() {
 int main() {
     bbzvm_t vmObj;
     vm = &vmObj;
-    
+
     bbzkilo_init();
     bbzkilo_start(setup, loop);
 

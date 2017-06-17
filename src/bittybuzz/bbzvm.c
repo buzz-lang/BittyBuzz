@@ -46,7 +46,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
     bbzdarray_new(&vm->dflt_actrec);
     bbzdarray_push(vm->dflt_actrec, vm->nil);
-    
+
     // Create various arrays
     bbzdarray_new(&vm->flist);
 
@@ -1001,7 +1001,7 @@ void bbzvm_pushl(uint16_t addr) {
                 bbzdarray_lambda_alloc(vm->lsyms, &bbzvm_obj_at(o)->l.value.actrec),
                 BBZVM_ERROR_MEM);
     }
-    
+
     bbzvm_push(o);
 }
 

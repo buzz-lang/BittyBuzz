@@ -109,7 +109,7 @@ extern "C" {
     /**
      *  @brief Insert a value v at the end of the array d.
      *  @param [in] d The position of the dynamic array's object in the heap.
-     *  @param [in] v The position in the heap of the object to push. 
+     *  @param [in] v The position in the heap of the object to push.
      *  @return 1 for success, 0 for failure (out of memory)
      */
     uint8_t bbzdarray_push(bbzheap_idx_t d,
@@ -121,7 +121,7 @@ extern "C" {
      *  @return The size of the dynamic array.
      */
     uint16_t bbzdarray_size(bbzheap_idx_t d);
-    
+
     /**
      *  @brief Creates a new dynamic array from the given dynamic array.
      *  @param[in] d The dynamic array.
@@ -136,7 +136,7 @@ extern "C" {
      *  @param[in] d The dynamic array.
      */
     void bbzdarray_clear(bbzheap_idx_t d);
-    
+
     /**
      *  @brief Applies a function to each element of the dynamic array.
      *  @param[in] d The dynamic array.
@@ -146,7 +146,7 @@ extern "C" {
     void bbzdarray_foreach(bbzheap_idx_t d,
                            bbzdarray_elem_funp fun,
                            void* params);
-    
+
     /**
      *  @brief Finds the position of an element.
      *         If the element is not found, the returned position

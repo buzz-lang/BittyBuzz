@@ -184,7 +184,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
                 // where have two 'equal' tables, but one has a mark
                 // and one does not, we do not want to invalidate the
                 // table segments.
-                /* 
+                /*
                 TODO if(gc_tseg_hasmark(bbzheap_obj_at(i)->t.value)) {
                 TODO     continue;
                 TODO }

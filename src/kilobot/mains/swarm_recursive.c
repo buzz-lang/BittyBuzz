@@ -242,13 +242,13 @@ void process_msg_rx_swarm_num_final(message_t* msg_rx) {
     LED_BLINK(3,3,3);
     if (!got_swarm_num_final) {
         got_swarm_num_final = 1;
-        
+
         // Reset stuff
         got_swarm_num = 0;
         got_swarm_num_recur = 0;
         swarm0_member_count_increment = 0;
         curr_neighbor_idx = 0;
-        
+
         // Pass on the message
         send_msg_tx_swarm_num_final();
     }

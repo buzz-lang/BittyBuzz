@@ -186,7 +186,7 @@ uint8_t bbzdarray_push(bbzheap_idx_t d,
     for (si = 0; // Reusing 'si' as the position in the segment
             si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
             ++si);
-    
+
     if (si >= 2*BBZHEAP_ELEMS_PER_TSEG) {
         /* Last segment is full ; add a new segment */
         uint16_t o;

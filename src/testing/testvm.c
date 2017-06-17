@@ -300,7 +300,7 @@ TEST(all) {
     ASSERT_EQUAL(bbzvm_stack_size(), 2);
     bbzobj_t* o1 = bbzvm_obj_at(bbzvm_stack_at(0));
     ASSERT(bbztype_isint(*o1));
-    
+
     ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 0x42);
     ASSERT(bbztype_isint(*bbzvm_obj_at(bbzvm_stack_at(1))));
     ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(1))->i.value, 0x42);
@@ -313,7 +313,7 @@ TEST(all) {
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 2);
     ASSERT_EQUAL(vm->pc, pushiLabel);
-    
+
     // Re-execute instructions until the jump.
     while (vm->pc != jumpLabel) {
         bbzvm_step();
@@ -481,7 +481,7 @@ TEST(all) {
     // 17) Perform push operations when stack is full
     {
         REQUIRE(bbzvm_stack_size() == BBZSTACK_SIZE);
-        
+
         const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
         bbzvm_instr failing_instr[] = {
             BBZVM_INSTR_DUP,    BBZVM_INSTR_PUSHNIL, BBZVM_INSTR_PUSHF, BBZVM_INSTR_PUSHI, BBZVM_INSTR_PUSHS,
@@ -581,10 +581,10 @@ TEST(all) {
     fseek(fbcode, 0, SEEK_SET);
 
     bbzvm_set_bcode(&testBcode, fsize);
-    
+
     REQUIRE(vm->state == BBZVM_STATE_READY);
     REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
-    
+
     while (vm->state == BBZVM_STATE_READY) {
 #ifdef DEBUG
         printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);

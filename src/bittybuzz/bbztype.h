@@ -136,7 +136,7 @@ typedef union PACKED {
          * 5th bit for valid in heap
          * 4th bit for garbage collection
          */
-        uint8_t mdata; 
+        uint8_t mdata;
     }             o; /**< @brief Generic object */
     bbznil_t      n; /**< @brief Nil object */
     bbzint_t      i; /**< @brief Integer object */

@@ -44,7 +44,7 @@ void add_neighborish_fields(int16_t count) {
     bbztable_add_function(__BBZSTRID_get,     bbzneighbors_get);
     bbztable_add_function(__BBZSTRID_reduce,  bbzneighbors_reduce);
     bbztable_add_function(__BBZSTRID_count,   bbzneighbors_count);
-    
+
     // Add neighbor count
     bbzvm_pushi(count);
     bbzheap_idx_t cnt = bbzvm_stack_at(0);
@@ -102,7 +102,7 @@ void bbzneighbors_broadcast() {
     bbzheap_idx_t value = bbzvm_lsym_at(2);
 
     bbzoutmsg_append_broadcast(topic, value);
-    
+
     bbzvm_ret0();
 }
 
@@ -179,10 +179,10 @@ void bbzneighbors_foreach() {
 /**
  * @brief Function that puts an element in a table.
  * @details The stack is expected to be as follows:
- * 
+ *
  * 0   -> key
  * 1   -> table
- * 
+ *
  * @param[in] value The data table (the
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in] ret The value returned by the user's closure.
@@ -316,7 +316,7 @@ void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzvm_push(value);
     bbzvm_push(key);
     bbzvm_closure_call(3);
-    
+
     // Make sure we returned a value.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
 
@@ -365,7 +365,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 
 void bbzneighbors_get() {
     bbzvm_assert_lnum(1);
-    
+
     // Get args.
     bbzheap_idx_t robot = bbzvm_lsym_at(1);
     bbzvm_assert_type(robot, BBZTYPE_INT);
@@ -460,7 +460,7 @@ void neighbor_get(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
 
 void bbzneighbors_get() {
     bbzvm_assert_lnum(1);
-    
+
     // Get passed robot ID.
     bbzheap_idx_t robot = bbzvm_lsym_at(1);
     bbzvm_assert_type(robot, BBZTYPE_INT);

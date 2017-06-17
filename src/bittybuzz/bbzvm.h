@@ -59,9 +59,9 @@ extern "C" {
 
     /**
      * @brief The BittyBuzz Virtual Machine.
-     * 
+     *
      * @details Responsibilities:
-     * 
+     *
      *      1) Load and run bytecode.
      */
     typedef struct PACKED {
@@ -180,7 +180,7 @@ extern "C" {
      * @brief Executes the script up to completion.
      */
     void bbzvm_execute_script();
-    
+
 
     // ======================================
     // =         BYTECODE FUNCTIONS         =
@@ -215,7 +215,7 @@ extern "C" {
     /**
      * @brief Returns from a closure without setting a return value.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects at least two stacks to be present. The
      * first stack is popped. The stack beneath, now the top stack, is
      * expected to have at least one element: the return address at
@@ -228,7 +228,7 @@ extern "C" {
     /**
      * @brief Returns from a closure setting a return value.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects at least two stacks to be present. The
      * first stack must have at least one element, which is saved as
      * the return value of the call. The stack is then popped. The
@@ -361,7 +361,7 @@ extern "C" {
     /**
      * @brief Stores a (idx,value) pair in a table.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * The stack is expected to be as follows:
      * 0   -> value
      * 1   -> idx
@@ -370,11 +370,11 @@ extern "C" {
      * @see BBZVM_INSTR_TPUT
      */
     void bbzvm_tput();
-    
+
     /**
      * @brief Fetches a (idx,value) pair from a table.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * The stack is expected to be as follows:
      * 0   -> idx
      * 1   -> table
@@ -425,14 +425,14 @@ extern "C" {
     /**
      * @brief Calls a closure.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects the stack to be as follows:
      * 0   -> An integer for the number of closure parameters N
      * 1   -> Closure arg1
      * ...
      * N   -> Closure argN
      * N+1 -> Closure
-     * 
+     *
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
@@ -444,14 +444,14 @@ extern "C" {
     /**
      * @brief Calls a normal closure.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects the stack to be as follows:
      * 0   -> An integer for the number of closure parameters N
      * 1   -> Closure arg1
      * ...
      * N   -> Closure argN
      * N+1 -> The closure
-     * 
+     *
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
@@ -464,14 +464,14 @@ extern "C" {
     /**
      * @brief Calls a swarm closure.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects the stack to be as follows:
      * 0   -> An integer for the number of closure parameters N
      * 1   -> Closure arg1
      * ...
      * N   -> Closure argN
      * N+1 -> The closure
-     * 
+     *
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
@@ -528,7 +528,7 @@ extern "C" {
     /**
      * @brief Pushes a c-function closure on the stack.
      * @details Internally checks whether the operation is valid.
-     * 
+     *
      * This function expects the function id in the stack top.
      * It pops the function id and pushes the c-function closure.
      * @see BBZVM_INSTR_PUSHCC

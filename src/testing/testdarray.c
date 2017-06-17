@@ -42,13 +42,13 @@ int main() {
    vm = &vmObj;
 
    bbzheap_clear();
-   
+
    printf("+=-=-=-=-=-= bbzdarray_new =-=-=-=-=-=+\n");
    uint16_t darray;
    bbzdarray_new(&darray);
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= bbzdarray_push =-=-=-=-=-=+\n");
    uint16_t o;
    bbzheap_obj_alloc(BBZTYPE_INT, &o);
@@ -57,12 +57,12 @@ int main() {
    bbzdarray_push(darray, o);
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= bbzdarray_find =-=-=-=-=-=+\n");
    int pos = bbzdarray_find(darray, bbztype_cmp, o);
    printf("Position of integer %s<%d:[%d]> : %d\n", bbztype_desc[bbztype(*bbzheap_obj_at(o))],o,((bbzint_t*)bbzheap_obj_at(o))->value, pos);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= bbzdarray_set =-=-=-=-=-=+\n");
    uint16_t o2;
    bbzheap_obj_alloc(BBZTYPE_INT, &o2);
@@ -70,12 +70,12 @@ int main() {
    io2->value = 255;
    bbzdarray_set(darray, 0, o2);
    bbzdarray_print(darray);
-   
+
    printf("+=-= Value changed in the heap =-=+\n");
    io2->value = 15;
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= [15x] bbzdarray_push =-=-=-=-=-=+\n");
    uint16_t o3;
    bbzint_t* io3;
@@ -87,7 +87,7 @@ int main() {
    }
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= [7x] bbzdarray_pop =-=-=-=-=-=+\n");
    for (int i = 0; i < 7; ++i) {
       bbzdarray_pop(darray);
@@ -95,15 +95,15 @@ int main() {
    }
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= bbzdarray_clear =-=-=-=-=-=+\n");
    bbzdarray_clear(darray);
    bbzdarray_print(darray);
    printf("\n");
-   
+
    uint16_t stack[] = {darray};
    bbzheap_gc(stack, 1);
-   
+
    printf("+=-=-=-=-=-= bbzdarray_clone =-=-=-=-=-=+\n");
    for (int i = 0; i < 22; ++i) {
       bbzheap_obj_alloc(BBZTYPE_INT, &o3);
@@ -117,12 +117,12 @@ int main() {
    printf("\n");
    bbzdarray_print(darray2);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-= bbzdarray_foreach [add 20 to each value] =-=-=-=-=-=+\n");
    bbzdarray_foreach(darray, foreach, NULL);
    bbzdarray_print(darray);
    printf("\n");
-   
+
    printf("+=-=-=-=-=-=-=-=- bbzdarray_destroy -=-=-=-=-=-=-=-=+\n");
    printf("+= (Should be different for cloned and not cloned) =+\n");
    printf("++ Heap before:\n");
@@ -132,6 +132,6 @@ int main() {
    bbzdarray_destroy(darray2);
    printf("++ Heap after:\n");
    bbzheap_print();
-   
+
    return 0;
 }

@@ -64,7 +64,7 @@ uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
            (rb->dataend  -  rb->datastart) :
            (rb->capacity - (rb->datastart - rb->dataend - 1));
 }
-        
+
 
 /**
  * @brief Checks whether the ring buffer is full.

@@ -55,7 +55,7 @@ typedef struct PACKED {
 
 /**
  * @brief The heap structure.
- * 
+ *
  * The BittyBuzz heap is a static buffer of uint8_t, whose size is
  * decided by the developer.
  * The heap contains instances of bbzobj_t variables.
@@ -262,7 +262,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 /**
  * @brief <b>For the VM's internal use only.</b>
- * 
+ *
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
  */
@@ -270,7 +270,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 /**
  * @brief <b>For the VM's internal use only.</b>
- * 
+ *
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
  */
@@ -278,7 +278,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 /**
  * @brief <b>For the VM's internal use only.</b>
- * 
+ *
  * Marks a segment as currently in use, i.e., "allocated".
  * @param[in,out] s The segment to mark.
  */
@@ -286,7 +286,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 /**
  * @brief <b>For the VM's internal use only.</b>
- * 
+ *
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @param[in,out] s The segment to mark.
  */

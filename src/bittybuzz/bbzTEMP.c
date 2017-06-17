@@ -12,7 +12,7 @@ void set_led(int8_t color) {
         (color & 1) ? 1 : 0,
         (color & 2) ? 1 : 0,
         (color & 4) ? 1 : 0);
-    
+
     // Got all of this from the kilolib
     if (rgb&(1<<0))
         DDRD |= (1<<5);
@@ -43,7 +43,7 @@ void set_led(int8_t color) {
         DDRC |= (1<<4);
     else
         DDRC &= ~(1<<4);
-    
+
     _delay_ms(300.0);
 }
 
@@ -182,7 +182,7 @@ void debug_init() {
 
 typedef struct {
     uint8_t data[9]; ///< message payload.
-    uint8_t type;    ///< message type. 
+    uint8_t type;    ///< message type.
     uint16_t crc;    ///< message crc.
 } message_t;
 

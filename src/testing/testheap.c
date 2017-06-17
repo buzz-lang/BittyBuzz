@@ -58,7 +58,7 @@ int main() {
             break;
         }*/
         bbzheap_print();
-    }   
+    }
     printf("Garbage collection\n");
     uint16_t stack2[8] = { 0, 1, 2, 3, 4, 5, 7, 8 };
     bbzheap_gc(stack2, 8);
@@ -110,7 +110,7 @@ int main() {
         else {
             printf("Foreach called when it was not expected to.\n\n");
         }
-        
+
         num_calls_foreach = 0;
         printf("Foreach on a non-empty table.\n");
         for (uint8_t i = 0; i < 10; ++i) {
@@ -132,7 +132,7 @@ int main() {
         else {
             printf("Foreach called wrong number of times (%d) instead of 10.\n\n", num_calls_foreach);
         }
-        
+
         printf("Garbage collection\n");
         bbzheap_gc(stack3, 2);
         bbzheap_print();

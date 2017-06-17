@@ -2,7 +2,7 @@
  * @file bbzneighbors.h
  * @brief Definition of the neighbors table, which is a table of all
  * robots a robot can communicate with.
- * 
+ *
  * @details <h2>Explanation of the implementation:</h2>
  *
  * <h3>'Regular' implementation (non Xtreme):</h3>
@@ -27,7 +27,7 @@
  * the table returned by neighbors.filter), which have a Buzz implementation.
  * The (ugly!) solution we have implemented is to keep the heap position
  * of the 'neighbors' table inside the VM, and then vary the algorithm
- * depending on whether we are working on the 'neighbors' table or a 
+ * depending on whether we are working on the 'neighbors' table or a
  * neighbor-like table.
  *
  * We could have made two distinct set of algorithms, one for the 'nieghbors'

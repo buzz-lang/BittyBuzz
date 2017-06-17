@@ -27,7 +27,7 @@
  *
  * Denormalized values (i.e., those in the 0.f format), have an
  * exponent E = -31 and the absolute range is [-2^-31, +2^-31].
- * 
+ *
  */
 
 #define BBZFLOAT_SIGNMASK 0x8000

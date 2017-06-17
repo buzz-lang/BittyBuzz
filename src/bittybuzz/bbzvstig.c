@@ -4,7 +4,7 @@
 
 void bbzvstig_register() {
     bbzvm_pushs(__BBZSTRID_stigmergy);
-    
+
     // Create the 'stigmergy' table and set its 'create' field.
     bbzvm_pusht();
     bbztable_add_function(__BBZSTRID_create, bbzvstig_create);
@@ -22,7 +22,7 @@ void bbzvstig_register() {
 
 void bbzvstig_create() {
     bbzvm_assert_lnum(1);
-    
+
     // Empty the vstig.
     vm->vstig.size = 0;
 

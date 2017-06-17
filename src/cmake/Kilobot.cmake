@@ -111,7 +111,7 @@ function(kilobot_add_library _TARGET)
     set(_LIB_TARGET ${_TARGET}-${BBZ_ROBOT})
     # Add library target
     add_library(${_TARGET} STATIC ${ARGN})
-    set_target_properties(${_TARGET} PROPERTIES 
+    set_target_properties(${_TARGET} PROPERTIES
         COMPILE_FLAGS ${AVR_CFLAGS}
         LINK_FLAGS ${AVR_LDFLAGS}
         OUTPUT_NAME ${_LIB_TARGET})
