@@ -6,8 +6,8 @@
  *
  * @code
  *
- * #define NUM_TEST_CASES 1
- * #define TEST_MODULE float
+ * #define NUM_TEST_CASES N // An integer value
+ * #define TEST_MODULE MyTestSuite
  * #include "testingconfig.h"
  *
  * TEST(my_test_1) {
@@ -85,7 +85,7 @@ static uint16_t __error_count__ = 0;
 /**
  * @brief Paster for the TEST_UNIT macro.
  */
-#define TEST_UNIT_PASTER(name)                                          \
+#define __TEST_UNIT_PASTER__(name)                                      \
     void __test_list__();                                               \
                                                                         \
     int main() {                                                        \
@@ -124,7 +124,7 @@ static uint16_t __error_count__ = 0;
 /**
  * @brief Declares a translation unit as a test unit.
  */
-#define TEST_UNIT(name) TEST_UNIT_PASTER(name)
+#define TEST_UNIT(name) __TEST_UNIT_PASTER__(name)
 
 TEST_UNIT(TEST_MODULE);
 
@@ -160,7 +160,7 @@ TEST_UNIT(TEST_MODULE);
         fprintf(stderr, "\n\nWARNING: Trying to add more test files "   \
                         "than NUM_TEST_CASES. Some test cases will"     \
                         "not be run. Increase the value of the "        \
-                        "NUM_TEST_CASES macro.\n");                    \
+                        "NUM_TEST_CASES macro.\n");                     \
     }
 
 /**
