@@ -1,22 +1,56 @@
 #include <bittybuzz/bbzneighbors.h>
 
-#define NUM_TEST_CASES 2
+#define NUM_TEST_CASES 9
 #define TEST_MODULE neighbors
 #include "testingconfig.h"
 
-TEST(test1) {
-    ASSERT(0);
-    ASSERT_EQUAL(0, 1);
-    REQUIRE(0);
+TEST(broadcast) {
+
 }
 
-TEST(test2) {
-    ASSERT(0);
-    ASSERT_EQUAL(0, 1);
-    REQUIRE(0);
+TEST(listen) {
+
 }
+
+TEST(ignore) {
+
+}
+
+TEST(get) {
+
+}
+
+TEST(foreach) {
+
+}
+
+TEST(map) {
+
+}
+
+TEST(reduce) {
+
+}
+
+TEST(filter) {
+
+}
+
+TEST(count) {
+
+}
+
+//------------------------
+//------------------------
 
 TEST_LIST {
-    ADD_TEST(test1);
-    ADD_TEST(test2);
+    ADD_TEST(broadcast);
+    ADD_TEST(listen);
+    ADD_TEST(ignore);
+    ADD_TEST(get);
+    ADD_TEST(foreach);
+    ADD_TEST(map);
+    ADD_TEST(reduce);
+    ADD_TEST(filter);
+    ADD_TEST(count);
 }
