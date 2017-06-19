@@ -129,10 +129,11 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  */
 uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
 
-#define NO_NEXT (uint16_t)0x7FFF
-#define MASK_NEXT (uint16_t)0x7FFF
+#define NO_NEXT (uint16_t)0x3FFF
+#define MASK_NEXT (uint16_t)0x3FFF
 #define MASK_VALID_SEG (uint16_t)0x8000
 #define MASK_VALID_SEG_ELEM (uint16_t)0x8000
+#define TSEG_MASK_GCMARK (uint16_t)0x4000
 
 /**
  * @brief Returns a table segment located at position i within the heap.
@@ -282,7 +283,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as currently in use, i.e., "allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND set next to -1
+#define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND reset next to -1
 
 /**
  * @brief <b>For the VM's internal use only.</b>
@@ -290,7 +291,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makeinvalid(s) (s).mdata &= (uint16_t)0x7FFF
+#define tseg_makeinvalid(s) (s).mdata &= ~MASK_VALID_SEG
 
 
 #ifndef BBZCROSSCOMPILING
@@ -303,6 +304,31 @@ void bbzheap_print();
 #define bbzheap_print()
 #endif // !BBZCROSSCOMPILING
 
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ *
+ * Marks a segment as not garbage-collectable.
+ * @param[in,out] s The segment to mark.
+ */
+#define gc_tseg_mark(s) (s).mdata |= TSEG_MASK_GCMARK
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ *
+ * Marks a segment as not garbage-collectable.
+ * @param[in,out] s The segment to mark.
+ */
+#define gc_tseg_unmark(s) (s).mdata &= ~TSEG_MASK_GCMARK
+
+/**
+ * @brief <b>For the VM's internal use only.</b>
+ *
+ * Returns non-zero if given segment has a GC mark.
+ * @param[in,out] s The segment to check.
+ * @return non-zero if given segment has a GC mark.
+ */
+#define gc_tseg_hasmark(s) ((s).mdata & TSEG_MASK_GCMARK)
 
 #ifdef __cplusplus
 }

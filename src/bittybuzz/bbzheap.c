@@ -12,11 +12,11 @@
 /****************************************/
 
 void bbzheap_clear() {
-   vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
-   vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
-   for(int16_t i = BBZHEAP_SIZE-1; i >= 0; --i) {
-       vm->heap.data[i] = 0;
-   }
+    vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
+    vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
+    for(int16_t i = BBZHEAP_SIZE-1; i >= 0; --i) {
+        vm->heap.data[i] = 0;
+    }
 }
 
 /****************************************/
@@ -142,8 +142,9 @@ void bbzheap_gc_mark(bbzheap_idx_t obj) {
             bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
             /* Go through the segments */
             while(1) {
+                gc_tseg_mark(*sd);
                 for(uint8_t j = 0; j < BBZHEAP_ELEMS_PER_TSEG; ++j) {
-                    if(bbzheap_tseg_elem_isvalid(sd->keys[j])) {
+                    if (bbzheap_tseg_elem_isvalid(sd->keys[j])) {
                         bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->keys[j]));
                         bbzheap_gc_mark(bbzheap_tseg_elem_get(sd->values[j]));
                     }
@@ -164,6 +165,11 @@ void bbzheap_gc(bbzheap_idx_t* st,
     /* Set all gc bits to zero */
     for(int16_t i = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; i >= 0; --i)
         gc_unmark(*bbzheap_obj_at(i));
+    /* Set all segment's gc bits to zero */
+    for(int16_t i = (vm->heap.data + BBZHEAP_SIZE - vm->heap.ltseg) / sizeof(bbzheap_tseg_t) - 1;
+        i >= 0;
+        --i)
+        gc_tseg_unmark(*bbzheap_tseg_at(i));
     /* Go through the stack and set the gc bit of valid variables */
     for(uint16_t i = 0; i < sz; ++i) {
         /* Mark gc bit */
@@ -178,17 +184,13 @@ void bbzheap_gc(bbzheap_idx_t* st,
             if(bbztype_istable(*bbzheap_obj_at(i))) {
                 /* Segment index in heap */
                 bbzheap_idx_t si = bbzheap_obj_at(i)->t.value;
-
-
                 // FIXME We should add a tseg GC mark. In the case we
                 // where have two 'equal' tables, but one has a mark
                 // and one does not, we do not want to invalidate the
                 // table segments.
-                /*
-                TODO if(gc_tseg_hasmark(bbzheap_obj_at(i)->t.value)) {
-                TODO     continue;
-                TODO }
-                */
+                if(gc_tseg_hasmark(*bbzheap_tseg_at(bbzheap_obj_at(i)->t.value))) {
+                    continue;
+                }
                 /* Actual segment data in heap */
                 bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
                 /* Go through the segments and invalidate them all */

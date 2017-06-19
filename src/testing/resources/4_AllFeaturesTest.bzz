@@ -62,7 +62,7 @@ z = nil
 
 # Test table
 t = { .x=3 }
-log("t = ", t)           # FIXME The table is garbage collected after the first time we try to access to the table.
+log("t = ", t)
 log("t.x = ", t.x)       # dot syntax
 log("t['x'] = ", t["x"]) # string syntax
 t = nil
