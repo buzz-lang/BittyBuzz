@@ -1,6 +1,4 @@
 #include <bittybuzz/bbzneighbors.h>
-#include <bittybuzz/bbzvm.h>
-#include <bittybuzz/bbztype.h>
 
 #define NUM_TEST_CASES 10
 #define TEST_MODULE neighbors
@@ -9,21 +7,20 @@
 bbzvm_t vmObj;
 bbzvm_t* vm = &vmObj;
 
-uint8_t addWorks = 0;
-
 uint8_t buf[4] = {0,0,0,0};
 const uint8_t* bcodefetcher(int16_t offset, uint8_t size) {
     return buf + offset;
 }
 
+uint8_t addWorks = 0;
+
 TEST(nadd) {
-    vm->neighbors.count;
     bbzvm_construct(0);
     bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(vm->neighbors.count, 1);
     addWorks = (uint8_t)(vm->neighbors.count == 1);
 
@@ -41,7 +38,7 @@ TEST(broadcast) {
     bbzvm_pushs(0);
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -65,7 +62,7 @@ TEST(listen) {
     bbzvm_pushs(0);
     bbzvm_pushcc(listen_fun);
     bbzvm_closure_call(2);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -88,7 +85,7 @@ TEST(ignore) {
     bbzvm_tget();
     bbzvm_pushs(0);
     bbzvm_closure_call(1);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     bbzheap_idx_t dummy;
     ASSERT(!bbztable_get(vm->neighbors.listeners, 0, &dummy));
 
@@ -109,7 +106,7 @@ TEST(get) {
     bbzvm_tget();
     bbzvm_pushi(1);
     bbzvm_closure_call(1);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT(bbzvm_stack_at(0) != vm->nil);
 
     bbzvm_gc();
@@ -139,7 +136,7 @@ TEST(foreach) {
     bbzvm_tget();
     bbzvm_pushcc(foreach_fun);
     bbzvm_closure_call(1);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -169,7 +166,7 @@ TEST(map) {
     bbzvm_tget();
     bbzvm_pushcc(map_fun);
     bbzvm_closure_call(1);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -201,7 +198,7 @@ TEST(reduce) {
     bbzvm_pushi(0);
     bbzheap_idx_t ret = bbzvm_stack_at(0);
     bbzvm_closure_call(2);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_obj_at(ret)->i.value, 2);
 
     bbzvm_gc();
@@ -252,7 +249,7 @@ TEST(count) {
     bbzvm_pushs(__BBZSTRID_map);
     bbzvm_tget();
     bbzvm_closure_call(0);
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 2);
 
     bbzvm_gc();
