@@ -1,3 +1,8 @@
+/**
+ * @file com2.c
+ * @brief Test of sending messages.
+ */
+
 #include <bbzkilobot.h>
 #include <bbzmessage_crc.h>
 

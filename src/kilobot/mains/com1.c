@@ -1,3 +1,8 @@
+/**
+ * @file com1.c
+ * @brief Test of recieving messages.
+ */
+
 #include <bbzkilobot.h>
 
 #include <bittybuzz/util/bbzstring.h>

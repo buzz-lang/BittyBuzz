@@ -1,3 +1,9 @@
+/**
+ * @file swarm_recursive.c
+ * @brief Test of a breadth-first search strategy to know robot
+ * count without doing any swarm-list message.
+ */
+
 #include <bittybuzz/bbzinclude.h>
 
 #include "swarm_recursive.h"

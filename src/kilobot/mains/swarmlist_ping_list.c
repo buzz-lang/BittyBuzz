@@ -1,3 +1,8 @@
+/**
+ * @file swarmlist_ping_list.c
+ * @brief Test of a "Ping-list" swarm-list strategy.
+ */
+
 #include <kilobot/lib/bbzkilobot.h>
 
 #define ARRAY_SIZE 16

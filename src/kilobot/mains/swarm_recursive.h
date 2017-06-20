@@ -1,3 +1,9 @@
+/**
+ * @file swarm_recursive.h
+ * @brief Test of a breadth-first search strategy to know robot
+ * count without doing any swarm-list message.
+ */
+
 #include <bbzkilobot.h>
 
 #ifndef SWARM_RECURSIVE_H
