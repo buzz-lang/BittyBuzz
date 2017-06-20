@@ -54,6 +54,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
 
     // Register things
+    // bbzswarm_register(); // TODO
     bbzneighbors_register();
     // bbzvstig_register(); // TODO
 }

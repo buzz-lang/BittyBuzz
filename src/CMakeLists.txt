@@ -51,6 +51,7 @@ if (CMAKE_CROSSCOMPILING)
 endif()
 
 if (NOT CMAKE_CROSSCOMPILING)
+    include (CTest)
     add_subdirectory(testing)
 endif()
 

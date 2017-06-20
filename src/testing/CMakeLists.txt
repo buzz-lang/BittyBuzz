@@ -26,6 +26,5 @@ use_native_compiler()
 add_custom_target(test_resources)
 add_custom_target(test_executables ALL DEPENDS test_resources)
 
-include (CTest)
 add_tests()
 add_subdirectory(resources)

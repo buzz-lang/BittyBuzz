@@ -33,7 +33,7 @@ void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
 void neighborish_foreach(bbztable_elem_funp elem_fun, void* params);
 
 /**
- * @brief Adds some fields that are common to neighbor-like tables gotten from
+ * @brief Adds some fields that are common to both the 'neighbors' table and neighbor-like tables gotten from
  * some neighbor operations, such as 'map' or 'filter'.
  * @param[in] count The number of neighbors.
  */
@@ -49,7 +49,12 @@ void add_neighborish_fields(int16_t count) {
     bbzvm_pushi(count);
     bbzheap_idx_t cnt = bbzvm_stack_at(0);
     bbzvm_pop();
-    bbztable_add_data(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, cnt);
+    bbztable_add_data(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, cnt);
+#ifndef BBZ_XTREME_MEMORY
+    bbzvm_pusht();
+    bbztable_add_data(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, bbzvm_stack_at(0));
+    bbzvm_pop();
+#endif
 }
 
 /****************************************/
@@ -116,7 +121,7 @@ void bbzneighbors_listen() {
     bbzheap_idx_t topic = bbzvm_lsym_at(1);
     bbzvm_assert_type(topic, BBZTYPE_STRING);
     bbzheap_idx_t c = bbzvm_lsym_at(2);
-    bbzvm_assert_type(topic, BBZTYPE_CLOSURE);
+    bbzvm_assert_exec(bbztype_isclosure(*bbzheap_obj_at(c)), BBZVM_ERROR_TYPE);
 
     // Set listener
     bbztable_set(vm->neighbors.listeners, topic, c);
@@ -150,7 +155,7 @@ void bbzneighbors_ignore() {
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in,out] params The closure to call.
  */
-void neighbor_foreach(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
     // Push closure and args
     bbzvm_push(c);
@@ -168,7 +173,7 @@ void bbzneighbors_foreach() {
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Perform foreach
-    neighborish_foreach(neighbor_foreach, &c);
+    neighborish_foreach(neighbor_foreach_fun, &c);
 
     bbzvm_ret0();
 }
@@ -243,6 +248,7 @@ void neighbors_map_base(put_elem_funp put_elem) {
     // Make return table
     bbzvm_pusht();
     bbzheap_idx_t ret_tbl = bbzvm_stack_at(0);
+    add_neighborish_fields(0);
     bbzvm_pop();
 
     // Perform foreach

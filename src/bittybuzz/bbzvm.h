@@ -445,11 +445,11 @@ extern "C" {
      * @brief Calls a normal closure.
      * @details Internally checks whether the operation is valid.
      *
-     * This function expects the stack to be as follows:
-     * 0   -> An integer for the number of closure parameters N
-     * 1   -> Closure arg1
-     * ...
-     * N   -> Closure argN
+     * This function expects the stack to be as follows:<br/>
+     * 0   -> An integer for the number of closure parameters N<br/>
+     * 1   -> Closure arg1<br/>
+     * ...<br/>
+     * N   -> Closure argN<br/>
      * N+1 -> The closure
      *
      * This function pushes a new stack and a new local variable table filled with the
