@@ -262,7 +262,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
                 uint16_t sz);
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
@@ -270,7 +270,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 #define obj_makevalid(obj)   (obj).o.mdata |= (uint16_t)0x10
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
@@ -278,7 +278,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 #define obj_makeinvalid(obj) (obj).o.mdata &= (uint16_t)0xEF
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks a segment as currently in use, i.e., "allocated".
  * @param[in,out] s The segment to mark.
@@ -286,7 +286,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 #define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND reset next to -1
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @param[in,out] s The segment to mark.
@@ -306,7 +306,7 @@ void bbzheap_print();
 
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks a segment as not garbage-collectable.
  * @param[in,out] s The segment to mark.
@@ -314,7 +314,7 @@ void bbzheap_print();
 #define gc_tseg_mark(s) (s).mdata |= TSEG_MASK_GCMARK
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Marks a segment as not garbage-collectable.
  * @param[in,out] s The segment to mark.
@@ -322,7 +322,7 @@ void bbzheap_print();
 #define gc_tseg_unmark(s) (s).mdata &= ~TSEG_MASK_GCMARK
 
 /**
- * @brief <b>For the VM's internal use only.</b>
+ * @brief <b>For the VM's internal use only</b>.
  *
  * Returns non-zero if given segment has a GC mark.
  * @param[in,out] s The segment to check.

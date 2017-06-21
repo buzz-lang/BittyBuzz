@@ -95,7 +95,6 @@ void send_next_swarm_chunk() {
 // ===============================
 
 void process_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
-    LED(1,1,1);
     switch(msg_rx->type) {
         case SWARM: {
             process_msg_rx_swarm(msg_rx); break;
@@ -139,7 +138,7 @@ void swarmlist_update(bbzrobot_id_t robot,
         if (swarmlist.data[pos].robot == robot) {
             // Yes ; it is not a new entry after all.
             --swarmlist.size;
-            
+
             lamport8_t old_lamport = swarmlist.data[pos].lamport;
             if (swarmlist_entry_isactive(&swarmlist.data[pos])) {
                 should_update = lamport_isnewer(lamport, old_lamport);
@@ -161,30 +160,47 @@ void swarmlist_update(bbzrobot_id_t robot,
     }
 }
 
+#ifdef SWARMLIST_REMOVE_OLD_ENTRIES
+
 void swarmlist_tick() {
     for (uint8_t i = 0; i < swarmlist.size; ++i) {
        // Deal with entries in inactive mode
         if (swarmlist_entry_isactive(&swarmlist.data[i])) {
             --swarmlist.data[i].time_to_inactive;
 
-            // if (!swarmlist_entry_isactive(&swarmlist.data[i])) {
-            //     swarmlist.data[i].time_to_removal = SWARMLIST_TICKS_TO_REMOVAL;
-            // }
+            if (!swarmlist_entry_isactive(&swarmlist.data[i])) {
+                swarmlist.data[i].time_to_removal = SWARMLIST_TICKS_TO_REMOVAL;
+            }
         }
-        // else {
-        //     // Remove old inactive entries
-        //     if (swarmlist.data[i].time_to_removal > 0) {
-        //         --swarmlist.data[i].time_to_removal;
-        //     }
-        //     else {
-        //         cli(); // No interrups ; don't accept messages during removal.
-        //         swarmlist.data[i] = swarmlist.data[swarmlist.size-1];
-        //         --swarmlist.size;
-        //         sei();
-        //     }
-        // }
+        else {
+            // Deal with old inactive entries
+            if (swarmlist.data[i].time_to_removal > 0) {
+                --swarmlist.data[i].time_to_removal;
+            }
+            else {
+                // Removal
+
+                cli(); // No interrups ; don't accept messages during removal.
+                swarmlist.data[i] = swarmlist.data[swarmlist.size-1];
+                --swarmlist.size;
+                sei();
+            }
+        }
     }
 }
+
+#else // SWARMLIST_REMOVE_OLD_ENTRIES
+
+void swarmlist_tick() {
+    for (uint8_t i = 0; i < swarmlist.size; ++i) {
+       // Deal with entries in inactive mode
+        if (swarmlist_entry_isactive(&swarmlist.data[i])) {
+            --swarmlist.data[i].time_to_inactive;
+        }
+    }
+}
+
+#endif // SWARMLIST_REMOVE_OLD_ENTRIES
 
 uint8_t swarmlist_count() {
     uint8_t count = 0;
@@ -247,27 +263,27 @@ void loop() {
             break;
         }
         case 2: {
-            LED(2,1,0);
-            break;
-        }
-        case 3: {
             LED(1,1,0);
             break;
         }
-        case 4: {
+        case 3: {
             LED(0,1,0);
             break;
         }
-        case 5: {
+        case 4: {
             LED(0,2,1);
             break;
         }
-        case 6: {
+        case 5: {
             LED(0,0,1);
             break;
         }
-        case 7: {
+        case 6: {
             LED(1,0,1);
+            break;
+        }
+        case 7: {
+            LED(1,1,1);
             break;
         }
         default: ;
