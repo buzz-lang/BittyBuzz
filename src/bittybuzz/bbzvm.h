@@ -62,7 +62,7 @@ extern "C" {
      *
      * @details Responsibilities:
      *
-     *      1) Load and run bytecode.
+     *  1) Load and run bytecode.
      */
     typedef struct PACKED {
         bbzvm_bcode_fetch_fun bcode_fetch_fun; /**< @brief Bytecode fetcher function */

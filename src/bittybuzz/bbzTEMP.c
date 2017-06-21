@@ -52,9 +52,12 @@ void bin_count(uint16_t val, uint8_t size) {
     set_led(W);
     set_led(O);
     set_led(W);
+
+    val <<= 8 * (sizeof(val) - size);
+
     for (uint8_t i = 0; i < 8*size; ++i) {
         set_led(O);
-        if (val & 1) {
+        if ((val & 0x8000) != 0) {
             set_led(G);
             set_led(G);
         }
@@ -62,7 +65,7 @@ void bin_count(uint16_t val, uint8_t size) {
             set_led(M);
             set_led(M);
         }
-        val >>= 1;
+        val <<= 1;
     }
     set_led(W);
     set_led(O);
