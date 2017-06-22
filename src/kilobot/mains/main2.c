@@ -6,6 +6,8 @@
 
 #include "../lib/bbzkilobot.h"
 
+bbzvm_t* vm;
+
 uint8_t buf[4];
 const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
     switch(size) {
@@ -24,7 +26,7 @@ const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
     return buf;
 }
 
-void err_reciever(bbzvm_error errcode) {
+void err_receiver(bbzvm_error errcode) {
     set_led(M); set_led(R); set_led(M);
     _delay_ms(1000.0);
     switch(errcode) {
@@ -70,7 +72,7 @@ void bbz_setmotor() {
 void setup() {
     bbzvm_construct(kilo_uid);
     bbzvm_set_bcode(bcodeFetcher, bcode_size);
-    bbzvm_set_error_receiver(err_reciever);
+    bbzvm_set_error_receiver(err_receiver);
     bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);

@@ -1,5 +1,4 @@
 #include "bbzvstig.h"
-#include "bbzstrids.h"
 #include "bbzutil.h"
 
 void bbzvstig_register() {
@@ -37,7 +36,7 @@ void bbzvstig_create() {
 
 
     // Table is now stack top. Return it.
-    return bbzvm_ret1();
+    bbzvm_ret1();
 }
 
 /****************************************/
@@ -58,14 +57,15 @@ void bbzvstig_get() {
                 bbzheap_obj_at(key)) == 0) {
             // Entry found. Get it and exit.
             bbzvm_push(vm->vstig.data[i].value);
-            return bbzvm_ret1();
+            bbzvm_ret1();
+            return;
         }
     }
 
     // Entry not found. Push nil instead.
     bbzvm_pushnil();
 
-    return bbzvm_ret1();
+    bbzvm_ret1();
 }
 
 /****************************************/
@@ -87,22 +87,25 @@ void bbzvstig_put() {
                 bbzheap_obj_at(key)) == 0) {
             // Entry found. Set it and exit.
             vm->vstig.data[i].value = value;
-            return bbzvm_ret0();
+            ++vm->vstig.data[i].timestamp;
+            bbzvm_ret0();
+            return;
         }
     }
 
     // No such entry found ; create it if we have enough space.
     if (vm->vstig.size < BBZVSTIG_CAP) {
+        vm->vstig.data[vm->vstig.size].robot = vm->robot;
         vm->vstig.data[vm->vstig.size].key   = key;
         vm->vstig.data[vm->vstig.size].value = value;
+        vm->vstig.data[vm->vstig.size].timestamp = 1;
         ++vm->vstig.size;
-        // TODO Timestamp & robot ID
     }
     else {
         bbzvm_seterror(BBZVM_ERROR_VSTIG);
     }
 
-    return bbzvm_ret0();
+    bbzvm_ret0();
 }
 
 /****************************************/
@@ -111,5 +114,5 @@ void bbzvstig_put() {
 void bbzvstig_size() {
     bbzvm_assert_lnum(0);
     bbzvm_pushi(vm->vstig.size);
-    return bbzvm_ret1();
+    bbzvm_ret1();
 }

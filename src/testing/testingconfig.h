@@ -161,6 +161,7 @@ TEST_UNIT(TEST_MODULE);
                         "than NUM_TEST_CASES. Some test cases will"     \
                         "not be run. Increase the value of the "        \
                         "NUM_TEST_CASES macro.\n");                     \
+        fflush(stderr);                                                 \
     }
 
 /**
@@ -180,6 +181,7 @@ TEST_UNIT(TEST_MODULE);
             "check " #expr " failed\n", __LINE__,                       \
             __test_case_names__[__curr_test_case__]);                   \
             ++__error_count__;                                          \
+            fflush(stderr);                                             \
         }                                                               \
     }
 
@@ -199,6 +201,7 @@ TEST_UNIT(TEST_MODULE);
                     __LINE__, __test_case_names__[__curr_test_case__],  \
                     (int)(lhs), (int)(rhs));                            \
             ++__error_count__;                                          \
+            fflush(stderr);                                             \
         }                                                               \
     }
 
@@ -214,6 +217,7 @@ TEST_UNIT(TEST_MODULE);
                     "critical check " #expr " failed\n", __LINE__,      \
                     __test_case_names__[__curr_test_case__]);           \
             ++__error_count__;                                          \
+            fflush(stderr);                                             \
             return;                                                     \
         }                                                               \
     }

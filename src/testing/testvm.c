@@ -233,8 +233,8 @@ TEST(all) {
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-    ASSERT_EQUAL(bbzdarray_size(vm->flist), 8);
-    ASSERT_EQUAL(bbztable_size(vm->gsyms), 1);
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), 9);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 2);
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------

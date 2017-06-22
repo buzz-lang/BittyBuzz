@@ -59,7 +59,7 @@ bbzheap_idx_t bbzvstig_deserialize();
 /**
  * @brief Registers the 'stigmergy' table, as well as its methods, in the VM.
  */
-void bbzvstig_regsiter();
+void bbzvstig_register();
 
 
 // ======================================
