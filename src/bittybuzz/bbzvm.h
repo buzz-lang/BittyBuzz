@@ -427,10 +427,10 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      *
      * This function expects the stack to be as follows:
-     * 0   -> An integer for the number of closure parameters N
-     * 1   -> Closure arg1
-     * ...
-     * N   -> Closure argN
+     * 0   -> An integer for the number of closure parameters N<br/>
+     * 1   -> Closure argN<br/>
+     * ...<br/>
+     * N   -> Closure arg1<br/>
      * N+1 -> Closure
      *
      * This function pushes a new stack and a new local variable table filled with the
@@ -447,9 +447,9 @@ extern "C" {
      *
      * This function expects the stack to be as follows:<br/>
      * 0   -> An integer for the number of closure parameters N<br/>
-     * 1   -> Closure arg1<br/>
+     * 1   -> Closure argN<br/>
      * ...<br/>
-     * N   -> Closure argN<br/>
+     * N   -> Closure arg1<br/>
      * N+1 -> The closure
      *
      * This function pushes a new stack and a new local variable table filled with the
@@ -466,10 +466,10 @@ extern "C" {
      * @details Internally checks whether the operation is valid.
      *
      * This function expects the stack to be as follows:
-     * 0   -> An integer for the number of closure parameters N
-     * 1   -> Closure arg1
-     * ...
-     * N   -> Closure argN
+     * 0   -> An integer for the number of closure parameters N<br/>
+     * 1   -> Closure argN<br/>
+     * ...<br/>
+     * N   -> Closure arg1<br/>
      * N+1 -> The closure
      *
      * This function pushes a new stack and a new local variable table filled with the

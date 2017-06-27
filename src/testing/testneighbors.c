@@ -246,7 +246,7 @@ TEST(count) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
-    bbzvm_pushs(__BBZSTRID_map);
+    bbzvm_pushs(__BBZSTRID_count);
     bbzvm_tget();
     bbzvm_closure_call(0);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);

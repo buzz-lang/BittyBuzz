@@ -129,11 +129,34 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  */
 uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
 
+/**
+ * Next segment index when the segment doesn't have any next.
+ */
 #define NO_NEXT (uint16_t)0x3FFF
+
+/**
+ * Mask for the next segment index.
+ * @details This mask applies to the segment's metadata.
+ */
 #define MASK_NEXT (uint16_t)0x3FFF
+
+/**
+ * Mask for whether a segment is valid.
+ * @details This mask applies to the segment's metadata.
+ */
 #define MASK_VALID_SEG (uint16_t)0x8000
-#define MASK_VALID_SEG_ELEM (uint16_t)0x8000
+
+/**
+ * Mask for whether a segment is garbage-collection exempt.
+ * @details This mask applies to the segment's metadata.
+ */
 #define TSEG_MASK_GCMARK (uint16_t)0x4000
+
+/**
+ * Mask for whether a segment element is valid.
+ * @details This mask applies to the element itself.
+ */
+#define MASK_VALID_SEG_ELEM (uint16_t)0x8000
 
 /**
  * @brief Returns a table segment located at position i within the heap.

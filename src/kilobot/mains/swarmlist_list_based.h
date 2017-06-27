@@ -22,7 +22,7 @@ extern "C" {
  * If memory is not an issue but safety is, this value can be set
  * to the number of robots in the experiment.
  */
-#define ROBOT_SWARMLIST_CAP 60
+#define ROBOT_SWARMLIST_CAP 20
 
 /**
  * The number of loop() calls between the emission of swarm chunks.

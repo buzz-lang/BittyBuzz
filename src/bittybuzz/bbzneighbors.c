@@ -3,6 +3,17 @@
 #include "bbzoutmsg.h"
 
 /**
+ * String ID of the sub-table which contains the neighbors' data tables
+ * (the {distance, azimuth, elevation} tables).
+ */
+#define INTERNAL_STRID_SUB_TBL __BBZSTRID___INTERNAL_1_DO_NOT_USE__
+
+/**
+ * String ID of the count subfield.
+ */
+#define INTERNAL_STRID_COUNT   __BBZSTRID___INTERNAL_2_DO_NOT_USE__
+
+/**
  * @brief Given a neighbor data, pushes a table containing the fields
  * 'distance', 'azimuth' and 'elevation'.
  * @param[in] elem Data of the neighbor structure.
@@ -11,16 +22,19 @@ void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
     bbzvm_pusht();
     // Distance
     bbzvm_pushi(elem->distance);
-    bbztable_add_data(__BBZSTRID_distance,  bbzvm_stack_at(2));
+    bbzheap_idx_t dist = bbzvm_stack_at(0);
     bbzvm_pop();
+    bbztable_add_data(__BBZSTRID_distance,  dist);
     // Azimuth
     bbzvm_pushi(elem->azimuth);
-    bbztable_add_data(__BBZSTRID_azimuth,   bbzvm_stack_at(1));
+    bbzheap_idx_t azim = bbzvm_stack_at(0);
     bbzvm_pop();
+    bbztable_add_data(__BBZSTRID_azimuth,   azim);
     // Elevation
     bbzvm_pushi(elem->elevation);
-    bbztable_add_data(__BBZSTRID_elevation, bbzvm_stack_at(0));
+    bbzheap_idx_t elev = bbzvm_stack_at(0);
     bbzvm_pop();
+    bbztable_add_data(__BBZSTRID_elevation, elev);
 }
 
 /**
@@ -30,31 +44,35 @@ void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
  * @param[in] elem_fun The function to execute on each neighbor.
  * @param[in,out] params Parameters of the function.
  */
-void neighborish_foreach(bbztable_elem_funp elem_fun, void* params);
+void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params);
 
 /**
  * @brief Adds some fields that are common to both the 'neighbors' table and neighbor-like tables gotten from
  * some neighbor operations, such as 'map' or 'filter'.
  * @param[in] count The number of neighbors.
  */
-void add_neighborish_fields(int16_t count) {
+void add_neighborlike_fields(int16_t count) {
+
+#ifndef BBZ_XTREME_MEMORY
+    // Add a sub-table which will contain the neighbors' data
+    bbzvm_pusht();
+    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
+    bbzvm_pop();
+    bbztable_add_data(INTERNAL_STRID_SUB_TBL, sub_tbl);
+
+    // Add neighbor count
+    bbzvm_pushi(count);
+    bbzheap_idx_t cnt = bbzvm_stack_at(0);
+    bbzvm_pop();
+    bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
+#endif
+
     // Add function fields
     bbztable_add_function(__BBZSTRID_foreach, bbzneighbors_foreach);
     bbztable_add_function(__BBZSTRID_map,     bbzneighbors_map);
     bbztable_add_function(__BBZSTRID_get,     bbzneighbors_get);
     bbztable_add_function(__BBZSTRID_reduce,  bbzneighbors_reduce);
     bbztable_add_function(__BBZSTRID_count,   bbzneighbors_count);
-
-    // Add neighbor count
-    bbzvm_pushi(count);
-    bbzheap_idx_t cnt = bbzvm_stack_at(0);
-    bbzvm_pop();
-    bbztable_add_data(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, cnt);
-#ifndef BBZ_XTREME_MEMORY
-    bbzvm_pusht();
-    bbztable_add_data(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, bbzvm_stack_at(0));
-    bbzvm_pop();
-#endif
 }
 
 /****************************************/
@@ -80,7 +98,7 @@ void bbzneighbors_register() {
     neighbors_construct(n);
 
     // Add some fields to the table (most common fields first)
-    add_neighborish_fields(0);
+    add_neighborlike_fields(0);
     bbztable_add_function(__BBZSTRID_broadcast, bbzneighbors_broadcast);
     bbztable_add_function(__BBZSTRID_listen, bbzneighbors_listen);
     bbztable_add_function(__BBZSTRID_ignore, bbzneighbors_ignore);
@@ -93,7 +111,14 @@ void bbzneighbors_register() {
 /****************************************/
 
 void bbzneighbors_reset() {
+    // Reset the count
     vm->neighbors.count = 0;
+
+    // Reset 'neighbor''s count subfield
+    bbzvm_pushi(0);
+    bbzheap_idx_t cnt = bbzvm_stack_at(0);
+    bbzvm_pop();
+    bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
 }
 
 /****************************************/
@@ -157,12 +182,17 @@ void bbzneighbors_ignore() {
  */
 void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
+    
     // Push closure and args
     bbzvm_push(c);
-    bbzvm_push(value);
     bbzvm_push(key);
+    bbzvm_push(value);
+
     // Call closure
     bbzvm_closure_call(2);
+
+    // Garbage-collect to reduce memory usage.
+    bbzvm_gc();
 }
 
 void bbzneighbors_foreach() {
@@ -173,7 +203,7 @@ void bbzneighbors_foreach() {
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Perform foreach
-    neighborish_foreach(neighbor_foreach_fun, &c);
+    neighborlike_foreach(neighbor_foreach_fun, &c);
 
     bbzvm_ret0();
 }
@@ -219,8 +249,8 @@ void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
 
     // Call closure
     bbzvm_push(nm->c);
-    bbzvm_push(value);
     bbzvm_push(key);
+    bbzvm_push(value);
     bbzvm_closure_call(2);
 
     // Make sure we returned a value, and get the value.
@@ -232,6 +262,9 @@ void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzvm_push(nm->t);
     bbzvm_pushi(key);
     nm->put_elem(value, ret);
+
+    // Garbage-collect to reduce memory usage.
+    bbzvm_gc();
 }
 
 /**
@@ -248,15 +281,13 @@ void neighbors_map_base(put_elem_funp put_elem) {
     // Make return table
     bbzvm_pusht();
     bbzheap_idx_t ret_tbl = bbzvm_stack_at(0);
-    add_neighborish_fields(0);
-    bbzvm_pop();
+    add_neighborlike_fields(0);
 
     // Perform foreach
     neighbor_map_base_t nm = { .t = ret_tbl, .c = c, .put_elem = put_elem };
-    neighborish_foreach(neighbor_map_base, &nm);
+    neighborlike_foreach(neighbor_map_base, &nm);
 
-    // Push return table and return
-    bbzvm_push(ret_tbl);
+    // Table is already stack top. Return.
     bbzvm_ret1();
 }
 
@@ -309,22 +340,25 @@ void bbzneighbors_filter() {
 void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
 
-    // Save stack size
-    uint16_t ss = bbzvm_stack_size();
-
     // Get accumulator
     bbzheap_idx_t accum = bbzvm_stack_at(0);
     bbzvm_pop();
 
+    // Save stack size
+    uint16_t ss = bbzvm_stack_size();
+
     // Call closure
     bbzvm_push(c);
-    bbzvm_push(accum);
-    bbzvm_push(value);
     bbzvm_push(key);
+    bbzvm_push(value);
+    bbzvm_push(accum);
     bbzvm_closure_call(3);
 
     // Make sure we returned a value.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
+    
+    // Garbage-collect to reduce memory usage.
+    bbzvm_gc();
 
     // Accumulator is at stack #0.
 }
@@ -340,7 +374,7 @@ void bbzneighbors_reduce() {
     bbzvm_lload(2);
 
     // Perform foreach
-    neighborish_foreach(neighbor_reduce, &c);
+    neighborlike_foreach(neighbor_reduce, &c);
 
     // Accumulator is at stack #0 ; return it.
     bbzvm_ret1();
@@ -355,12 +389,16 @@ void bbzneighbors_reduce() {
 #ifndef BBZ_XTREME_MEMORY
 
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
-    // Get 'neighbors''s data table
+    // Get 'neighbors''s sub-table
     bbzvm_push(vm->neighbors.hpos);
-    bbzvm_pushs(__BBZSTRID___INTERNAL_1_DO_NOT_USE__);
-    bbzvm_tget();
+    
+    // Increment the neighbor count (we assume it's a new entry).
+    ++vm->neighbors.count;
+    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
 
-    // Set data.
+    // Set data to the sub-table.
+    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
+    bbzvm_tget();
     bbzvm_pushi(data->robot);
     push_neighbor_data_table(data);
     bbzvm_tput();
@@ -376,12 +414,15 @@ void bbzneighbors_get() {
     bbzheap_idx_t robot = bbzvm_lsym_at(1);
     bbzvm_assert_type(robot, BBZTYPE_INT);
 
-    // Get the table we are using 'get' on.
-    bbzheap_idx_t self = bbzvm_lsym_at(0);
+    // Get the sub-table of the table we are using 'get' on.
+    bbzvm_lload(0); // Self table
+    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
+    bbzvm_tget();
+    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
 
     // Entry found?
     bbzheap_idx_t data;
-    if (bbztable_get(self, robot, &data)) {
+    if (bbztable_get(sub_tbl, robot, &data)) {
         // Found. Push corresponding data table.
         bbzvm_push(data);
     }
@@ -399,12 +440,9 @@ void bbzneighbors_get() {
 void bbzneighbors_count() {
     bbzvm_assert_lnum(0);
 
-    // Get table we are calling 'count' on.
-    bbzheap_idx_t self = bbzvm_lsym_at(0);
-
-    // Get neighbors' data table
-    bbzvm_push(self);
-    bbzvm_pushs(__BBZSTRID___INTERNAL_1_DO_NOT_USE__);
+    // Get neighbors' sub-table
+    bbzvm_lload(0);
+    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
 
     // Push count and return.
@@ -417,10 +455,16 @@ void bbzneighbors_count() {
 /****************************************/
 /****************************************/
 
-void neighborish_foreach(bbztable_elem_funp elem_fun, void* params) {
-    // Get the table we are using the algorithm on.
-    bbzheap_idx_t self = bbzvm_lsym_at(0);
-    bbztable_foreach(self, elem_fun, params);
+void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
+    // Get the sub-table we are using the algorithm on.
+    bbzvm_lload(0); // Self table
+    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
+    bbzvm_tget();
+
+    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
+    bbzvm_pop();
+
+    bbztable_foreach(sub_tbl, elem_fun, params);
 }
 
 // -------------------------------------
@@ -436,7 +480,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
         entry->distance  = data->distance;
         entry->azimuth   = data->azimuth;
         entry->elevation = data->elevation;
-        ++vm->neighbors.count;
+        ++vm->neighbors.count; // Increment neighbor count (we assume it's a new entry).
     }
     else {
         // TODO Issue some kind of warning when we reach max neighbor count?
@@ -476,7 +520,7 @@ void bbzneighbors_get() {
         .robot = bbzvm_obj_at(robot)->i.value,
         .found = 0,
         .ret = vm->nil };
-    neighborish_foreach(neighbor_get, &ng);
+    neighborlike_foreach(neighbor_get, &ng);
 
     // Push return value and return
     bbzvm_push(ng.ret);
@@ -505,9 +549,9 @@ void bbzneighbors_count() {
         //
 
         // Get 'count' subfield
-        bbzvm_lload(0); // self table
-        bbzvm_pushs(__BBZSTRID___INTERNAL_2_DO_NOT_USE__); // count subfield
-        bbzvm_tget(); // Push 'count'.
+        bbzvm_lload(0); // Push self table
+        bbzvm_pushs(INTERNAL_STRID_COUNT);
+        bbzvm_tget();
     }
 
     bbzvm_ret1();
@@ -516,7 +560,7 @@ void bbzneighbors_count() {
 /****************************************/
 /****************************************/
 
-void neighborish_foreach(bbztable_elem_funp elem_fun, void* params) {
+void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
     // Get the table we are using the algorithm on.
     bbzheap_idx_t self = bbzvm_lsym_at(0);
 

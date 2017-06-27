@@ -152,7 +152,7 @@ TEST_UNIT(TEST_MODULE);
  */
 #define ADD_TEST(name)                                                  \
     if (__test_cases_size__ < NUM_TEST_CASES) {                         \
-        __test_cases__[__test_cases_size__] = name;                     \
+        __test_cases__[__test_cases_size__] = _test_case_ ## name;      \
         __test_case_names__[__test_cases_size__] = #name;               \
         ++__test_cases_size__;                                          \
     }                                                                   \
@@ -167,7 +167,7 @@ TEST_UNIT(TEST_MODULE);
 /**
  * @brief Declares a unit test.
  */
-#define TEST(name) void name()
+#define TEST(name) void _test_case_ ## name()
 
 /**
  * @brief Performs a check, printing an error when the check is false.

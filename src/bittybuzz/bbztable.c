@@ -95,11 +95,11 @@ uint8_t bbztable_set(bbzheap_idx_t t,
             if(si == bbzheap_obj_at(t)->t.value) {
                 /* Yes; is it the only segment for this table? */
                 if(bbzheap_tseg_hasnext(sd)) {
-                /* No, there's more segments */
-                /* Update the table segment index */
-                bbzheap_obj_at(t)->t.value = bbzheap_tseg_next_get(sd);
-                /* Invalidate the segment */
-                sd->mdata = 0;
+                    /* No, there's more segments */
+                    /* Update the table segment index */
+                    bbzheap_obj_at(t)->t.value = bbzheap_tseg_next_get(sd);
+                    /* Invalidate the segment */
+                    sd->mdata = 0;
                 }
             }
             else {
@@ -179,7 +179,9 @@ void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
         for (uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
             if (bbzheap_tseg_elem_isvalid(tseg->keys[i])) {
                 /* Call function */
-                fun(tseg->keys[i], tseg->values[i], params);
+                fun(bbzheap_tseg_elem_get(tseg->keys[i]),
+                    bbzheap_tseg_elem_get(tseg->values[i]),
+                    params);
             }
         }
         si = bbzheap_tseg_next_get(tseg);

@@ -1148,7 +1148,7 @@ void bbzvm_ret0() {
     /* Use that element as program counter */
     vm->pc = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */
-    return bbzvm_pop();
+    bbzvm_pop();
 }
 
 /****************************************/
@@ -1159,22 +1159,18 @@ void bbzvm_ret1() {
     if (bbzdarray_isswarm(&bbzvm_obj_at(vm->lsyms)->t)) {
         //TODO pop the swarm stack.
     }
-    /* Make sure there's an element on the stack */
-    bbzvm_assert_stack(1);
+    /* Make sure there's enough elements on the stack */
+    bbzvm_assert_stack(3);
     /* Save it, it's the return value to pass to the lower stack */
     bbzheap_idx_t ret = bbzvm_stack_at(0);
     /* Pop block pointer and stack */
     vm->stackptr = vm->blockptr;
-    vm->blockptr = bbzvm_obj_at(vm->stack[vm->stackptr])->i.value;
+    vm->blockptr = bbzvm_obj_at(vm->stack[vm->blockptr])->i.value;
     bbzvm_pop();
-    /* Make sure the stack contains at least one element */
-    bbzvm_assert_stack(1);
     /* Pop local symbol table */
     bbzdarray_destroy(vm->lsyms);
     vm->lsyms = bbzvm_stack_at(0);
     bbzvm_pop();
-    /* Make sure the stack contains at least one element */
-    bbzvm_assert_stack(1);
     /* Make sure that element is an integer */
     bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
     /* Use that element as program counter */
@@ -1182,7 +1178,7 @@ void bbzvm_ret1() {
     /* Pop the return address */
     bbzvm_pop();
     /* Push the return value */
-    return bbzvm_push(ret);
+    bbzvm_push(ret);
 }
 
 /****************************************/

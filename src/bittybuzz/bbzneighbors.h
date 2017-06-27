@@ -101,6 +101,7 @@ void bbzneighbors_reset();
  * @note For some robots, distance, azimuth and/or elevation might be
  * unavailable. Though there is no restriction, it is advised to set the
  * unavailable values to 0.
+ * @warning You should not add the data of a robot you already added.
  * @see bbzneighbors_reset()
  */
 void bbzneighbors_add(const bbzneighbors_elem_t* data);
