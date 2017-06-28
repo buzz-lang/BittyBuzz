@@ -571,7 +571,7 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
         //
         for (uint8_t i = 0; i < vm->neighbors.count; ++i) {
             push_neighbor_data_table(&vm->neighbors.data[i]);
-            bbzvm_push(vm->neighbors.data[i].robot);
+            bbzvm_pushi(vm->neighbors.data[i].robot);
             bbzheap_idx_t data = bbzvm_stack_at(1);
             bbzheap_idx_t key  = bbzvm_stack_at(0);
             bbzvm_pop();
