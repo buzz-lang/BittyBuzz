@@ -28,6 +28,16 @@ typedef uint16_t bbzrobot_id_t;
 typedef uint16_t bbzheap_idx_t;
 
 /**
+ * @brief Type for the swarms list.
+ */
+typedef uint8_t bbzswarmlist_t;
+
+/**
+ * @brief Type for lamport clocks.
+ */
+typedef uint16_t bbzlamport_t;
+
+/**
  * @brief Specifies that a function should always be inlined.
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
@@ -46,6 +56,9 @@ typedef uint16_t bbzheap_idx_t;
 #else // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 #define NAKED
 #endif // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
+
+#define RM_UNUSED_WARN(var) (void*)var
+#define RM_UNUSED_RETVAL_WARN(exp) if(exp)do{}while(0)
 
 #ifdef __cplusplus
 }

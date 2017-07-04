@@ -17,8 +17,9 @@
 #include "bbzneighbors.h"
 #include "bbzvstig.h"
 #include "bbzoutmsg.h"
+#include "bbzinmsg.h"
 
-#include "bbzTEMP.h" // FIXME Remove this
+//#include "bbzTEMP.h" // FIXME Remove this
 
 
 #ifdef __cplusplus
@@ -85,16 +86,15 @@ extern "C" {
         // TODO
         /* Counter for swarm membership broadcasting */
         // TODO
-        /* Input message FIFO */
-        // TODO
-        bbzoutmsg_queue_t outmsgs; /**< @brief Output message FIFO */
+        bbzinmsg_queue_t inmsgs;   /**< @brief Input messages FIFO */
+        bbzoutmsg_queue_t outmsgs; /**< @brief Output messages FIFO */
         bbzvstig_t vstig;          /**< @brief Virtual stigmergy single instance. */
         bbzneighbors_t neighbors;  /**< @brief Neighbor data. */
         bbzvm_state state;         /**< @brief Current VM state */
         bbzvm_error error;         /**< @brief Current VM error */
         bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         /* Current VM error message */
-        // TODO
+        // TODO ... maybe not?
         bbzrobot_id_t robot;       /**< @brief This robot's id */
         /* Random number generator state */
         // TODO

@@ -1,6 +1,6 @@
 #include "bbzneighbors.h"
 #include "bbzutil.h"
-#include "bbzoutmsg.h"
+#include "bbzvm.h"
 
 /**
  * String ID of the sub-table which contains the neighbors' data tables
@@ -65,7 +65,7 @@ void add_neighborlike_fields(int16_t count) {
     bbzheap_idx_t cnt = bbzvm_stack_at(0);
     bbzvm_pop();
     bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
-#endif
+#endif // !BBZ_XTREME_MEMORY
 
     // Add function fields
     bbztable_add_function(__BBZSTRID_foreach, bbzneighbors_foreach);
@@ -82,20 +82,26 @@ void add_neighborlike_fields(int16_t count) {
  * @brief Constructs the VM's neighbor structure.
  * @param[in] n The neighbor structure.
  */
-void neighbors_construct(bbzheap_idx_t n) {
+void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
     vm->neighbors.hpos = n;
+    vm->neighbors.listeners = l;
     bbzneighbors_reset();
 }
 
 void bbzneighbors_register() {
     bbzvm_pushs(__BBZSTRID_neighbors);
 
+    // Create the 'listeners' table
+    bbzvm_pusht();
+    bbzheap_idx_t l = bbzvm_stack_at(0);
+    bbzvm_pop();
+
     // Create the 'neighbors' table
     bbzvm_pusht();
 
     // Construct the 'neighbors' structure.
     bbzheap_idx_t n = bbzvm_stack_at(0);
-    neighbors_construct(n);
+    neighbors_construct(n, l);
 
     // Add some fields to the table (most common fields first)
     add_neighborlike_fields(0);
@@ -131,7 +137,7 @@ void bbzneighbors_broadcast() {
     bbzheap_idx_t topic = bbzvm_lsym_at(1);
     bbzheap_idx_t value = bbzvm_lsym_at(2);
 
-    bbzoutmsg_append_broadcast(topic, value);
+    bbzoutmsg_queue_append_broadcast(topic, value);
 
     bbzvm_ret0();
 }
@@ -182,7 +188,7 @@ void bbzneighbors_ignore() {
  */
 void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
-    
+
     // Push closure and args
     bbzvm_push(c);
     bbzvm_push(key);
@@ -356,7 +362,7 @@ void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
 
     // Make sure we returned a value.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
-    
+
     // Garbage-collect to reduce memory usage.
     bbzvm_gc();
 
@@ -391,7 +397,7 @@ void bbzneighbors_reduce() {
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     // Get 'neighbors''s sub-table
     bbzvm_push(vm->neighbors.hpos);
-    
+
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
     bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);

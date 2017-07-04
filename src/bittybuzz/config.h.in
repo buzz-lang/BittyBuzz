@@ -46,6 +46,21 @@
 /**
  * @brief Whether to use high memory optimizations.
  */
- #cmakedefine BBZ_XTREME_MEMORY
+#cmakedefine BBZ_XTREME_MEMORY
+
+/**
+ * @brief Whether to use normal or priority queue for out-messages
+ */
+#cmakedefine BBZ_USE_PRIORITY_SORT
+
+/**
+ * @brief Capacity of the input message queue.
+ */
+#define BBZINMSG_QUEUE_CAP @BBZINMSG_QUEUE_CAP@
+
+/**
+ * @brief Capacity of the output message queue.
+ */
+#define BBZOUTMSG_QUEUE_CAP @BBZOUTMSG_QUEUE_CAP@
 
 #endif // !CONFIG_H

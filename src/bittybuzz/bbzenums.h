@@ -12,6 +12,7 @@
 typedef enum {
     BBZVM_STATE_NOCODE = 0, /**< @brief No code loaded */
     BBZVM_STATE_READY,      /**< @brief Ready to execute next instruction */
+    BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) */
     BBZVM_STATE_DONE,       /**< @brief Program finished */
     BBZVM_STATE_ERROR       /**< @brief Error occurred */
 } bbzvm_state;
@@ -91,5 +92,17 @@ typedef enum {
     BBZVM_INSTR_JUMPNZ,  /**< @brief Set PC to argument if stack top is not zero, pop operand */
     BBZVM_INSTR_COUNT    /**< @brief Used to count how many instructions have been defined */
 } bbzvm_instr;
+
+/**
+ * @brief Buzz message type.
+ * @details The types are ordered by decreasing priority.
+ */
+typedef enum {
+    BBZMSG_BROADCAST = 0, /**< @brief Neighbor broadcast */
+    BBZMSG_VSTIG_PUT,     /**< @brief Virtual stigmergy PUT */
+    BBZMSG_VSTIG_QUERY,   /**< @brief Virtual stigmergy QUERY */
+    BBZMSG_SWARM_CHUNK,   /**< @brief Swarm listing */
+    BBZMSG_TYPE_COUNT     /**< @brief How many message types have been defined */
+} bbzmsg_payload_type_t;
 
 #endif // !BBZENUMS_H

@@ -42,7 +42,7 @@ const uint8_t* testBcode(int16_t offset, uint8_t size) {
             case sizeof(uint16_t): // Fallthrough
             case sizeof(uint32_t): {
                 fseek(fbcode, offset, SEEK_SET);
-                fread(buf, size, 1, fbcode);
+                RM_UNUSED_RETVAL_WARN(fread(buf, size, 1, fbcode));
                 break;
             }
             default: {
@@ -129,7 +129,7 @@ void logfunc() {
                 printf("[t]%" PRIu16, o->t.value);
                 break;
             case BBZTYPE_USERDATA:
-                printf("[u]%" PRIXPTR, (uintptr_t)o->u.value);
+                printf("[u]%" PRIXPTR, o->u.value);
                 break;
             case BBZTYPE_STRING:
                 //printf("[s]%d", (o->s.value));
@@ -566,7 +566,8 @@ TEST(all) {
     // --------------------------
 
     #if BBZHEAP_SIZE < 2048
-    #warning Test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
+    #warning\
+    Test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
     on 32 and 64 bit systems. The script execution test will be disabled.
     #else
 

@@ -37,11 +37,11 @@ void bbzringbuf_clear(bbzringbuf_t* rb) { rb->datastart = 0; rb->dataend = 0; }
  * @brief Initializes a new ring buffer.
  * @param[in,out] rb  The ring buffer.
  * @param[in] buf The pointer to the linear buffer.
- * @param[in] sz Number of elements of the linear buffer.
- * @param[in] cap The capacity of the ring buffer.
+ * @param[in] elsz Size (in bytes) of an inidivdual element.
+ * @param[in] cap The capacity (noumber of elements it can contains) of the ring buffer.
  */
 ALWAYS_INLINE
-void bbzringbuf_construct(bbzringbuf_t* rb, uint8_t* buf, uint8_t sz, uint8_t cap) { rb->buffer = buf; rb->elsize = sz; rb->capacity = cap; bbzringbuf_clear(rb); }
+void bbzringbuf_construct(bbzringbuf_t *rb, uint8_t *buf, uint8_t elsz, uint8_t cap) { rb->buffer = buf; rb->elsize = elsz; rb->capacity = cap; bbzringbuf_clear(rb); }
 
 /**
  * @brief Returns the capacity of the ring buffer.
@@ -60,9 +60,9 @@ uint8_t bbzringbuf_capacity(const bbzringbuf_t* rb) { return rb->capacity; }
  */
 ALWAYS_INLINE
 uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
-    return (rb->dataend >=  rb->datastart) ?
+    return ((rb->dataend >=  rb->datastart) ?
            (rb->dataend  -  rb->datastart) :
-           (rb->capacity - (rb->datastart - rb->dataend - 1));
+           (rb->capacity - (rb->datastart - rb->dataend/* - (uint8_t)1*/)));
 }
 
 
@@ -72,7 +72,7 @@ uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
  * @return 1 if the buffer is full, 0 otherwise
  */
 ALWAYS_INLINE
-uint8_t bbzringbuf_full(const bbzringbuf_t* rb) { return ((rb->dataend + 1) % rb->capacity) == rb->datastart; }
+uint8_t bbzringbuf_full(const bbzringbuf_t* rb) { return (uint8_t) (((rb->dataend + 1) % rb->capacity) == rb->datastart); }
 
 /**
  * @brief Returns the object at the given index in the ring buffer.
@@ -94,6 +94,22 @@ uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx) { return rb->buffer 
  */
 ALWAYS_INLINE
 uint8_t* bbzringbuf_rawat(const bbzringbuf_t* rb, uint8_t idx) { return (rb->buffer + (idx % rb->capacity) * rb->elsize); }
+
+/**
+ * @brief Returns whether the buffer is empty or not.
+ * @param rb The ring buffer.
+ * @return Whether the buffer is empty or not.
+ */
+ALWAYS_INLINE
+uint8_t bbzringbuf_empty(bbzringbuf_t *rb) { return (uint8_t)(rb->datastart == rb->dataend); }
+
+/**
+ * @brief Pops the first element in the list, if any.
+ * @param rb The ring buffer.
+ * @return 1 if the pop was sucessful, 0 if the buffer was already empty
+ */
+ALWAYS_INLINE
+uint8_t bbzringbuf_pop(bbzringbuf_t* rb) { if (bbzringbuf_empty(rb)) return 0; rb->datastart = (rb->datastart + (uint8_t)1) % rb->capacity; return 1; }
 
 /**
  * @brief Returns the internal index of a newly created slot in the ring buffer.

@@ -56,6 +56,11 @@ void bbzvstig_get() {
                 bbzheap_obj_at(vm->vstig.data[i].key),
                 bbzheap_obj_at(key)) == 0) {
             // Entry found. Get it and exit.
+            bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_QUERY,
+                                         vm->vstig.data[i].robot,
+                                         bbzheap_obj_at(key)->s.value,
+                                         vm->vstig.data[i].value,
+                                         vm->vstig.data[i].timestamp);
             bbzvm_push(vm->vstig.data[i].value);
             bbzvm_ret1();
             return;
@@ -64,6 +69,11 @@ void bbzvstig_get() {
 
     // Entry not found. Push nil instead.
     bbzvm_pushnil();
+    bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_QUERY,
+                                 vm->robot,
+                                 bbzheap_obj_at(key)->s.value,
+                                 vm->nil,
+                                 0);
 
     bbzvm_ret1();
 }
@@ -86,8 +96,14 @@ void bbzvstig_put() {
                 bbzheap_obj_at(vm->vstig.data[i].key),
                 bbzheap_obj_at(key)) == 0) {
             // Entry found. Set it and exit.
+            vm->vstig.data[i].robot = vm->robot;
             vm->vstig.data[i].value = value;
             ++vm->vstig.data[i].timestamp;
+            bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT,
+                                         vm->vstig.data[i].robot,
+                                         bbzheap_obj_at(key)->s.value,
+                                         vm->vstig.data[i].value,
+                                         vm->vstig.data[i].timestamp);
             bbzvm_ret0();
             return;
         }
@@ -99,6 +115,11 @@ void bbzvstig_put() {
         vm->vstig.data[vm->vstig.size].key   = key;
         vm->vstig.data[vm->vstig.size].value = value;
         vm->vstig.data[vm->vstig.size].timestamp = 1;
+        bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT,
+                                     vm->vstig.data[vm->vstig.size].robot,
+                                     bbzheap_obj_at(key)->s.value,
+                                     vm->vstig.data[vm->vstig.size].value,
+                                     vm->vstig.data[vm->vstig.size].timestamp);
         ++vm->vstig.size;
     }
     else {

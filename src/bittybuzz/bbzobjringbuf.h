@@ -10,6 +10,7 @@
 #include "bbzinclude.h"
 #include "bbzringbuf.h"
 #include "bbzheap.h"
+#include "bbzvm.h"
 
 /**
  * @brief Buffer implemented to seamlessly loop on itself,
@@ -32,7 +33,7 @@ void bbzobjringbuf_clear(bbzobjringbuf_t* rb) { bbzringbuf_clear(rb); }
  * @brief Initializes a new ring buffer.
  * @param[in,out] rb  The ring buffer.
  * @param[in] buf The pointer to the linear buffer.
- * @param[in] cap The capacity of the ring buffer.
+ * @param[in] cap The capacity (number of object it can contains) of the ring buffer.
  */
 ALWAYS_INLINE
 void bbzobjringbuf_construct(bbzobjringbuf_t* rb, bbzobj_t* buf, uint8_t cap) { bbzringbuf_construct(rb, (uint8_t*)buf, sizeof(bbzheap_idx_t), cap); }
@@ -97,7 +98,7 @@ uint8_t bbzobjringbuf_makeslot(bbzobjringbuf_t* rb) { return bbzringbuf_makeslot
  * @param[in,out] rb  The ring buffer.
  */
 ALWAYS_INLINE
-void bbzobjringbuf_append_nil(bbzobjringbuf_t* rb) { uint8_t slot = bbzobjringbuf_makeslot(rb); /* TODO */ }
+void bbzobjringbuf_append_nil(bbzobjringbuf_t* rb) { uint8_t slot = bbzobjringbuf_makeslot(rb); bbztype_cast(*bbzobjringbuf_rawat(rb, slot), BBZTYPE_NIL); *bbzobjringbuf_rawat(rb, slot) = *bbzheap_obj_at(vm->nil); }
 
 /**
  * @brief Appends an int object to the ring buffer.
@@ -105,7 +106,7 @@ void bbzobjringbuf_append_nil(bbzobjringbuf_t* rb) { uint8_t slot = bbzobjringbu
  * @param[in] val The value.
  */
 ALWAYS_INLINE
-void bbzobjringbuf_append_int(bbzobjringbuf_t* rb, bbzheap_idx_t val) { uint8_t slot = bbzringbuf_makeslot(rb); bbztype_cast(*bbzobjringbuf_rawat(rb, slot), BBZTYPE_INT); bbzobjringbuf_rawat(rb, slot)->i.value = val; }
+void bbzobjringbuf_append_int(bbzobjringbuf_t *rb, int16_t val) { uint8_t slot = bbzringbuf_makeslot(rb); bbztype_cast(*bbzobjringbuf_rawat(rb, slot), BBZTYPE_INT); bbzobjringbuf_rawat(rb, slot)->i.value = val; }
 
 /**
  * @brief Appends a float object to the ring buffer.

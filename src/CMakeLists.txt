@@ -21,7 +21,7 @@ include(${INCLUDE_FILES_CMAKE}/BittyBuzzConfig.cmake)
 #
 # Host compiler values
 #
-set(HOST_C_FLAGS "${CMAKE_C_FLAGS} -Wall" CACHE STRING "GCC flags for the host compiler.")
+set(HOST_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fshort-enums" CACHE STRING "GCC flags for the host compiler.")
 find_program(HOST_C_COMPILER gcc)
 # Set the current compiler as "HOST" if we didn't set it to anything yet.
 set(CURRENT_COMPILER "HOST" CACHE STRING "Which compiler we are using.")
@@ -40,6 +40,11 @@ include(${INCLUDE_FILES_CMAKE}/BittyBuzzGeneratorFunctions.cmake)
 # Find Buzz programs
 #
 include(${INCLUDE_FILES_CMAKE}/BittyBuzzFindBuzzPrgms.cmake)
+
+#
+# Find Argos
+#
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzBuildChecks.cmake)
 
 #
 # Descend into the subdirectories

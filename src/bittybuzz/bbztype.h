@@ -8,6 +8,7 @@
 
 #include "bbzinclude.h"
 #include "bbzfloat.h"
+#include "bbzringbuf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -122,13 +123,14 @@ typedef struct PACKED {
  */
 typedef struct PACKED {
     uint8_t mdata; /**< @brief Object metadata. */
-    void* value;   /**< @brief User value. */
+    uintptr_t value;   /**< @brief User value. */
 } bbzuserdata_t;
 
 /**
  * @brief A handle for a object
  */
 typedef union PACKED {
+    uint8_t mdata;
     struct {
         /**
          * @brief Object metadata.
@@ -146,6 +148,8 @@ typedef union PACKED {
     bbzclosure_t  c; /**< @brief Closure object */
     bbzlclosure_t l; /**< @brief Lambda closure object */
     bbzuserdata_t u; /**< @brief Data object */
+
+    bbzuserdata_t biggest; /**< @brief The object that takes the most space */
 } bbzobj_t;
 
 /**

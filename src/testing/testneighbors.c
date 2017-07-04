@@ -7,22 +7,13 @@
 bbzvm_t vmObj;
 bbzvm_t* vm = &vmObj;
 
-uint8_t buf[4] = {0,0,0,0};
-const uint8_t* bcodefetcher(int16_t offset, uint8_t size) {
-    return buf + offset;
-}
-
-uint8_t addWorks = 0;
-
 TEST(nadd) {
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(vm->neighbors.count, 1);
-    addWorks = (uint8_t)(vm->neighbors.count == 1);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -30,7 +21,6 @@ TEST(nadd) {
 
 TEST(broadcast) {
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->neighbors.hpos);
     bbzvm_pushs(__BBZSTRID_broadcast);
@@ -54,7 +44,6 @@ void listen_fun() {
 
 TEST(listen) {
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->neighbors.hpos);
     bbzvm_pushs(__BBZSTRID_listen);
@@ -70,7 +59,6 @@ TEST(listen) {
 
 TEST(ignore) {
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->neighbors.hpos);
     bbzvm_pushs(__BBZSTRID_listen);
@@ -94,9 +82,8 @@ TEST(ignore) {
 }
 
 TEST(get) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
@@ -122,9 +109,8 @@ void foreach_fun() {
 }
 
 TEST(foreach) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
@@ -152,9 +138,8 @@ void map_fun() {
 }
 
 TEST(map) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
@@ -182,9 +167,8 @@ void reduce_fun() {
 }
 
 TEST(reduce) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
@@ -215,9 +199,8 @@ void filter_fun() {
 }
 
 TEST(filter) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
@@ -236,9 +219,8 @@ TEST(filter) {
 }
 
 TEST(count) {
-    REQUIRE(addWorks);
+//    REQUIRE(addWorks);
     bbzvm_construct(0);
-    bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);

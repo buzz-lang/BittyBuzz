@@ -49,8 +49,8 @@ int8_t bbztype_cmp(const bbzobj_t* a,
         return 0;
     }
     if(bbztype_isuserdata(*a) && bbztype_isuserdata(*b)) {
-        uintptr_t x = (uintptr_t)a->u.value;
-        uintptr_t y = (uintptr_t)b->u.value;
+        uintptr_t x = a->u.value;
+        uintptr_t y = b->u.value;
         if(x < y) return -1;
         if(x > y) return  1;
         return 0;

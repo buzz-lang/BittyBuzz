@@ -1,35 +1,32 @@
-#include <avr/pgmspace.h>
-
-#include <bbzkilobot.h>
+#include <argos3/plugins/robots/kilobot/control_interface/kilolib.h>
 
 #include <bittybuzz/bbzTEMP.h>
 #include <bittybuzz/bbzvm.h>
-#include <bittybuzz/bbztype.h>
 #include <bittybuzz/util/bbzstring.h>
 
-bbzvm_t* vm;
+bbzvm_t vmObj;
 
 uint8_t buf[4];
 const uint8_t* bcodeFetcher(int16_t offset, uint8_t size) {
-    switch(size) {
-        case 1:
-            *((uint8_t*)buf) = pgm_read_byte((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        case 2:
-            *((uint16_t*)buf) = pgm_read_word((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        case 4:
-            *((uint32_t*)buf) = pgm_read_dword((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        default:
-            break;
-    }
+//    switch(size) {
+//        case 1:
+//            *((uint8_t*)buf) = pgm_read_byte((uint16_t)&bcode + sizeof(*bcode)*offset);
+//            break;
+//        case 2:
+//            *((uint16_t*)buf) = pgm_read_word((uint16_t)&bcode + sizeof(*bcode)*offset);
+//            break;
+//        case 4:
+//            *((uint32_t*)buf) = pgm_read_dword((uint16_t)&bcode + sizeof(*bcode)*offset);
+//            break;
+//        default:
+//            break;
+//    }
     return buf;
 }
 
 void err_receiver(bbzvm_error errcode) {
     set_led(M); set_led(R); set_led(M);
-    _delay_ms(1000.0);
+    delay(1000);
     switch(errcode) {
         case BBZVM_ERROR_INSTR:  set_led(R);         break;
         case BBZVM_ERROR_STACK:  set_led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { set_led(R); } else if (bbzvm_stack_size() <= 0) { set_led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { set_led(Y); } break;
@@ -51,7 +48,7 @@ void bbz_led() {
     bbzvm_assert_lnum(1);
     uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
     //set_led(color);
-    set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
+    set_color((uint8_t)(RGB(color&1?3:0, color&2?3:0, color&4?3:0)));
     //bin_count(color, 1);
     return bbzvm_ret0();
 }
@@ -107,10 +104,9 @@ void loop () {
 }
 
 int main() {
-    bbzvm_t vmObj;
     vm = &vmObj;
-    bbzkilo_init();
-    bbzkilo_start(setup, loop);
+    kilo_init();
+    kilo_start(setup, loop);
 
     return 0;
 }
