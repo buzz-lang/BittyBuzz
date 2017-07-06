@@ -184,7 +184,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
             if(bbztype_istable(*bbzheap_obj_at(i))) {
                 /* Segment index in heap */
                 bbzheap_idx_t si = bbzheap_obj_at(i)->t.value;
-                // FIXME We should add a tseg GC mark. In the case we
+                // FIXED We should add a tseg GC mark. In the case we
                 // where have two 'equal' tables, but one has a mark
                 // and one does not, we do not want to invalidate the
                 // table segments.

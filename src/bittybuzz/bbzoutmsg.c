@@ -1,5 +1,4 @@
 #include "bbzoutmsg.h"
-#include "bbzringbuf.h"
 
 /****************************************/
 /****************************************/
@@ -73,7 +72,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   bbzheap_idx_t value,
                                   uint8_t lamport) {
     /* Make a new VSTIG_PUT/VSTIG_QUERY message */
-    bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, vm->outmsgs.queue.dataend + vm->outmsgs.queue.capacity));
+    bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_rawat(&vm->outmsgs.queue, vm->outmsgs.queue.dataend + vm->outmsgs.queue.capacity));
     m->vs.type = type;
     m->vs.rid = rid;
     m->vs.lamport = lamport;
@@ -98,12 +97,14 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
     bbzmsg_serialize_u8(buf, msg->type);
     switch (msg->type) {
         case BBZMSG_BROADCAST:
+            if (bbztype_istable(*bbzheap_obj_at(msg->bc.value))) return;
             bbzmsg_serialize_u16(buf, msg->bc.rid);
             bbzmsg_serialize_u16(buf, msg->bc.topic);
             bbzmsg_serialize_obj(buf, bbzheap_obj_at(msg->bc.value));
             break;
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
+            if (bbztype_istable(*bbzheap_obj_at(msg->bc.value))) return;
             bbzmsg_serialize_u16(buf, msg->vs.rid);
             bbzmsg_serialize_u16(buf, msg->vs.key);
             bbzmsg_serialize_obj(buf, bbzheap_obj_at(msg->vs.data));

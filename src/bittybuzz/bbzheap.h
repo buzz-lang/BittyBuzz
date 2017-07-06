@@ -100,6 +100,8 @@ void bbzheap_clear();
 uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o);
 
+#define MASK_OBJ_VALID (uint8_t)0x10
+
 /**
  * @brief Returns a pointer located at position i within the heap.
  * @param[in] i The position (a bbzheap_idx_t).
@@ -112,7 +114,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).o.mdata & (uint16_t)0x10)
+#define bbzheap_obj_isvalid(x) ((x).o.mdata & (uint8_t)MASK_OBJ_VALID)
 
 /**
  *  @brief Copy the value of an object to an other object.
@@ -290,7 +292,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makevalid(obj)   (obj).o.mdata |= (uint16_t)0x10
+#define obj_makevalid(obj)   (obj).o.mdata |= MASK_OBJ_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -298,7 +300,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makeinvalid(obj) (obj).o.mdata &= (uint16_t)0xEF
+#define obj_makeinvalid(obj) (obj).o.mdata &= ~MASK_OBJ_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.

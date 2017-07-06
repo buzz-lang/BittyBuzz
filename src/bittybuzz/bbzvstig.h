@@ -75,6 +75,16 @@ void bbzvstig_register();
 void bbzvstig_create();
 
 /**
+ * @brief Buzz C closure which set the onconflict callback closure.
+ */
+void bbzvstig_onconflict();
+
+/**
+ * @brief Buzz C closure which set the onconflictlost callback closure.
+ */
+void bbzvstig_onconflictlost();
+
+/**
  * @brief Buzz C closure which gets a value from the stigmergy.
  * @details One parameter is expected on the stack: the key.
  */

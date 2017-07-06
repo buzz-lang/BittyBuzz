@@ -620,7 +620,7 @@ extern "C" {
      * @return The size of the VM's current stack.
      */
     ALWAYS_INLINE
-    uint16_t bbzvm_stack_size() { return vm->stackptr + 1; }
+    uint16_t bbzvm_stack_size() { return vm->stackptr + (uint16_t)1; }
 
     /**
      * @brief Gets the element at given stack position,

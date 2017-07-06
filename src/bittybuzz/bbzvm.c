@@ -1,24 +1,46 @@
 #include "bbzvm.h"
-#include "bbzinmsg.h"
-#include "bbzmsg.h"
-#include "bbzneighbors.h"
+#include "bbzutil.h"
 
 bbzvm_t* vm; // Global extern variable 'vm'.
 
 /****************************************/
 /****************************************/
 
+#define bbzvm_get(arg, TYPE) ({             \
+    bbzvm_push ## TYPE(arg);                \
+    bbzheap_idx_t __tmp = bbzvm_stack_at(0);\
+    bbzvm_pop();                            \
+    (bbzheap_idx_t)__tmp;                   \
+})
+
+uint8_t lamport_isnewer(bbzlamport_t lamport, bbzlamport_t old_lamport) {
+    // This function uses a circular Lamport model (0 == 255 + 1).
+    // A Lamport clock is 'newer' than an old Lamport clock if its value
+    // is less than 'LAMPORT_THRESHOLD' ticks ahead of the old clock.
+
+    uint8_t lamport_overflow = (uint8_t)((uint16_t)UINT8_MAX - old_lamport < BBZLAMPORT_THRESHOLD);
+    if (lamport_overflow) {
+        return (uint8_t)(lamport > old_lamport ||
+                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
+    }
+    else {
+        return (uint8_t)(lamport > old_lamport &&
+                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
+    }
+}
+
 void bbzvm_process_inmsgs() {
-    if(vm->state != BBZVM_STATE_READY) return;
+//    if(vm->state != BBZVM_STATE_READY) return;
     /* Go through the messages */
     while(!bbzinmsg_queue_isempty()) {
         /* Extract the message data */
         bbzmsg_t* msg = bbzinmsg_queue_extract();
+        bbzheap_idx_t rid, key;
         switch(msg->type) {
             case BBZMSG_BROADCAST:
                 // Get the robot ID of the sender.
                 bbzvm_pushi(msg->bc.rid);
-                bbzheap_idx_t rid = bbzvm_stack_at(0);
+                rid = bbzvm_stack_at(0);
                 bbzvm_pop();
                 // Get the topic
                 bbzvm_pushs(msg->bc.topic);
@@ -33,6 +55,113 @@ void bbzvm_process_inmsgs() {
                 bbzvm_push(msg->bc.value);
                 bbzvm_push(rid);
                 bbzvm_closure_call(3);
+                break;
+            case BBZMSG_VSTIG_PUT:
+                // Get the robot ID of the sender.
+                bbzvm_pushs(msg->vs.key);
+                key = bbzvm_stack_at(0);
+                bbzvm_pop();
+                // Search the key in the vstig
+                uint8_t inLocalVStig = 0;
+                for (uint16_t i = 0; i < vm->vstig.size; ++i) {
+                    if (bbztype_cmp(bbzheap_obj_at(key), bbzheap_obj_at(vm->vstig.data[i].key)) == 0) {
+                        inLocalVStig = 1;
+                        if (lamport_isnewer(msg->vs.lamport, vm->vstig.data[i].timestamp)) {
+                            // Update the value
+                            vm->vstig.data[i].robot = msg->vs.rid;
+                            vm->vstig.data[i].key = key;
+                            vm->vstig.data[i].value = msg->vs.data;
+                            vm->vstig.data[i].timestamp = msg->vs.lamport;
+                            // Propagate the value.
+                            bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, vm->vstig.data[i].robot,
+                                                         bbzheap_obj_at(vm->vstig.data[i].key)->s.value,
+                                                         vm->vstig.data[i].value, vm->vstig.data[i].timestamp);
+                        }
+                        else if (vm->vstig.data[i].timestamp == msg->vs.lamport &&
+                                 vm->vstig.data[i].robot != msg->vs.rid) {
+                            // Conflict! Call the onconflict callback closure.
+                            bbzheap_idx_t tmp = vm->nil;
+                            // Check if there is a callback closure.
+                            if (bbztable_get(vm->vstig.hpos, bbzvm_get(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, s), &tmp)) {
+                                bbzvm_push(tmp);
+                                bbzvm_push(key);
+                                // push the local data
+                                bbzvm_pusht();
+                                bbztable_add_data(__BBZSTRID_robot, bbzvm_get(vm->vstig.data[i].robot, i));
+                                bbztable_add_data(__BBZSTRID_data, vm->vstig.data[i].value);
+                                bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(vm->vstig.data[i].timestamp, i));
+                                // push the remote data
+                                bbzvm_pusht();
+                                bbzheap_idx_t rd = bbzvm_stack_at(0);
+                                bbztable_add_data(__BBZSTRID_robot, bbzvm_get(msg->vs.rid, i));
+                                bbztable_add_data(__BBZSTRID_data, msg->vs.data);
+                                bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(msg->vs.lamport, i));
+                                bbzvm_closure_call(3);
+                                // Update the value with the table returned by the closure.
+                                if (bbztype_istable(*bbzheap_obj_at(bbzvm_stack_at(0)))) {
+                                    tmp = 0;
+                                    bbztable_get(bbzvm_stack_at(0),bbzvm_get(__BBZSTRID_robot,s),&tmp);
+                                    bbzrobot_id_t oldRID = vm->vstig.data[i].robot;
+                                    vm->vstig.data[i].robot = tmp ?
+                                                              (bbzrobot_id_t)bbzheap_obj_at(tmp)->i.value :
+                                                              vm->vstig.data[i].robot;
+                                    tmp = vm->nil;
+                                    bbztable_get(bbzvm_stack_at(0),bbzvm_get(__BBZSTRID_data,s),&tmp);
+                                    vm->vstig.data[i].value = tmp;
+                                    vm->vstig.data[i].timestamp = msg->vs.lamport;
+                                    // If this is the robot that lost, call the onconflictlost callback closure.
+                                    if ((bbzrobot_id_t)bbzheap_obj_at(tmp)->i.value != vm->robot &&
+                                            oldRID == vm->robot) {
+                                        // Check if there is an onconflictlost callback closure.
+                                        tmp = vm->nil;
+                                        if (bbztable_get(vm->vstig.hpos,
+                                                         bbzvm_get(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, s), &tmp)) {
+                                            bbzvm_push(tmp);
+                                            bbzvm_push(key);
+                                            bbzvm_push(rd);
+                                            bbzvm_closure_call(2);
+                                        }
+                                    }
+                                    // Propagate the winning value.
+                                    bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, vm->vstig.data[i].robot,
+                                                                 bbzheap_obj_at(vm->vstig.data[i].key)->s.value,
+                                                                 vm->vstig.data[i].value, vm->vstig.data[i].timestamp);
+                                }
+                                else {
+                                    // Error, either no value was returned, or the returned value is of the wrong type. Maybe notify it with an error?
+                                    bbzvm_seterror(BBZVM_ERROR_RET);
+                                    return;
+                                }
+                            }
+                            else {
+                                // No conflict manager, use default behavior.
+                                if (msg->vs.rid >= vm->vstig.data[i].robot) {
+                                    vm->vstig.data[i].robot = msg->vs.rid;
+                                    vm->vstig.data[i].key = key;
+                                    vm->vstig.data[i].value = msg->vs.data;
+                                    vm->vstig.data[i].timestamp = msg->vs.lamport;
+                                }
+                                // Propagate the winning value.
+                                bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, vm->vstig.data[i].robot,
+                                                             bbzheap_obj_at(vm->vstig.data[i].key)->s.value,
+                                                             vm->vstig.data[i].value, vm->vstig.data[i].timestamp);
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (!inLocalVStig) {
+                    vm->vstig.data[vm->vstig.size].robot = msg->vs.rid;
+                    vm->vstig.data[vm->vstig.size].key = key;
+                    vm->vstig.data[vm->vstig.size].value = msg->vs.data;
+                    vm->vstig.data[vm->vstig.size].timestamp = msg->vs.lamport;
+                    bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT,
+                                                 vm->vstig.data[vm->vstig.size].robot,
+                                                 msg->vs.key,
+                                                 vm->vstig.data[vm->vstig.size].value,
+                                                 vm->vstig.data[vm->vstig.size].timestamp);
+                    ++vm->vstig.size;
+                }
                 break;
             default:
                 break;
@@ -51,7 +180,7 @@ void bbzvm_process_outmsgs() {
 /****************************************/
 
 ALWAYS_INLINE
-void dftl_error_receiver(bbzvm_error errcode) { }
+void dftl_error_receiver(bbzvm_error errcode) {if(errcode)do{}while(0);}
 
 void bbzvm_construct(bbzrobot_id_t robot) {
     vm->bcode_fetch_fun = NULL;
@@ -85,7 +214,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     // Register things
     // bbzswarm_register(); // TODO
     bbzneighbors_register();
-    bbzvstig_register(); // TODO
+    bbzvstig_register();
 }
 
 /****************************************/
@@ -145,7 +274,11 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
 #define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg = *((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); vm->pc += sizeof(TYPE);
 
 uint8_t bbzvm_gc() {
-    if (BBZSTACK_SIZE - bbzvm_stack_size() < 8) return 0;
+    if (BBZSTACK_SIZE - bbzvm_stack_size() < 8 + 2*vm->vstig.size) {
+        bbzvm_seterror(BBZVM_ERROR_STACK);
+        return 0;
+    }
+    uint16_t stackSize = bbzvm_stack_size();
 
     // Push VM values that we don't want to garbage-collect
     bbzvm_push(vm->lsyms);
@@ -156,10 +289,13 @@ uint8_t bbzvm_gc() {
     bbzvm_push(vm->neighbors.hpos);
     bbzvm_push(vm->neighbors.listeners);
     bbzvm_push(vm->vstig.hpos);
+    for (uint8_t i = 0; i < vm->vstig.size; ++i) {
+        bbzvm_push(vm->vstig.data[i].key);
+        bbzvm_push(vm->vstig.data[i].value);
+    }
 
     bbzheap_gc(vm->stack, bbzvm_stack_size());
-    for (int8_t i = 8; i > 0; --i) { // TODO Save stack size and keep popping
-        // until it's back to what it was?
+    while (stackSize < bbzvm_stack_size()) {
         bbzvm_pop();
     }
     return 1;
@@ -175,7 +311,7 @@ void bbzvm_exec_instr() {
     uint8_t instr = *(*vm->bcode_fetch_fun)(vm->pc, 1);
 #ifdef DEBUG
     vm->dbg_pc = vm->pc;
-    vm->instr = instr;
+    vm->instr = (bbzvm_instr)instr;
 #endif
     inc_pc();
     switch(instr) {
@@ -330,7 +466,7 @@ void bbzvm_exec_instr() {
             bbzvm_pushcn(arg);
             break;
         }
-        case BBZVM_INSTR_PUSHCC: { // FIXME I don't think that a buzz script should/would ever use this instruction... Neither is it used in the buzz parser.
+        case BBZVM_INSTR_PUSHCC: { // _FIXME I don't think that a buzz script should/would ever use this instruction... Neither is it used in the buzz parser.
             get_arg(int16_t);
             bbzvm_pushcc((bbzvm_funp)(intptr_t)arg);
             break;
@@ -462,7 +598,7 @@ int16_t bbzpow(int16_t lhs, int16_t rhs) {
         return -1;
     }
     else {
-        // TODO Set an error when lhs == 0 ?
+        bbzvm_seterror(BBZVM_ERROR_MATH);
         return 0;
     }
 }

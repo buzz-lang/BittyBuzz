@@ -1,7 +1,5 @@
 #include <bittybuzz/bbzmsg.h>
 #include <bittybuzz/bbzoutmsg.h>
-#include <bittybuzz/bbztype.h>
-#include <bittybuzz/bbzringbuf.h>
 
 #define NUM_TEST_CASES 8
 #define TEST_MODULE messages
@@ -129,6 +127,10 @@ TEST(m_out_queue_first) {
     ASSERT_EQUAL(bbzmsg_deserialize_obj(&obj, &rb, 5), 8);
     ASSERT_EQUAL(obj.mdata, bbzheap_obj_at(val)->mdata);
     ASSERT_EQUAL((int16_t)obj.u.value, (int16_t)bbzheap_obj_at(val)->u.value);
+
+    REQUIRE(bbzoutmsg_queue_size() == 1);
+    bbzoutmsg_queue_next();
+    ASSERT_EQUAL(bbzoutmsg_queue_size(), 0);
 }
 
 TEST(m_in_append) {
@@ -182,7 +184,7 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.topic, __BBZSTRID_id);
-    ASSERT_EQUAL(bbzheap_obj_at((vm->inmsgs.buf)->bc.value)->mdata, obj1.mdata);
+    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at((vm->inmsgs.buf)->bc.value)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~MASK_OBJ_VALID));
     ASSERT_EQUAL(bbzheap_obj_at((vm->inmsgs.buf)->bc.value)->i.value, obj1.i.value);
 
     bbzinmsg_queue_append(&payload3);
@@ -192,7 +194,7 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.key, __BBZSTRID_put);
-    ASSERT_EQUAL(bbzheap_obj_at((&vm->inmsgs.buf[1])->vs.data)->mdata, obj2.mdata);
+    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at((&vm->inmsgs.buf[1])->vs.data)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj2.mdata & ~MASK_OBJ_VALID));
     ASSERT_EQUAL(bbzheap_obj_at((&vm->inmsgs.buf[1])->vs.data)->i.value, obj2.i.value);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.lamport, 1);
 }
@@ -222,7 +224,7 @@ TEST(m_in_queue_first) {
     ASSERT_EQUAL(msg->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL(msg->bc.rid, 42);
     ASSERT_EQUAL(msg->bc.topic, __BBZSTRID_count);
-    ASSERT_EQUAL(bbzheap_obj_at(msg->bc.value)->mdata, obj1.mdata);
+    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at(msg->bc.value)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~MASK_OBJ_VALID));
     ASSERT_EQUAL((uint16_t)bbzheap_obj_at(msg->bc.value)->u.value, (uint16_t)obj1.u.value);
 }
 

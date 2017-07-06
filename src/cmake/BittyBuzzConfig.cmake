@@ -13,6 +13,7 @@ config_value(BBZNEIGHBORS_CAP 4)
 config_value(BBZINMSG_QUEUE_CAP 15)
 config_value(BBZOUTMSG_QUEUE_CAP 15)
 config_value(RESERVED_ACTREC_MAX 32)
+config_value(BBZLAMPORT_THRESHOLD 50)
 
 # Set the XTREME memory optimization to false if it hasn't been set yet.
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)

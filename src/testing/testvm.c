@@ -1,12 +1,10 @@
-#define NUM_TEST_CASES 1
-#define TEST_MODULE vm
-#include "testingconfig.h"
-
-// #define DEBUG
-
 #include <stdio.h>
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
+
+#define NUM_TEST_CASES 2
+#define TEST_MODULE vm
+#include "testingconfig.h"
 
     // ======================================
     // =                MISC                =
@@ -555,6 +553,9 @@ TEST(all) {
     // D) Execute the rest of the script
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(vm->state == BBZVM_STATE_READY) {
+#ifdef DEBUG
+        printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);
+#endif
         bbzvm_step();
     }
     ASSERT(vm->state != BBZVM_STATE_ERROR);
@@ -601,6 +602,43 @@ TEST(all) {
     fclose(fbcode);
 }
 
+TEST(vm_message_processing) {
+    bbzvm_t vmObj;
+    vm = &vmObj;
+    bbzvm_construct(0);
+    bbzvm_set_error_receiver(set_last_error);
+
+    // Setup
+    bbzobj_t obj1;
+    bbztype_cast(obj1, BBZTYPE_INT);
+    obj1.i.value = 0x2345;
+
+    uint8_t buf1[10];
+    bbzmsg_payload_t payload1;
+    bbzringbuf_construct(&payload1, buf1, 1, 10);
+
+    bbzmsg_serialize_u8 (&payload1, BBZMSG_VSTIG_PUT);
+    bbzmsg_serialize_u16(&payload1, 42);
+    bbzmsg_serialize_u16(&payload1, __BBZSTRID_put);
+    bbzmsg_serialize_obj(&payload1, &obj1);
+    bbzmsg_serialize_u8 (&payload1, 1);
+
+    bbzinmsg_queue_append(&payload1);
+
+    bbzvm_process_inmsgs();
+    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    ASSERT_EQUAL(!!bbzinmsg_queue_isempty(), !!1);
+    ASSERT_EQUAL(bbzinmsg_queue_size(), 0);
+    ASSERT_EQUAL(vm->vstig.data[0].robot, 42);
+    ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].key)->s.value, __BBZSTRID_put);
+    ASSERT_EQUAL(bbztype(*bbzheap_obj_at(vm->vstig.data[0].value)), BBZTYPE_INT);
+    ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].value)->i.value, obj1.i.value);
+    ASSERT_EQUAL(vm->vstig.data[0].timestamp, 1);
+
+    bbzvm_destruct();
+}
+
 TEST_LIST {
     ADD_TEST(all);
+    ADD_TEST(vm_message_processing);
 }

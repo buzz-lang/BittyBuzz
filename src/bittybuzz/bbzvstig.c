@@ -1,6 +1,10 @@
 #include "bbzvstig.h"
 #include "bbzutil.h"
 
+void bbvstig_serialize(bbzheap_idx_t elem) {
+    // TODO
+}
+
 void bbzvstig_register() {
     bbzvm_pushs(__BBZSTRID_stigmergy);
 
@@ -33,10 +37,36 @@ void bbzvstig_create() {
     bbztable_add_function(__BBZSTRID_put,  bbzvstig_put);
     bbztable_add_function(__BBZSTRID_get,  bbzvstig_get);
     bbztable_add_function(__BBZSTRID_size, bbzvstig_size);
+    bbztable_add_function(__BBZSTRID_onconflict, bbzvstig_onconflict);
+    bbztable_add_function(__BBZSTRID_onconflictlost, bbzvstig_onconflictlost);
 
 
     // Table is now stack top. Return it.
     bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzvstig_onconflict() {
+    bbzvm_assert_lnum(1);
+
+    bbzvm_push(vm->vstig.hpos);
+    bbztable_add_data(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, bbzvm_lsym_at(1));
+
+    bbzvm_ret0();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzvstig_onconflictlost() {
+    bbzvm_assert_lnum(1);
+
+    bbzvm_push(vm->vstig.hpos);
+    bbztable_add_data(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, bbzvm_lsym_at(1));
+
+    bbzvm_ret0();
 }
 
 /****************************************/
@@ -47,8 +77,6 @@ void bbzvstig_get() {
 
     // Get args
     bbzheap_idx_t key = bbzvm_lsym_at(1);
-
-    // TODO Communicate with other robots
 
     // Find the 'key' entry.
     for (uint16_t i = 0; i < vm->vstig.size; ++i) {
@@ -87,6 +115,8 @@ void bbzvstig_put() {
     // Get args
     bbzheap_idx_t key   = bbzvm_lsym_at(1);
     bbzheap_idx_t value = bbzvm_lsym_at(2);
+    // BittyBuzz's virtual stigmertgie cannot handle composite types.
+    bbzvm_assert_exec(!bbztype_istable(*bbzvm_obj_at(value)), BBZVM_ERROR_TYPE);
 
     // TODO Communicate with other robots
 

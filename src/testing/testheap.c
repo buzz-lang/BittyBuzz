@@ -26,7 +26,7 @@ int main() {
         bbzheap_print();
     }
     printf("Garbage collection\n");
-    uint16_t stack1[5] = { 1, 3, 2, 0, 0 };
+    uint16_t stack1[5] = { RESERVED_ACTREC_MAX + 1, RESERVED_ACTREC_MAX + 3, RESERVED_ACTREC_MAX + 2, 0, 0 };
     bbzheap_gc(stack1, 3);
     bbzheap_print();
     for(int i = 0; i < 3; ++i) {
@@ -60,7 +60,8 @@ int main() {
         bbzheap_print();
     }
     printf("Garbage collection\n");
-    uint16_t stack2[8] = { 0, 1, 2, 3, 4, 5, 7, 8 };
+    uint16_t stack2[8] = { RESERVED_ACTREC_MAX + 0, RESERVED_ACTREC_MAX + 1, RESERVED_ACTREC_MAX + 2, RESERVED_ACTREC_MAX + 3,
+                           RESERVED_ACTREC_MAX + 4, RESERVED_ACTREC_MAX + 5, RESERVED_ACTREC_MAX + 7, RESERVED_ACTREC_MAX + 8 };
     bbzheap_gc(stack2, 8);
     bbzheap_print();
     for(int i = 0; i < 5; ++i) {
@@ -77,7 +78,7 @@ int main() {
     sz = bbztable_size(8);
     printf("Table #8 size = %d\n", sz);
     printf("Garbage collection\n");
-    uint16_t stack3[2] = { 7, 8 };
+    uint16_t stack3[2] = { RESERVED_ACTREC_MAX + 7, RESERVED_ACTREC_MAX + 8 };
     bbzheap_gc(stack3, 2);
     bbzheap_print();
     if(bbzheap_obj_alloc(BBZTYPE_NIL, &o))

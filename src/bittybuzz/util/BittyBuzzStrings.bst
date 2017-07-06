@@ -34,5 +34,9 @@ stigmergy
 put
 get
 size
+onconflict
+onconflictlost
+robot
+timestamp
 __INTERNAL_1_DO_NOT_USE__
 __INTERNAL_2_DO_NOT_USE__

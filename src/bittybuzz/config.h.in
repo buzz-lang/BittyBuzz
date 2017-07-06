@@ -63,4 +63,14 @@
  */
 #define BBZOUTMSG_QUEUE_CAP @BBZOUTMSG_QUEUE_CAP@
 
+/**
+ * @brief Lamport Clock Threashold (max accepting range).
+ */
+#define BBZLAMPORT_THRESHOLD @BBZLAMPORT_THRESHOLD@
+
+/**
+ * @brief Whether to compile in debug mode.
+ */
+#cmakedefine DEBUG @DEBUG@
+
 #endif // !CONFIG_H

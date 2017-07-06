@@ -16,6 +16,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             if (pos < 0) return;
             bbzvm_assert_exec(bbzheap_obj_alloc(BBZTYPE_USERDATA, &m->bc.value), BBZVM_ERROR_MEM);
             pos = bbzmsg_deserialize_obj(bbzheap_obj_at(m->bc.value), payload, (uint16_t)pos);
+            obj_makevalid(*bbzheap_obj_at(m->bc.value));
             if (pos < 0) return;
             break;
         case BBZMSG_VSTIG_PUT: // fallthrough
@@ -26,6 +27,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             if (pos < 0) return;
             bbzvm_assert_exec(bbzheap_obj_alloc(BBZTYPE_USERDATA, &m->vs.data), BBZVM_ERROR_MEM);
             pos = bbzmsg_deserialize_obj(bbzheap_obj_at(m->vs.data), payload, (uint16_t)pos);
+            obj_makevalid(*bbzheap_obj_at(m->vs.data));
             if (pos < 0) return;
             pos = bbzmsg_deserialize_u8(&m->vs.lamport, payload, (uint16_t)pos);
             if (pos < 0) return;
@@ -45,7 +47,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     // If everything succeed, we push the ring buffer forward.
     if (bbzringbuf_full(&vm->inmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.
-        *((bbzmsg_t*)bbzringbuf_at(&vm->inmsgs.queue, vm->inmsgs.queue.dataend - (uint8_t)1 + vm->inmsgs.queue.capacity)) = *m;
+        *((bbzmsg_t*)bbzringbuf_rawat(&vm->inmsgs.queue, vm->inmsgs.queue.dataend - (uint8_t)1 + vm->inmsgs.queue.capacity)) = *m;
     }
     else {
         // If not full, push the message at the end of the queue.

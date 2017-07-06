@@ -22,7 +22,7 @@ extern "C" {
  */
 typedef struct PACKED {
     bbzringbuf_t queue; /**< @brief Message queue. */
-    bbzmsg_t buf[BBZINMSG_QUEUE_CAP+1]; /**< @brief Output message buffer */
+    bbzmsg_t buf[BBZINMSG_QUEUE_CAP+2]; /**< @brief Output message buffer */
 } bbzinmsg_queue_t;
 
 /**
