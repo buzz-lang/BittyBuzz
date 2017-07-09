@@ -3,6 +3,7 @@
 #include <bittybuzz/bbzTEMP.h>
 #include <bittybuzz/bbzvm.h>
 #include <bittybuzz/util/bbzstring.h>
+#include <bbzsymbols.h>
 
 bbzvm_t vmObj;
 

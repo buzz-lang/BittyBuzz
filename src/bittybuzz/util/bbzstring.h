@@ -8,7 +8,6 @@
 
 extern const uint8_t bcode[];
 extern const uint16_t bcode_size;
-#include <bbzsymbols.h> // A header file generated at compile time containing all the symbol IDs, as well as the bytecode data.
 
 #ifdef __cplusplus
 extern "C" {

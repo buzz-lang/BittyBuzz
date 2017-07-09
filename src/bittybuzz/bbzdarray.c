@@ -36,17 +36,19 @@ void bbzdarray_destroy(bbzheap_idx_t d) {
 uint8_t bbzdarray_get(bbzheap_idx_t d,
                   uint16_t idx,
                   bbzheap_idx_t* v) {
+    uint16_t qot = idx / (uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG),
+             rem = idx % (uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG);
     uint16_t i = 0;
     uint16_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
     /* Loop to fetch the last segment */
-    for (i = 0; i < idx / (2*BBZHEAP_ELEMS_PER_TSEG) && bbzheap_aseg_hasnext(sd); ++i) {
+    for (i = 0; i < qot && bbzheap_aseg_hasnext(sd); ++i) {
         si = bbzheap_aseg_next_get(sd);
         sd = bbzheap_aseg_at(si);
     }
-    if (i == idx / (2*BBZHEAP_ELEMS_PER_TSEG) &&
-        bbzheap_aseg_elem_isvalid(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)])) {
-        *v = bbzheap_aseg_elem_get(sd->values[idx%(2*BBZHEAP_ELEMS_PER_TSEG)]);
+    if (i == qot &&
+        bbzheap_aseg_elem_isvalid(sd->values[rem])) {
+        *v = bbzheap_aseg_elem_get(sd->values[rem]);
         return 1;
     }
     return 0;

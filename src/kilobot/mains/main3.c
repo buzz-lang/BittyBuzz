@@ -1,5 +1,6 @@
-#include <kilobot/lib/bbzkilobot.h>
-#include <kilobot/lib/bbzmessage.h>
+#include <bbzkilobot.h>
+#include <bbzkilobot_include.h>
+#include <bbzmessage.h>
 
 #ifndef NULL
 #define NULL (void*)0
@@ -80,7 +81,10 @@ void rx_message(message_t *msg2, distance_measurement_t *d) {
     }
 }
 
+void loop ();
+
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
     state = STATE_INIT;
     rcvd_message = 0;
     should_send = 0;
@@ -142,6 +146,7 @@ void loop () {
     }
 
 //    delay(50);
+    bbzvm_ret0();
 }
 
 int main() {
@@ -149,7 +154,7 @@ int main() {
     kilo_message_tx = tx_message;
     kilo_message_rx = rx_message;
     kilo_message_tx_success = tx_message_success;
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

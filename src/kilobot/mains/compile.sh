@@ -19,7 +19,7 @@ KILOLIB_NAME=bbzkilobot-kilobot
 BO2BBO_PATH=${BIN_DIR}/bittybuzz/exec/bo2bbo
 KILO_SYMGEN_PATH=${BIN_DIR}/bittybuzz/exec/kilo_bcodegen
 
-GEN_PATH=${BIN_DIR}/kilobot/mains/gen
+GEN_PATH=${BIN_DIR}/kilobot/mains
 GEN_SYMS_FILENAME=bbzsymbols.h
 
 # Checking options
@@ -108,7 +108,7 @@ LOGF() {
     printf "$1" >> ${LOG_FILE};
 }
 
-[ "$verbose" = "1" ] && mkdir -v -p ${GEN_DIR} || mkdir -p ${GEN_DIR}
+[ "$verbose" = "1" ] && mkdir -v -p ${GEN_DIR} || mkdir -p ${GEN_DIR} | echo
 
 echo "### LOG OF ${bbz_name} COMPILING ###" > ${LOG_FILE}
 ERR_STR="[$bbz_name] ERROR. For more detail, check the log at $(realpath --relative-to=${BIN_DIR}/.. ${LOG_FILE})";
@@ -140,6 +140,17 @@ if [ -z "$AVR_OC" ]; then
     export AVR_OC=avr-objcopy
 fi
 LOG "Done $AVR_OC"
+
+LOGF "\tCheck for avr-strip... "
+if [ -z "$AVR_ST" ]; then
+    hash avr-strip 2>/dev/null || {
+        LOG "Not Found";
+        echo >&2 "[$bbz_name] Error: avr-strip is required but it's not installed.  Aborting.";
+        exit 1;
+    }
+    export AVR_ST=avr-strip
+fi
+LOG "Done $AVR_ST"
 
 LOGF "\tCheck for buzz parser... "
 if [ -z "$BZZ_PAR" ]; then
@@ -234,6 +245,11 @@ LOG "[$bbz_name] Compiling and Linking c functions..."
 ${AVR_CC} ${AVR_CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating hex file..."
 ${AVR_OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_name}.elf ${GEN_DIR}/${bbz_name}.hex >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+LOG "[$bbz_name] Generating debug files... "
+${AVR_CC} ${AVR_CFLAGS/-Wl,-s/} -g -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${AVR_OC} --only-keep-debug ${GEN_DIR}/${bbz_name}.elfdbg ${GEN_DIR}/${bbz_name}.dbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${AVR_OC} --strip-debug ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${AVR_OC} --add-gnu-debuglink ${GEN_DIR}/${bbz_name}.dbg ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Done"
 LOG ""
 LOG "[$bbz_name] Thank you."

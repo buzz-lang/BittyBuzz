@@ -20,3 +20,25 @@ while (i < 1000)
 
 led(2)
 delay(500)
+
+function init() {
+    led(7)
+    delay(500)
+    led(0)
+    delay(50)
+    led(7)
+    delay(50)
+    led(0)
+    delay(50)
+    led(7)
+    delay(50)
+    led(0)
+    delay(100)
+}
+
+function step() {
+    led(0)
+    delay(50)
+    led(7)
+    delay(50)
+}

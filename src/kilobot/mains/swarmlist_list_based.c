@@ -9,6 +9,7 @@
 #include "swarmlist_list_based.h"
 
 #include <bittybuzz/bbzTEMP.h>
+#include <bbzkilobot_include.h>
 
 // ===============================
 // =  GENERAL GLOBAL VARIABLES   =
@@ -234,7 +235,10 @@ uint8_t lamport_isnewer(lamport8_t lamport, lamport8_t old_lamport) {
 // =  SETUP AND LOOP FUNCTIONS   =
 // ===============================
 
+void loop();
+
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
     rand_seed(rand_hard());
     swarmlist_construct();
     swarmlist_update(kilo_uid, local_swarm_mask, local_lamport);
@@ -297,6 +301,7 @@ void loop() {
 
     // Let's assume we do something that takes some time.
     delay(50);
+    bbzvm_ret0();
 }
 
 // ===============================
@@ -310,5 +315,5 @@ int main() {
     kilo_message_tx_success = msg_tx_success;
     kilo_message_rx = process_msg_rx;
 
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 }

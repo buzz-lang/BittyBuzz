@@ -7,6 +7,7 @@
 #include <bittybuzz/bbzinclude.h>
 
 #include "swarm_recursive.h"
+#include <bbzkilobot_include.h>
 
 // ===============================
 // =      GLOBAL VARIABLES       =
@@ -35,7 +36,10 @@ volatile uint8_t curr_neighbor_idx = 0;
 // =    FUNCTION DEFINITIONS     =
 // ===============================
 
+void loop();
+
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
 
     if (is_leader()) {
         // swarm0_member_count = is_in_swarm(0) ? 1 : 0;
@@ -48,6 +52,7 @@ void loop() {
         find_neighbors();
         delay(500);
     }
+    bbzvm_ret0();
 }
 
 
@@ -269,7 +274,7 @@ int main() {
     kilo_message_tx = which_msg_tx;
     kilo_message_tx_success = msg_tx_success;
     kilo_message_rx = process_msg_rx;
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

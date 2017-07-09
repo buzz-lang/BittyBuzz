@@ -4,15 +4,18 @@
  */
 
 #include <bbzkilobot.h>
-
-#include <bittybuzz/util/bbzstring.h>
+#include <bbzkilobot_include.h>
 
 uint8_t rcvd_msg;
 void my_msg_rx(message_t* msg, distance_measurement_t* d) {
     rcvd_msg = 1;
 }
 
-void setup() { }
+void loop();
+
+void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
+}
 
 void loop () {
     if (rcvd_msg == 1) {
@@ -23,12 +26,13 @@ void loop () {
     else {
         set_color(RGB(0,0,0));
     }
+    bbzvm_ret0();
 }
 
 int main() {
     bbzkilo_init();
     kilo_message_rx = my_msg_rx;
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

@@ -66,12 +66,10 @@ extern "C" {
      *  1) Load and run bytecode.
      */
     typedef struct PACKED {
+        bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         bbzvm_bcode_fetch_fun bcode_fetch_fun; /**< @brief Bytecode fetcher function */
         uint16_t bcode_size;       /**< @brief Size of the loaded bytecode */
         int16_t pc;                /**< @brief Program counter */
-        bbzheap_idx_t stack[BBZSTACK_SIZE]; /**< @brief Current stack content */
-        int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */
-        int16_t blockptr;          /**< @brief Block pointer (Index of the previous block pointer in the stack) */
         bbzheap_idx_t lsyms;       /**< @brief Current local variable table */
         bbzheap_idx_t gsyms;       /**< @brief Global symbols */
         bbzheap_t heap;            /**< @brief Heap content */
@@ -92,7 +90,6 @@ extern "C" {
         bbzneighbors_t neighbors;  /**< @brief Neighbor data. */
         bbzvm_state state;         /**< @brief Current VM state */
         bbzvm_error error;         /**< @brief Current VM error */
-        bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         /* Current VM error message */
         // TODO ... maybe not?
         bbzrobot_id_t robot;       /**< @brief This robot's id */
@@ -104,6 +101,9 @@ extern "C" {
         int16_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
         bbzvm_instr instr;         /**< @brief Current instruction */
 #endif
+        int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */
+        int16_t blockptr;          /**< @brief Block pointer (Index of the previous block pointer in the stack) */
+        bbzheap_idx_t stack[BBZSTACK_SIZE]; /**< @brief Current stack content */
     } bbzvm_t;
 
     /**

@@ -12,9 +12,10 @@
 typedef enum {
     BBZVM_STATE_NOCODE = 0, /**< @brief No code loaded */
     BBZVM_STATE_READY,      /**< @brief Ready to execute next instruction */
-    BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) */
+    BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) @details May be used for debugging purpose. */
     BBZVM_STATE_DONE,       /**< @brief Program finished */
-    BBZVM_STATE_ERROR       /**< @brief Error occurred */
+    BBZVM_STATE_ERROR,      /**< @brief Error occurred */
+    BBZVM_STATE_COUNT,      /**< @brief The number of states in the enum. */
 } bbzvm_state;
 
 

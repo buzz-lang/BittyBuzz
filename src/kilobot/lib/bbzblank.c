@@ -74,7 +74,7 @@ int main() {
     vm = &vmObj;
 
     bbzkilo_init();
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

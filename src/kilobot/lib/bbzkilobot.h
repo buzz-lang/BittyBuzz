@@ -7,11 +7,20 @@
 #ifndef BITTYBUZZ_BBZKILOBOT_H
 #define BITTYBUZZ_BBZKILOBOT_H
 
+#ifdef DEBUG
+#include <stdio.h>
+#else
+#define printf(...)
+#define FILE void*
+#define stdout ((void*)0)
+#endif
 #include <stdint.h>
 #include "bbzmessage.h"
 #include "bbzmessage_crc.h"
 
 #include <kilobot/lib/config.h>
+#include <bittybuzz/bbzvm.h>
+#include <bittybuzz/util/bbzstring.h>
 
 #define RGB(r,g,b) (r&3)|(((g&3)<<2))|((b&3)<<4)
 #define TICKS_PER_SEC 31
@@ -471,7 +480,7 @@ void bbzkilo_init();
  * }
  * @endcode
  */
-void bbzkilo_start(void (*setup)(void), void (*loop)(void));
+void bbzkilo_start(void (*setup)(void));
 
 void tx_clock_reset();
 

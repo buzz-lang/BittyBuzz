@@ -3,7 +3,8 @@
  * @brief Test of a "Ping-list" swarm-list strategy.
  */
 
-#include <kilobot/lib/bbzkilobot.h>
+#include <bbzkilobot.h>
+#include <bbzkilobot_include.h>
 
 #define ARRAY_SIZE 16
 #define TIMESTAMP_INIT 500
@@ -321,8 +322,11 @@ void rx_rcvr(message_t* message, distance_measurement_t* d) {
     message_rcvd = 1;
 }//*/
 
+void loop();
+
 uint16_t ticks = 0;
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
     rand_seed(rand_hard());
 
     dnew(&robotIDs);
@@ -420,6 +424,7 @@ void loop() {
             dforeach(&robotIDs, swarm_sendmsg, 0);//*/
         }
     }
+    bbzvm_ret0();
 }
 
 int main() {
@@ -429,7 +434,7 @@ int main() {
     kilo_message_rx = rx_rcvr;
     kilo_message_tx_success = tx_send_success;
 
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

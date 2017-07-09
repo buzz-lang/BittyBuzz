@@ -9,6 +9,9 @@
 #include "bbzmessage_send.h"
 #include "bbzmacros.h"
 #include "bbzohc.h"
+#include <bittybuzz/util/bbzstring.h>
+#include <avr/pgmspace.h>
+#include <bittybuzz/bbzvm.h>
 
 #define EEPROM_OSCCAL         (uint8_t*)0x01
 #define EEPROM_TXMASK         (uint8_t*)0x90
@@ -59,7 +62,21 @@ uint8_t kilo_straight_left;
 uint8_t kilo_straight_right;
 uint16_t kilo_irhigh[14];
 uint16_t kilo_irlow[14];
-#endif
+bbzvm_t kilo_vmObj;
+
+#ifdef DEBUG
+#include <stdio.h>
+
+static int uart_putchar(char c, FILE *stream) {
+    if (c == '\n')
+        uart_putchar('\r', stream);
+    loop_until_bit_is_set(UCSR0A, UDRE0);
+    UDR0 = c;
+    return 0;
+}
+static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+#endif // DEBUG
+#endif // !BOOTLOADER
 
 static volatile enum {
     SLEEPING,
@@ -114,7 +131,11 @@ void bbzkilo_init() {
         kilo_irlow[i]=(eeprom_read_byte(EEPROM_IRLOW + i*2) <<8) | eeprom_read_byte(EEPROM_IRLOW + i*2+1);
         kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
     }
-#endif
+#ifdef DEBUG
+    kilo_state = SETUP;
+    stdout = &mystdout;
+#endif // DEBUG
+#endif // !BOOTLOADER
     sei();
 }
 
@@ -142,9 +163,38 @@ enum {
     MOVE_STRAIGHT
 };
 
+uint8_t buf[4];
+const uint8_t* bbzkilo_bcodeFetcher(int16_t offset, uint8_t size) {
+    switch(size) {
+        case 1:
+            *((uint8_t*)buf) = pgm_read_byte((uint16_t)&bcode + sizeof(*bcode)*offset);
+            break;
+        case 2:
+            *((uint16_t*)buf) = pgm_read_word((uint16_t)&bcode + sizeof(*bcode)*offset);
+            break;
+        case 4:
+            *((uint32_t*)buf) = pgm_read_dword((uint16_t)&bcode + sizeof(*bcode)*offset);
+            break;
+        default:
+            break;
+    }
+    return buf;
+}
+
 static volatile uint8_t prev_motion = MOVE_STOP, cur_motion = MOVE_STOP;
 
-void bbzkilo_start(void (*setup)(void), void (*loop)(void)) {
+#define NFUNCTION_CALL(strid) do{               \
+    bbzvm_pushs(strid);                         \
+    bbzheap_idx_t l = bbzvm_stack_at(0);        \
+    bbzvm_pop();                                \
+    if(bbztable_get(kilo_vmObj.gsyms, l, &l)) { \
+        bbzvm_push(l);                          \
+        bbzvm_closure_call(0);                  \
+    }                                           \
+}while(0)
+
+
+void bbzkilo_start(void (*setup)(void)) {
 //    int16_t voltage;
     uint8_t has_setup = 0;
     while (1) {
@@ -205,12 +255,29 @@ void bbzkilo_start(void (*setup)(void), void (*loop)(void)) {
                 break;
             case SETUP:
                 if (!has_setup) {
+                    vm = &kilo_vmObj;
+                    bbzvm_construct(kilo_uid);
+                    bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
                     setup();
                     has_setup = 1;
                 }
-                kilo_state = RUNNING;
+                if (vm->state == BBZVM_STATE_READY) {
+                    bbzvm_step();
+                }
+                else {
+                    kilo_state = RUNNING;
+                    vm->state = BBZVM_STATE_READY;
+                    NFUNCTION_CALL(__BBZSTRID_init);
+                }
+                break;
             case RUNNING:
-                loop();
+                if (vm->state != BBZVM_STATE_ERROR) {
+                    bbzvm_process_inmsgs();
+                    //bbzvm_gc();
+                    NFUNCTION_CALL(__BBZSTRID_step);
+                    bbzvm_process_outmsgs();
+                }
+                //loop();
                 break;
             case MOVING:
                 if (cur_motion == MOVE_STOP) {
@@ -236,7 +303,7 @@ void bbzkilo_start(void (*setup)(void), void (*loop)(void)) {
                     }
                 }
                 break;
-        }
+        } if(vm->state == BBZVM_STATE_COUNT)break;
     }
 }
 static inline void process_message() {
@@ -339,20 +406,26 @@ static inline void process_message() {
 }
 
 void delay(uint16_t ms) {
+#ifndef DEBUG
     while (ms > 0) {
         _delay_ms(1);
         ms--;
     }
+#endif
 }
 
 void set_motors(uint8_t ccw, uint8_t cw) {
+#ifndef DEBUG
     OCR2A = ccw;
     OCR2B = cw;
+#endif
 }
 
 void spinup_motors() {
+#ifndef DEBUG
     set_motors(255, 255);
     delay(15);
+#endif
 }
 
 int16_t get_ambientlight() {
@@ -530,6 +603,7 @@ EMPTY_INTERRUPT(TIMER0_COMPA_vect)
 #endif
 
 void set_color(uint8_t rgb) {
+#ifndef DEBUG
     if (rgb&(1<<0))
         DDRD |= (1<<5);
     else
@@ -559,6 +633,7 @@ void set_color(uint8_t rgb) {
         DDRC |= (1<<4);
     else
         DDRC &= ~(1<<4);
+#endif
 }
 
 void tx_clock_reset() {

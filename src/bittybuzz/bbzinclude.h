@@ -15,6 +15,9 @@
 extern "C" {
 #endif // __cplusplus
 
+//typedef uint16_t bbzuint_t;
+//typedef int16_t bbzint_t;
+
 /**
  * @brief Type for the ID of a robot.
  */
@@ -38,6 +41,13 @@ typedef uint8_t bbzswarmlist_t;
 typedef uint16_t bbzlamport_t;
 
 /**
+ * @brief NULL pointer.
+ */
+#ifndef NULL
+#define NULL ((void*)0)
+#endif // !NULL
+
+/**
  * @brief Specifies that a function should always be inlined.
  */
 #define ALWAYS_INLINE __attribute__((always_inline)) static inline
@@ -57,8 +67,10 @@ typedef uint16_t bbzlamport_t;
 #define NAKED
 #endif // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 
-#define RM_UNUSED_WARN(var) (void*)var
+#define RM_UNUSED_WARN(var) ((void*)var)
 #define RM_UNUSED_RETVAL_WARN(exp) if(exp)do{}while(0)
+
+#define SWAP(a, b) do{a^=b;b^=a;a^=b;}while(0)
 
 #ifdef __cplusplus
 }

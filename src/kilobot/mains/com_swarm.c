@@ -65,7 +65,10 @@ void find_neighbors() {
 }
 
 
+void loop();
+
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
     state = STATE_INIT;
     msg_tx.type = NORMAL;
     msg_tx.crc = bbzmessage_crc(&msg_tx);
@@ -75,6 +78,7 @@ void setup() {
 }
 
 void loop() {
+    bbzvm_ret0();
 }
 
 int main() {
@@ -84,7 +88,7 @@ int main() {
     kilo_message_rx = my_msg_rx;
     msg_tx.data[0] = 1;
     msg_tx.crc = bbzmessage_crc(&msg_tx);
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }

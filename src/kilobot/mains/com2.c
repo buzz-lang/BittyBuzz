@@ -4,9 +4,8 @@
  */
 
 #include <bbzkilobot.h>
-#include <bbzmessage_crc.h>
+#include <bbzkilobot_include.h>
 
-#include <bittybuzz/util/bbzstring.h>
 
 message_t msg;
 message_t* my_msg_tx() {
@@ -18,7 +17,10 @@ void my_tx_msg_success() {
      sent_msg = 1;
 }
 
+void loop();
+
 void setup() {
+    bbzvm_function_register(BBZSTRING_ID(loop), loop);
     msg.type = NORMAL;
     msg.crc = bbzmessage_crc(&msg);
 }
@@ -30,6 +32,7 @@ void loop () {
         delay(100);
         set_color(RGB(0,0,0));
     }
+    bbzvm_ret0();
 }
 
 int main() {
@@ -37,7 +40,7 @@ int main() {
     kilo_message_tx = my_msg_tx;
     kilo_message_tx_success = my_tx_msg_success;
     msg.data[0] = 1;
-    bbzkilo_start(setup, loop);
+    bbzkilo_start(setup);
 
     return 0;
 }
