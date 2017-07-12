@@ -15,7 +15,7 @@ function f1() {
         led(3)
 }
 
-while (i < 1000)
+while (i < 100)
     f1()
 
 led(2)

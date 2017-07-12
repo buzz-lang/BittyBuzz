@@ -23,7 +23,7 @@ extern "C" {
 /**
  * @brief Broadcast message data
  */
-typedef struct {
+typedef struct PACKED {
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     uint16_t topic; /**< @brief The topic of the broadcast. @note A string ID */
@@ -33,7 +33,7 @@ typedef struct {
 /**
  * @brief Swarm message data
  */
-typedef struct {
+typedef struct PACKED {
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     bbzlamport_t lamport;
@@ -43,7 +43,7 @@ typedef struct {
 /**
  * @brief Virtual stigmergy message data
  */
-typedef struct {
+typedef struct PACKED {
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     uint8_t lamport;

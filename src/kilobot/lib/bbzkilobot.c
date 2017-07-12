@@ -65,16 +65,16 @@ uint16_t kilo_irlow[14];
 bbzvm_t kilo_vmObj;
 
 #ifdef DEBUG
-#include <stdio.h>
-
-static int uart_putchar(char c, FILE *stream) {
-    if (c == '\n')
-        uart_putchar('\r', stream);
-    loop_until_bit_is_set(UCSR0A, UDRE0);
-    UDR0 = c;
-    return 0;
-}
-static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
+//#include <stdio.h>
+//
+//static int uart_putchar(char c, FILE *stream) {
+//    if (c == '\n')
+//        uart_putchar('\r', stream);
+//    loop_until_bit_is_set(UCSR0A, UDRE0);
+//    UDR0 = c;
+//    return 0;
+//}
+//static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
 #endif // DEBUG
 #endif // !BOOTLOADER
 
@@ -133,7 +133,7 @@ void bbzkilo_init() {
     }
 #ifdef DEBUG
     kilo_state = SETUP;
-    stdout = &mystdout;
+//    stdout = &mystdout;
 #endif // DEBUG
 #endif // !BOOTLOADER
     sei();
@@ -273,7 +273,7 @@ void bbzkilo_start(void (*setup)(void)) {
             case RUNNING:
                 if (vm->state != BBZVM_STATE_ERROR) {
                     bbzvm_process_inmsgs();
-                    //bbzvm_gc();
+                    bbzvm_gc();
                     NFUNCTION_CALL(__BBZSTRID_step);
                     bbzvm_process_outmsgs();
                 }

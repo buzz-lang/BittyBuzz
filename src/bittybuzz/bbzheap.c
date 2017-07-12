@@ -43,7 +43,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
             }
             else if (bbztype_isclosure(*x)) {
                 bbzclosure_unmake_lambda(*x);
-                ((bbzlclosure_t*)x)->value.actrec = 0xFF; // Default activation record
+                ((bbzlclosure_t*)x)->value.actrec = BBZ_DFLT_ACTREC; // Default activation record
             }
             /* Success */
             return 1;
@@ -66,7 +66,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
     }
     else if (bbztype_isclosure(*bbzheap_obj_at(*o))) {
         bbzlclosure_t* x = (bbzlclosure_t*)bbzheap_obj_at(*o);
-        x->value.actrec = 0xFF; // Default activation record
+        x->value.actrec = BBZ_DFLT_ACTREC; // Default activation record
     }
     return 1;
 }
@@ -113,11 +113,9 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
 
 /****************************************/
 /****************************************/
-
 void bbzheap_gc_mark(bbzheap_idx_t obj) {
-    static uint8_t callstack = 0;
-    if (gc_hasmark(*bbzheap_obj_at(obj))) return;
-    if (++callstack < 10) {
+    static uint8_t callstack = 1; // The value of 1 is necessary
+    if (++callstack <= 5 && !gc_hasmark(*bbzheap_obj_at(obj))) { // TODO Make the maximum stack depth parametrizable.
         /* Mark gc bit */
         gc_mark(*bbzheap_obj_at(obj));
         /* If it's a table, go through it and mark all associated objects */
@@ -156,7 +154,8 @@ void bbzheap_gc_mark(bbzheap_idx_t obj) {
                 }
             }
         }
-        else if (bbztype_isclosurelambda(*bbzheap_obj_at(obj))) {
+        else if (bbztype_isclosurelambda(*bbzheap_obj_at(obj)) &&
+                 bbzheap_obj_at(obj)->l.value.actrec != BBZ_DFLT_ACTREC) {
             bbzheap_gc_mark(bbzheap_obj_at(obj)->l.value.actrec);
         }
     }

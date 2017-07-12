@@ -19,17 +19,18 @@ function(generate_hex c_source bzz_source)
     set(HEX_FILE  ${BZZ_BASEPATH}.hex)
     set(MAP_FILE  ${BZZ_BASEPATH}.map)
     set(DBG_FILE  ${BZZ_BASEPATH}.dbg)
+    set(ASM_FILE  ${BZZ_BASEPATH}.lst)
     set(ELFDBG_FILE  ${BZZ_BASEPATH}.elfdbg)
 
     # .bzz -> .basm, ...
     if (NOT ${ARGN} STREQUAL "")
         add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ELFDBG_FILE}
+                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} -B ${ARGN} ${c_source}
                 DEPENDS ${bzz_source} ${c_source} ${ARGN} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
     else()
         add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ELFDBG_FILE}
+                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} ${c_source}
                 DEPENDS ${bzz_source} ${c_source} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
     endif()

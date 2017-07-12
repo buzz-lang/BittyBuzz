@@ -195,6 +195,13 @@ void bbzvm_process_outmsgs() {
 /****************************************/
 
 ALWAYS_INLINE
+void bbzvm_clear_stack() {
+    for (uint16_t i = 0; i < BBZSTACK_SIZE; ++i) {
+        vm->stack[i] = 0;
+    }
+}
+
+ALWAYS_INLINE
 void dftl_error_receiver(bbzvm_error errcode) { }
 
 void bbzvm_construct(bbzrobot_id_t robot) {
@@ -214,6 +221,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_clear();
     bbzinmsg_queue_construct();
     bbzoutmsg_queue_construct();
+    bbzvm_clear_stack();
 
     // Allocate singleton objects
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
@@ -1009,7 +1017,7 @@ void bbzvm_call(uint8_t isswrm) {
     bbzheap_idx_t oldLsyms = vm->lsyms;
     /* Create a new local symbol list copying the parent's */
     if (!bbztype_isclosurelambda(*c) ||
-        (c->l.value.actrec) == 0xFF) {
+        (c->l.value.actrec) == BBZ_DFLT_ACTREC) {
         bbzvm_assert_exec(bbzdarray_clone(vm->dflt_actrec, &vm->lsyms), BBZVM_ERROR_MEM);
     }
     else {
@@ -1148,14 +1156,14 @@ void bbzvm_pushf(bbzfloat v) {
 /****************************************/
 
 void bbzvm_pushs(uint16_t strid) {
-    bbzheap_idx_t o/*, v*/;
+    bbzheap_idx_t o, v;
     bbzvm_assert_mem_alloc(BBZTYPE_STRING, &o);
     bbzheap_obj_at(o)->s.value = strid;
-//    strid = bbzdarray_find(vm->gsyms, bbztype_cmp, o);
-//    if (bbztable_get(vm->gsyms, o, &v)) {
-//        obj_makeinvalid(*bbzvm_obj_at(o));
-//        bbzdarray_get(vm->gsyms, strid, &o);
-//    }
+    strid = bbzdarray_find(vm->gsyms, bbztype_cmp, o);
+    if (bbztable_get(vm->gsyms, o, &v)) {
+        obj_makeinvalid(*bbzvm_obj_at(o));
+        bbzdarray_get(vm->gsyms, strid, &o);
+    }
     return bbzvm_push(o);
 }
 
