@@ -15,9 +15,10 @@ uint16_t fsize;
 uint8_t buf[4];
 bbzvm_error last_error;
 
-char* state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR", "BBZVM_STATE_STOPPED"};
+char* state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_STOPPED", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR"};
 char* error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STACK", "BBZVM_ERROR_LNUM", "BBZVM_ERROR_PC",
-                      "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_MEM"};
+                      "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM",
+                      "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM", "BBZVM_ERROR_MATH"};
 char* instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
                       "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
                       "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
@@ -70,7 +71,7 @@ void bbzvm_skip_instr() {
 void set_last_error(bbzvm_error errcode) {
     last_error = errcode;
 #ifdef DEBUG
-    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
+//    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
 #endif
 }
 
@@ -232,7 +233,7 @@ TEST(all) {
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(bbzdarray_size(vm->flist), 9);
-    ASSERT_EQUAL(bbztable_size(vm->gsyms), 2);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 3);
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------

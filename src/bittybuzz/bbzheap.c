@@ -1,5 +1,4 @@
 #include "bbzheap.h"
-#include "bbztype.h"
 
 /****************************************/
 /****************************************/
@@ -228,6 +227,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
 /****************************************/
 /****************************************/
 
+#ifdef DEBUG
 #ifndef BBZCROSSCOMPILING
 
 static const char* bbzvm_types_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
@@ -290,9 +290,10 @@ void bbzheap_print() {
                     printf(" (%d,%d)",
                            bbzheap_tseg_elem_get(seg->keys[j]),
                            bbzheap_tseg_elem_get(seg->values[j]));
-            printf(" /next=%x }\n", bbzheap_tseg_next_get(seg));
+            printf(" /next=(%x|%d) }\n", bbzheap_tseg_next_get(seg), bbzheap_tseg_next_get(seg));
         }
     }
     printf("\n");
 }
 #endif // !BBZCROSSCOMPILING
+#endif // DEBUG

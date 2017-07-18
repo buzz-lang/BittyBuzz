@@ -706,6 +706,13 @@ extern "C" {
     #define bbzvm_assert_state()                                        \
         if(vm->state == BBZVM_STATE_ERROR) return;
 
+    #define bbzvm_get(arg, TYPE) ({             \
+        bbzvm_push ## TYPE(arg);                \
+        bbzheap_idx_t __tmp = bbzvm_stack_at(0);\
+        bbzvm_pop();                            \
+        (bbzheap_idx_t)__tmp;                   \
+    })
+
 
 #ifdef __cplusplus
 }

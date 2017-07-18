@@ -85,6 +85,10 @@ typedef struct PACKED {
     uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
 } bbzheap_t;
 
+#ifdef DEBUG
+void bbzheap_print();
+#endif
+
 /**
  * @brief Clears the heap.
  * Sets the entire heap to zero.

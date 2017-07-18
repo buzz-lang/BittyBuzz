@@ -23,9 +23,11 @@ TEST(m_deserialize8) {
     bbzringbuf_t rb;
     bbzringbuf_construct(&rb, buf, sizeof(uint8_t), 4);
     *bbzringbuf_rawat(&rb, bbzringbuf_makeslot(&rb)) = 0x56;
+    int16_t pos = 0;
 
     uint8_t x;
-    ASSERT_EQUAL(bbzmsg_deserialize_u8(&x, &rb, 0), 1);
+    bbzmsg_deserialize_u8(&x, &rb, &pos);
+    ASSERT_EQUAL(pos, 1);
     ASSERT_EQUAL(x, 0x56);
 }
 
@@ -48,8 +50,10 @@ TEST(m_deserialize16) {
     *bbzringbuf_rawat(&rb, bbzringbuf_makeslot(&rb)) = (uint8_t)htons(0x3456);
     *bbzringbuf_rawat(&rb, bbzringbuf_makeslot(&rb)) = (uint8_t)(htons(0x3456)>>8);
 
+    int16_t pos = 0;
     uint16_t x;
-    ASSERT_EQUAL(bbzmsg_deserialize_u16(&x, &rb, 0), 2);
+    bbzmsg_deserialize_u16(&x, &rb, &pos);
+    ASSERT_EQUAL(pos, 2);
     ASSERT_EQUAL(x, 0x3456);
 }
 
@@ -74,7 +78,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.swarms, 0x42);
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.lamport, 2);
 
-    bbzoutmsg_queue_append_broadcast(__BBZSTRID_id, val);
+    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_id,s), val);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 2);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
@@ -92,7 +96,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data, val);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.lamport, 1);
 
-    bbzoutmsg_queue_append_broadcast(__BBZSTRID_count, val2);
+    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_count,s), val2);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 4);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_BROADCAST);
@@ -114,7 +118,7 @@ TEST(m_out_queue_first) {
     bbzheap_idx_t val;
     REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &val));
     bbzheap_obj_at(val)->i.value = 0x6789; // Value not necessary, but useful for debugging
-    bbzoutmsg_queue_append_broadcast(__BBZSTRID_count, val);
+    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_count,s), val);
 
     bbzoutmsg_queue_first(&rb);
     ASSERT_EQUAL(*buf, BBZMSG_BROADCAST);
@@ -124,7 +128,9 @@ TEST(m_out_queue_first) {
     ASSERT_EQUAL((uint8_t)((bbzobj_t*)(buf+5))->u.value, (uint8_t)htons((uint16_t)bbzheap_obj_at(val)->u.value));
     ASSERT_EQUAL((uint8_t)(((bbzobj_t*)(buf+5))->u.value >> 8), (uint8_t)(htons((uint16_t)bbzheap_obj_at(val)->u.value) >> 8));
     bbzobj_t obj;
-    ASSERT_EQUAL(bbzmsg_deserialize_obj(&obj, &rb, 5), 8);
+    int16_t pos = 5;
+    bbzmsg_deserialize_obj(&obj, &rb, &pos);
+    ASSERT_EQUAL(pos, 8);
     ASSERT_EQUAL(obj.mdata, bbzheap_obj_at(val)->mdata);
     ASSERT_EQUAL((int16_t)obj.u.value, (int16_t)bbzheap_obj_at(val)->u.value);
 
@@ -220,7 +226,8 @@ TEST(m_in_queue_first) {
     bbzmsg_serialize_obj(&payload1, &obj1);
     bbzinmsg_queue_append(&payload1);
 
-    bbzmsg_t* msg = bbzinmsg_queue_extract();
+    bbzmsg_t* msg = bbzinmsg_queue_first();
+    bbzinmsg_queue_next();
     ASSERT_EQUAL(msg->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL(msg->bc.rid, 42);
     ASSERT_EQUAL(msg->bc.topic, __BBZSTRID_count);

@@ -80,6 +80,8 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t *buf);
  */
 void bbzoutmsg_queue_next();
 
+#define bbzoutmsg_queue_get(pos) ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, pos))
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

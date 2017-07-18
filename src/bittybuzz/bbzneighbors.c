@@ -1,6 +1,7 @@
 #include "bbzneighbors.h"
 #include "bbzutil.h"
 #include "bbzvm.h"
+#include "bbztype.h"
 
 /**
  * String ID of the sub-table which contains the neighbors' data tables
@@ -198,7 +199,7 @@ void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) 
     bbzvm_closure_call(2);
 
     // Garbage-collect to reduce memory usage.
-    bbzvm_gc();
+//    bbzvm_gc();
 }
 
 void bbzneighbors_foreach() {
@@ -270,7 +271,7 @@ void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     nm->put_elem(value, ret);
 
     // Garbage-collect to reduce memory usage.
-    bbzvm_gc();
+//    bbzvm_gc();
 }
 
 /**
@@ -364,7 +365,7 @@ void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
 
     // Garbage-collect to reduce memory usage.
-    bbzvm_gc();
+//    bbzvm_gc();
 
     // Accumulator is at stack #0.
 }
@@ -400,7 +401,10 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
-    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
+//    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
+    bbzheap_idx_t o;
+    bbztable_get(bbzvm_stack_at(0), bbzvm_get(INTERNAL_STRID_COUNT, s), &o);
+    bbzheap_obj_at(o)->i.value = vm->neighbors.count;
 
     // Set data to the sub-table.
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);

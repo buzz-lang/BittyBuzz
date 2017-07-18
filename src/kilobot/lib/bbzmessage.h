@@ -11,6 +11,7 @@ extern "C" {
 typedef enum {
     NORMAL = 0,
     GPS,
+    BBZMSG,
     BOOT = 0x80,
     BOOTPGM_PAGE,
     BOOTPGM_SIZE,

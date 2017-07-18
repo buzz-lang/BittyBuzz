@@ -42,7 +42,7 @@ void setup() {
     bbzvm_construct(kilo_uid);
     bbzvm_set_bcode(bcodeFetcher, bcode_size);
     bbzvm_set_error_receiver(NULL);
-    bbzkilo_function_register(led, led);
+    bbzvm_function_register(BBZSTRING_ID(led), led);
     //bbzvm_execute_script();
 }
 

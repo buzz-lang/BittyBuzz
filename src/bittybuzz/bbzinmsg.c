@@ -5,39 +5,37 @@
 
 void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     int16_t pos = 0;
-    bbzmsg_t* m = &vm->inmsgs.buf[vm->inmsgs.queue.capacity];
-    pos = bbzmsg_deserialize_u8(&m->type, payload, (uint16_t)pos);
+    bbzmsg_t* m = vm->inmsgs.buf+vm->inmsgs.queue.capacity;
+    bbzmsg_deserialize_u8(&m->type, payload, &pos);
     if (pos < 0) return;
     switch(m->type) {
         case BBZMSG_BROADCAST:
-            pos = bbzmsg_deserialize_u16(&m->bc.rid, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->bc.rid, payload, &pos);
             if (pos < 0) return;
-            pos = bbzmsg_deserialize_u16(&m->bc.topic, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->bc.topic, payload, &pos);
             if (pos < 0) return;
-            bbzvm_assert_exec(bbzheap_obj_alloc(BBZTYPE_USERDATA, &m->bc.value), BBZVM_ERROR_MEM);
-            pos = bbzmsg_deserialize_obj(bbzheap_obj_at(m->bc.value), payload, (uint16_t)pos);
-            obj_makevalid(*bbzheap_obj_at(m->bc.value));
+            bbzmsg_deserialize_obj(&m->bc.value, payload, &pos);
+            obj_makevalid(m->bc.value);
             if (pos < 0) return;
             break;
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
-            pos = bbzmsg_deserialize_u16(&m->vs.rid, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->vs.rid, payload, &pos);
             if (pos < 0) return;
-            pos = bbzmsg_deserialize_u16(&m->vs.key, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->vs.key, payload, &pos);
             if (pos < 0) return;
-            bbzvm_assert_exec(bbzheap_obj_alloc(BBZTYPE_USERDATA, &m->vs.data), BBZVM_ERROR_MEM);
-            pos = bbzmsg_deserialize_obj(bbzheap_obj_at(m->vs.data), payload, (uint16_t)pos);
-            obj_makevalid(*bbzheap_obj_at(m->vs.data));
+            bbzmsg_deserialize_obj(&m->vs.data, payload, &pos);
+            obj_makevalid(m->vs.data);
             if (pos < 0) return;
-            pos = bbzmsg_deserialize_u8(&m->vs.lamport, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u8(&m->vs.lamport, payload, &pos);
             if (pos < 0) return;
             break;
         case BBZMSG_SWARM_CHUNK:
-            pos = bbzmsg_deserialize_u16(&m->sw.rid, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->sw.rid, payload, &pos);
             if (pos < 0) return;
-            pos = bbzmsg_deserialize_u16(&m->sw.lamport, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u16(&m->sw.lamport, payload, &pos);
             if (pos < 0) return;
-            pos = bbzmsg_deserialize_u8(&m->sw.swarms, payload, (uint16_t)pos);
+            bbzmsg_deserialize_u8(&m->sw.swarms, payload, &pos);
             if (pos < 0) return;
             break;
         default:

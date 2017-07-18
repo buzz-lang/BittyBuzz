@@ -7,6 +7,7 @@
 uint8_t bbztable_get(bbzheap_idx_t t,
                      bbzheap_idx_t k,
                      bbzheap_idx_t* v) {
+    if (!bbztype_istable(*bbzheap_obj_at(t))) return 0;
     /* Get segment index */
     int16_t si = bbzheap_obj_at(t)->t.value;
     /* Get segment data */

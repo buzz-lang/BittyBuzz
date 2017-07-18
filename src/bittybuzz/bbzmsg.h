@@ -27,7 +27,7 @@ typedef struct PACKED {
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     uint16_t topic; /**< @brief The topic of the broadcast. @note A string ID */
-    bbzheap_idx_t value; /**< @brief The broadcasted value. */
+    bbzobj_t value; /**< @brief The broadcasted value. */
 } bbzmsg_broadcast_t;
 
 /**
@@ -48,7 +48,7 @@ typedef struct PACKED {
     bbzrobot_id_t rid;
     uint8_t lamport;
     uint16_t key;
-    bbzheap_idx_t data;
+    bbzobj_t data;
 } bbzmsg_vstig_t;
 
 /**
@@ -83,9 +83,9 @@ void bbzmsg_serialize_u8(bbzringbuf_t *rb,
  * @param[in] rb The buffer where the serialized data is stored.
  * @param[in] pos The position at which the data starts.
  */
-int16_t bbzmsg_deserialize_u8(uint8_t *data,
-                              const bbzringbuf_t *rb,
-                              uint16_t pos);
+void bbzmsg_deserialize_u8(uint8_t *data,
+                           const bbzringbuf_t *rb,
+                           int16_t *pos);
 
 /**
  * @brief Serializes a 16-bit unsigned integer.
@@ -104,9 +104,9 @@ void bbzmsg_serialize_u16(bbzringbuf_t *rb,
  * @param[in] rb The buffer where the serialized data is stored.
  * @param[in] pos The position at which the data starts.
  */
-int16_t bbzmsg_deserialize_u16(uint16_t *data,
-                               const bbzringbuf_t *rb,
-                               uint16_t pos);
+void bbzmsg_deserialize_u16(uint16_t *data,
+                            const bbzringbuf_t *rb,
+                            int16_t *pos);
 
 /**
  * @brief Serializes a BittyBuzz's object.
@@ -124,7 +124,7 @@ void bbzmsg_serialize_obj(bbzringbuf_t *rb, bbzobj_t *obj);
  * @param[in] rb The buffer where the serialized data is stored.
  * @param[in] pos The position at which the data starts.
  */
-int16_t bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, uint16_t pos);
+void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos);
 
 // +=-=-=-=-=-=-=-=-=-=-=-=-=-=+
 // | Message utility functions |

@@ -1,44 +1,65 @@
-led(1)
+#led(1)
 
-function add(x, y) {
-    return x + y
-}
+#function add(x, y) {
+#    return x + y
+#}
 
-led(3)
+#led(3)
 
-i = 0
-function f1() {
-    i = add(i, 1)
-    if (i % 2 == 0)
-        led(0)
-    else
-        led(3)
-}
+#i = 0
+#function f1() {
+#    i = add(i, 1)
+#    if (i % 2 == 0)
+#        led(0)
+#    else
+#        led(3)
+#}
 
-while (i < 100)
-    f1()
+#while (i < 100)
+#    f1()
 
-led(2)
-delay(500)
+#led(2)
+#delay(500)
 
 function init() {
+    neighbors.listen("Hello world!",
+        function(vid, value, rid) {
+            if (value == 42) {
+                led(2)
+            }
+            else if (value == nil) {
+                led(1)
+            }
+            else if (value == 0) {
+                led(1)
+            }
+            else if (value > 42) {
+                led(6)
+            }
+            else if (value < 42) {
+                led(3)
+            }
+            else {
+                led(5)
+            }
+#            delay(50)
+            led(0)
+#            delay(50)
+        }
+    )
     led(7)
     delay(500)
-    led(0)
-    delay(50)
-    led(7)
-    delay(50)
-    led(0)
-    delay(50)
-    led(7)
-    delay(50)
     led(0)
     delay(100)
 }
 
 function step() {
-    led(0)
-    delay(50)
-    led(7)
-    delay(50)
+    if(id == 35) {
+#        neighbors.broadcast("Hello world!", 255)
+        neighbors.broadcast("Hello world!", 42)
+        led(4)
+        delay(50)
+        led(0)
+        delay(100)
+    }
 }

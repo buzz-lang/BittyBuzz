@@ -25,6 +25,7 @@ void err_receiver(bbzvm_error errcode) {
     set_led(W);
     set_led(W);
     set_led(W);
+    set_led(O);
 }
 
 void bbz_led() {

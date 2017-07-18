@@ -1,5 +1,4 @@
 #include <avr/io.h>         // io port and addresses
-//#include <avr/wdt.h>        // watch dog timer
 #include <avr/interrupt.h>  // interrupt handling
 #include <avr/eeprom.h>     // read eeprom values
 #include <util/delay.h>     // delay macros
@@ -9,9 +8,11 @@
 #include "bbzmessage_send.h"
 #include "bbzmacros.h"
 #include "bbzohc.h"
+#include "bbzmessage.h"
+#include <bittybuzz/bbzvm.h>
 #include <bittybuzz/util/bbzstring.h>
 #include <avr/pgmspace.h>
-#include <bittybuzz/bbzvm.h>
+#include <bittybuzz/bbztype.h>
 
 #define EEPROM_OSCCAL         (uint8_t*)0x01
 #define EEPROM_TXMASK         (uint8_t*)0x90
@@ -63,19 +64,9 @@ uint8_t kilo_straight_right;
 uint16_t kilo_irhigh[14];
 uint16_t kilo_irlow[14];
 bbzvm_t kilo_vmObj;
-
-#ifdef DEBUG
-//#include <stdio.h>
-//
-//static int uart_putchar(char c, FILE *stream) {
-//    if (c == '\n')
-//        uart_putchar('\r', stream);
-//    loop_until_bit_is_set(UCSR0A, UDRE0);
-//    UDR0 = c;
-//    return 0;
-//}
-//static FILE mystdout = FDEV_SETUP_STREAM(uart_putchar, NULL, _FDEV_SETUP_WRITE);
-#endif // DEBUG
+message_t bbzmsg_tx;
+uint8_t bbzmsg_buf[11];
+bbzmsg_payload_t bbz_payload_buf;
 #endif // !BOOTLOADER
 
 static volatile enum {
@@ -131,30 +122,15 @@ void bbzkilo_init() {
         kilo_irlow[i]=(eeprom_read_byte(EEPROM_IRLOW + i*2) <<8) | eeprom_read_byte(EEPROM_IRLOW + i*2+1);
         kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
     }
+    bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
     kilo_state = SETUP;
-//    stdout = &mystdout;
 #endif // DEBUG
 #endif // !BOOTLOADER
     sei();
 }
 
 #ifndef BOOTLOADER
-// Ensure that wdt is inactive after system reset.
-//void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
-//
-//void wdt_init(void) {
-//    MCUSR = 0;
-//    wdt_disable();
-//}
-
-/**
- * Watchdog timer interrupt.
- * Used to wakeup from low power sleep mode.
- */
-//ISR(WDT_vect) {
-//    wdt_disable();
-//}
 
 enum {
     MOVE_STOP,
@@ -162,6 +138,8 @@ enum {
     MOVE_RIGHT,
     MOVE_STRAIGHT
 };
+
+static volatile uint8_t prev_motion = MOVE_STOP, cur_motion = MOVE_STOP;
 
 uint8_t buf[4];
 const uint8_t* bbzkilo_bcodeFetcher(int16_t offset, uint8_t size) {
@@ -181,7 +159,53 @@ const uint8_t* bbzkilo_bcodeFetcher(int16_t offset, uint8_t size) {
     return buf;
 }
 
-static volatile uint8_t prev_motion = MOVE_STOP, cur_motion = MOVE_STOP;
+//volatile uint8_t bbzmsg_tx_sent = 0;
+message_t* bbzwhich_msg_tx() {
+    if(bbzoutmsg_queue_size()) {
+        bbzoutmsg_queue_first(&bbz_payload_buf);
+        for (uint8_t i=0;i<9;++i) {
+            bbzmsg_tx.data[i] = 0;
+        }
+        for (uint8_t i=0;i<9;++i) {
+            bbzmsg_tx.data[i] = *bbzringbuf_at(&bbz_payload_buf, i);
+        }
+        bbzmsg_tx.type = BBZMSG;
+        bbzmsg_tx.crc = bbzmessage_crc(&bbzmsg_tx);
+        return &bbzmsg_tx;
+    }
+    return 0;
+}
+
+void bbzmsg_tx_success() {
+    bbzoutmsg_queue_next();
+//    bbzmsg_tx_sent = 1;
+}
+
+void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
+    if (msg_rx->type == BBZMSG) {
+        bbzringbuf_clear(&bbz_payload_buf);
+        for (uint8_t i = 0; i < 9; ++i) {
+            *bbzringbuf_rawat(&bbz_payload_buf, bbzringbuf_makeslot(&bbz_payload_buf)) = msg_rx->data[i];
+        }
+        bbzinmsg_queue_append(&bbz_payload_buf);
+    }
+}
+
+#ifdef DEBUG
+__attribute__((used))
+void inject_vstig() {
+    bbzringbuf_clear(&bbz_payload_buf);
+    bbzobj_t o = {0};
+    bbztype_cast(o, BBZTYPE_INT);
+    o.i.value = 42;
+    bbzmsg_serialize_u8(&bbz_payload_buf, BBZMSG_VSTIG_QUERY);
+    bbzmsg_serialize_u16(&bbz_payload_buf, 39);
+    bbzmsg_serialize_u16(&bbz_payload_buf, 47); // STRID "1"
+    bbzmsg_serialize_obj(&bbz_payload_buf, &o);
+    bbzmsg_serialize_u8(&bbz_payload_buf, 1);
+    bbzinmsg_queue_append(&bbz_payload_buf);
+}
+#endif
 
 #define NFUNCTION_CALL(strid) do{               \
     bbzvm_pushs(strid);                         \
@@ -200,32 +224,6 @@ void bbzkilo_start(void (*setup)(void)) {
     while (1) {
         switch(kilo_state) {
             case SLEEPING:
-//                cli();
-//                acomp_off();
-//                adc_off();
-//                ports_off();
-//                wdt_enable(WDTO_8S);
-//                WDTCSR |= (1<<WDIE);
-//                set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-//                cli();
-//                sleep_enable();
-//                sei();
-//                sleep_cpu();
-//                sleep_disable();
-//                sei();
-//                rx_busy = 0;
-//                ports_on();
-//                adc_on();
-//                _delay_us(300);
-//                acomp_on();
-//
-//                set_color(RGB(3,3,3));
-//                _delay_ms(10);
-//                if (rx_busy) {
-//                    set_color(RGB(3,0,0));
-//                    _delay_ms(100);
-//                }
-//                set_color(RGB(0,0,0));
                 break;
             case IDLE:
                 set_color(RGB(0,3,0));
@@ -243,19 +241,22 @@ void bbzkilo_start(void (*setup)(void)) {
 //                    set_color(RGB(3,3,0));
 //                else
 //                    set_color(RGB(3,0,0));
-                break;
+//                break;
             case CHARGING:
-                if (is_charging()) {
-                    set_color(RGB(1,0,0));
-                    _delay_ms(1);
-                    set_color(RGB(0,0,0));
-                    _delay_ms(200);
-                } else
-                    set_color(RGB(0,0,0));
-                break;
+//                if (is_charging()) {
+//                    set_color(RGB(1,0,0));
+//                    _delay_ms(1);
+//                    set_color(RGB(0,0,0));
+//                    _delay_ms(200);
+//                } else
+//                    set_color(RGB(0,0,0));
+//                break;
             case SETUP:
                 if (!has_setup) {
                     vm = &kilo_vmObj;
+                    kilo_message_tx = bbzwhich_msg_tx;
+                    kilo_message_tx_success = bbzmsg_tx_success;
+                    kilo_message_rx = bbzprocess_msg_rx;
                     bbzvm_construct(kilo_uid);
                     bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
                     setup();
@@ -273,7 +274,6 @@ void bbzkilo_start(void (*setup)(void)) {
             case RUNNING:
                 if (vm->state != BBZVM_STATE_ERROR) {
                     bbzvm_process_inmsgs();
-                    bbzvm_gc();
                     NFUNCTION_CALL(__BBZSTRID_step);
                     bbzvm_process_outmsgs();
                 }
@@ -306,8 +306,10 @@ void bbzkilo_start(void (*setup)(void)) {
         } if(vm->state == BBZVM_STATE_COUNT)break;
     }
 }
-static inline void process_message() {
-    AddressPointer_t reset = (AddressPointer_t)0x0000, bootload = (AddressPointer_t)BBZ_BOOTLOADER_ADDR;
+#define JUMPTO_PASTER(addr) do{}while(0); __asm__("jmp "#addr"\n\t")
+#define JUMPTO(addr) JUMPTO_PASTER(addr)
+static inline void bbzprocess_message() {
+//    AddressPointer_t reset = (AddressPointer_t)0x0000, bootload = (AddressPointer_t)BBZ_BOOTLOADER_ADDR;
     calibmsg_t *calibmsg = (calibmsg_t*)&rx_msg.data;
     if (rx_msg.type < BOOT) {
         kilo_message_rx(&rx_msg, &rx_dist);
@@ -318,10 +320,11 @@ static inline void process_message() {
     switch (rx_msg.type) {
         case BOOT:
         tx_timer_off();
-            bootload();
+//            ((AddressPointer_t)BBZ_BOOTLOADER_ADDR)();
+            JUMPTO(BBZ_BOOTLOADER_ADDR);
             break;
         case RESET:
-            reset();
+            JUMPTO(0x0000);
             break;
         case SLEEP:
 //            kilo_state = SLEEPING;
@@ -330,7 +333,7 @@ static inline void process_message() {
 //            kilo_state = IDLE;
             break;
         case CHARGE:
-            kilo_state = CHARGING;
+//            kilo_state = CHARGING;
             break;
         case VOLTAGE:
 //            kilo_state = BATTERY;
@@ -709,7 +712,7 @@ ISR(ANALOG_COMP_vect) {
                         rx_busy = 0;
 
                         if (rx_msg.crc == bbzmessage_crc(&rx_msg))
-                            process_message();
+                            bbzprocess_message();
                     }
                 }
             }

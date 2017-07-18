@@ -145,6 +145,11 @@ int main(int argc, char** argv) {
             fread(&buf, 1, 1, f_in);
             fprintf(f_out, ",%" PRIu8, buf);
         }
+        // We make sure that the alignment is on 2 bytes because it will be in the flash and
+        // the alignment is needed for the simulator
+        if (bcode_size % 2 == 1) {
+            fprintf(f_out, ",0");
+        }
     }
 
     fprintf(f_out, "};\n\n");

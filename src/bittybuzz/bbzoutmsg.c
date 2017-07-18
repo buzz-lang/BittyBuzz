@@ -1,4 +1,5 @@
 #include "bbzoutmsg.h"
+#include "bbztype.h"
 
 /****************************************/
 /****************************************/
@@ -29,8 +30,8 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) 
     bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, vm->outmsgs.queue.dataend + vm->outmsgs.queue.capacity));
     m->bc.type = BBZMSG_BROADCAST;
     m->bc.rid = vm->robot;
-    m->bc.topic = topic;
-    m->bc.value = value;
+    m->bc.topic = bbzheap_obj_at(topic)->s.value;
+    m->bc.value = *bbzheap_obj_at(value);
     if (bbzringbuf_full(&vm->outmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.
         *((bbzmsg_t*)bbzringbuf_rawat(&vm->outmsgs.queue, vm->outmsgs.queue.dataend - (uint8_t)1 + vm->outmsgs.queue.capacity)) = *m;
@@ -77,7 +78,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
     m->vs.rid = rid;
     m->vs.lamport = lamport;
     m->vs.key = key;
-    m->vs.data = value;
+    m->vs.data = *bbzheap_obj_at(value);
     if (bbzringbuf_full(&vm->outmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.
         *((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, vm->outmsgs.queue.dataend - (uint8_t)1 + vm->outmsgs.queue.capacity)) = *m;
@@ -94,20 +95,21 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
 
 void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
     bbzmsg_t* msg = (bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, 0);
+    bbzringbuf_clear(buf);
     bbzmsg_serialize_u8(buf, msg->type);
     switch (msg->type) {
         case BBZMSG_BROADCAST:
-            if (bbztype_istable(*bbzheap_obj_at(msg->bc.value))) return;
+            if (bbztype_istable(msg->bc.value)) return;
             bbzmsg_serialize_u16(buf, msg->bc.rid);
             bbzmsg_serialize_u16(buf, msg->bc.topic);
-            bbzmsg_serialize_obj(buf, bbzheap_obj_at(msg->bc.value));
+            bbzmsg_serialize_obj(buf, &msg->bc.value);
             break;
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
-            if (bbztype_istable(*bbzheap_obj_at(msg->bc.value))) return;
+            if (bbztype_istable(msg->bc.value)) return;
             bbzmsg_serialize_u16(buf, msg->vs.rid);
             bbzmsg_serialize_u16(buf, msg->vs.key);
-            bbzmsg_serialize_obj(buf, bbzheap_obj_at(msg->vs.data));
+            bbzmsg_serialize_obj(buf, &msg->vs.data);
             bbzmsg_serialize_u8(buf, msg->vs.lamport);
             break;
         case BBZMSG_SWARM_CHUNK:

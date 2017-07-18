@@ -14,13 +14,6 @@
 #include <kilobot/lib/config.h>
 #include <bittybuzz/bbzvm.h>
 #include <bittybuzz/util/bbzstring.h>
-#ifdef DEBUG
-//#include <stdio.h>
-#else
-#define printf(...)
-#define FILE void*
-#define stdout ((void*)0)
-#endif
 
 #define RGB(r,g,b) (r&3)|(((g&3)<<2))|((b&3)<<4)
 #define TICKS_PER_SEC 31

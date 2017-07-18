@@ -18,10 +18,14 @@ link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
 #
 include(${INCLUDE_FILES_CMAKE}/BittyBuzzConfig.cmake)
 
+if (BBZ_USE_FLOAT)
+    add_definitions(-DBBZ_USE_FLOAT=1)
+endif ()
+
 #
 # Host compiler values
 #
-set(HOST_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fshort-enums" CACHE STRING "GCC flags for the host compiler.")
+set(HOST_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-comment -fshort-enums" CACHE STRING "GCC flags for the host compiler.")
 find_program(HOST_C_COMPILER gcc)
 # Set the current compiler as "HOST" if we didn't set it to anything yet.
 set(CURRENT_COMPILER "HOST" CACHE STRING "Which compiler we are using.")

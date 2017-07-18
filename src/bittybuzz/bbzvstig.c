@@ -8,13 +8,13 @@ void bbvstig_serialize(bbzheap_idx_t elem) {
 void bbzvstig_register() {
     bbzvm_pushs(__BBZSTRID_stigmergy);
 
+    bbzvstig_construct();
     // Create the 'stigmergy' table and set its 'create' field.
     bbzvm_pusht();
     bbztable_add_function(__BBZSTRID_create, bbzvstig_create);
 
     // Construct the 'stigmergy' structure.
     vm->vstig.hpos = bbzvm_stack_at(0);
-    bbzvstig_construct();
 
     // String 'stigmergy' is stack-top, and table is now stack #1. Register it.
     bbzvm_gstore();
