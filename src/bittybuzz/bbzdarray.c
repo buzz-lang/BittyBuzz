@@ -34,19 +34,19 @@ void bbzdarray_destroy(bbzheap_idx_t d) {
 /****************************************/
 
 uint8_t bbzdarray_get(bbzheap_idx_t d,
-                  uint16_t idx,
-                  bbzheap_idx_t* v) {
-    uint16_t qot = idx / (uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG),
-             rem = idx % (uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG);
-    uint16_t i = 0;
+                      uint16_t idx,
+                      bbzheap_idx_t* v) {
+    if (!bbztype_isdarray(*bbzheap_obj_at(d))) return 0;
+    const uint16_t qot = idx / ((uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG)),
+            rem = idx % ((uint16_t)(2*BBZHEAP_ELEMS_PER_TSEG));
     uint16_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
     /* Loop to fetch the last segment */
-    for (i = 0; i < qot && bbzheap_aseg_hasnext(sd); ++i) {
+    for (idx = 0; idx < qot && bbzheap_aseg_hasnext(sd); ++idx) {
         si = bbzheap_aseg_next_get(sd);
         sd = bbzheap_aseg_at(si);
     }
-    if (i == qot &&
+    if (idx == qot &&
         bbzheap_aseg_elem_isvalid(sd->values[rem])) {
         *v = bbzheap_aseg_elem_get(sd->values[rem]);
         return 1;
@@ -107,7 +107,7 @@ uint8_t bbzdarray_remove(bbzheap_idx_t d, uint16_t idx) { // FIXME
     /* Find the last valid element */
     for (si = 0; // Reusing 'si' as the position in the segment
          si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
-                 ++si);
+         ++si);
     if (si > 0) {
         // If a valid element was found,
         // place the last element in place of the element to remove
@@ -118,8 +118,9 @@ uint8_t bbzdarray_remove(bbzheap_idx_t d, uint16_t idx) { // FIXME
     else {
         if (prevsd != NULL) {
             /* If no valid element were found, remove the last one of the previous segment */
-            bbzheap_aseg_elem_set(v->values[idx % (2*BBZHEAP_ELEMS_PER_TSEG)], bbzheap_aseg_elem_get(sd->values[2*BBZHEAP_ELEMS_PER_TSEG-1]));
-            prevsd->values[2*BBZHEAP_ELEMS_PER_TSEG-1] &= ~MASK_VALID_SEG_ELEM;
+            bbzheap_aseg_elem_set(v->values[idx % (2 * BBZHEAP_ELEMS_PER_TSEG)],
+                                  bbzheap_aseg_elem_get(sd->values[2 * BBZHEAP_ELEMS_PER_TSEG - 1]));
+            prevsd->values[2 * BBZHEAP_ELEMS_PER_TSEG - 1] &= ~MASK_VALID_SEG_ELEM;
             /* Remove the empty segment */
             tseg_makeinvalid(*sd);
             bbzheap_aseg_next_set(prevsd, NO_NEXT);
@@ -151,8 +152,8 @@ uint8_t bbzdarray_pop(bbzheap_idx_t d) {
     /* We are now at the last segment */
     /* Find the last valid element */
     for (si = 0; // Reusing 'si' as the position in the segment
-            si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
-            ++si);
+         si < 2 * BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
+         ++si);
     if (si > 0) {
         /* If a valid element was found, remove the last one */
         sd->values[si - 1] &= ~MASK_VALID_SEG_ELEM;
@@ -188,8 +189,8 @@ uint8_t bbzdarray_push(bbzheap_idx_t d,
     /* We are now at the last segment */
     /* Find the first free space */
     for (si = 0; // Reusing 'si' as the position in the segment
-            si < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
-            ++si);
+         si < 2 * BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
+         ++si);
 
     if (si >= 2*BBZHEAP_ELEMS_PER_TSEG) {
         /* Last segment is full ; add a new segment */
@@ -235,8 +236,6 @@ uint16_t bbzdarray_size(bbzheap_idx_t d) {
 uint8_t bbzdarray_clone(bbzheap_idx_t d,
                         bbzheap_idx_t* newd) {
     if(!bbzdarray_new(newd)) return 0;
-    /* Set the bit that tells it's cloned */
-    bbzdarray_mark_cloned((bbzdarray_t*)bbzheap_obj_at(*newd));
     uint16_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
     while (1) {
@@ -273,10 +272,10 @@ void bbzdarray_clear(bbzheap_idx_t d) {
     /* We are now at the last segment */
     /* Invalidate all valid elements in the segment */
     for (i = 0; // Reusing 'i' as the position in the segment
-            i < 2*BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[i]);
-            ++i) {
+         i < 2 * BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[i]);
+         ++i) {
         sd->values[i] &= ~MASK_VALID_SEG_ELEM;
-   }
+    }
 }
 
 /****************************************/
@@ -319,7 +318,8 @@ uint16_t bbzdarray_find(bbzheap_idx_t d,
                 break;
             }
             /* Element found? */
-            if (cmp(bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[i])), bbzheap_obj_at(data)) == 0) {
+            if (bbzheap_obj_isvalid(*bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[i]))) &&
+                cmp(bbzheap_obj_at(bbzheap_aseg_elem_get(sd->values[i])), bbzheap_obj_at(data)) == 0) {
                 return pos;
             }
             ++pos;
@@ -352,8 +352,6 @@ uint8_t bbzdarray_lambda_alloc(bbzheap_idx_t d, uint8_t* l) {
             *l = i;
             /* Allocate an array segment */
             if(!bbzheap_aseg_alloc(&(x->t.value))) return 0;
-
-            bbzdarray_mark_cloned(&x->t);
             uint16_t idx = bbzdarray_size(d);
             uint16_t v;
             for (uint16_t j = 0; j < idx; ++j) {

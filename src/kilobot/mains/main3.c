@@ -1,159 +1,98 @@
+#include <avr/pgmspace.h>
+
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
-#include <bbzmessage.h>
 
-#ifndef NULL
-#define NULL (void*)0
+#include <bittybuzz/bbzTEMP.h>
+#include <bittybuzz/bbzvm.h>
+
+
+void err_receiver(bbzvm_error errcode) {
+    set_led(M); set_led(R); set_led(M);
+    delay(1000);
+    switch(errcode) {
+        case BBZVM_ERROR_INSTR:  set_led(R); break;
+        case BBZVM_ERROR_STACK:  set_led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { set_led(R); } else if (bbzvm_stack_size() <= 0) { set_led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { set_led(Y); } break;
+        case BBZVM_ERROR_LNUM:   set_led(B); break;
+        case BBZVM_ERROR_PC:     set_led(C); break;
+        case BBZVM_ERROR_FLIST:  set_led(Y); break;
+        case BBZVM_ERROR_TYPE:   set_led(R); set_led(G); break;
+        case BBZVM_ERROR_STRING: set_led(G); set_led(B); break;
+        case BBZVM_ERROR_SWARM:  set_led(B); set_led(C); break;
+        case BBZVM_ERROR_MEM:    set_led(C); set_led(Y); break;
+        default: set_led(M); set_led(M); break;
+    }
+    set_led(W);
+    set_led(W);
+    set_led(W);
+    set_led(O);
+}
+
+void bbz_led() {
+    bbzvm_assert_lnum(1);
+#ifndef DEBUG
+    uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    //set_led(color);
+    set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
+    //bin_count(color, 1);
 #endif
-
-typedef enum {
-    MSG_PING = 2,
-    MSG_PONG,
-    MSG_DATA,
-    MSG_RCVD
-} msg_type_t;
-
-typedef enum {
-    STATE_INIT = 0,
-    STATE_PENDING,
-    STATE_DONE
-} state_t;
-
-state_t state;
-message_t msg;
-message_t msgbuf;
-
-uint8_t sent_message = 0;
-uint8_t should_send = 1;
-uint8_t rcvd_message = 0;
-message_t rcvd_data;
-
-// message transmission callback
-message_t* tx_message() {
-    if (should_send) {
-        return &msg;
-    }
-    else {
-        return NULL;
-    }
-}
-// successful transmission callback
-void tx_message_success() {
-    sent_message = 1;
-    if (state == STATE_DONE) {
-        should_send = 0;
-    }
-    else {
-        msg = msgbuf;
-    }
+    bbzvm_ret0();
 }
 
-// receive message callback
-void rx_message(message_t *msg2, distance_measurement_t *d) {
-    rcvd_message = 1;
-    rcvd_data.type = msg2->type;
-    for (uint8_t i = 0; i < 9; ++i)
-        rcvd_data.data[i] = msg2->data[i];
-    if (rcvd_data.type == MSG_PING/* || rcvd_data.type == MSG_PONG*/) {
-        msgbuf = msg;
-        msg.type = MSG_PONG;
-        msg.data[0] = msg2->data[0];
-        msg.crc = bbzmessage_crc(&msg);
-//        rcvd_message = 0;
-        should_send = 1;
-    }
-    if (rcvd_data.type == MSG_DATA) {
-        msgbuf = msg;
-        msg.type = MSG_RCVD;
-        msg.data[0] = msg2->data[0];
-        msg.crc = bbzmessage_crc(&msg);
-//        rcvd_message = 0;
-        should_send = 1;
-    }
-    if (state == STATE_PENDING) {
-        if (rcvd_data.type == MSG_PONG || rcvd_data.type == MSG_RCVD) {
-            if (rcvd_data.data[0] == kilo_uid) {
-                state = STATE_DONE;
-                should_send = 0;
-            }
-            rcvd_message = 0;
-        }
-    }
+void bbz_delay() {
+    bbzvm_assert_lnum(1);
+#ifndef DEBUG
+    uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    delay(d);
+#endif
+    bbzvm_ret0();
 }
 
-void loop ();
+void bbz_setmotor() {
+    bbzvm_assert_lnum(2);
+#ifndef DEBUG
+    spinup_motors();
+    set_motors((uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value, (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(2))->i.value);
+#endif
+    bbzvm_ret0();
+}
+
+void bbz_rand() {
+    bbzvm_pushi(((uint16_t)rand_soft() << 8) | rand_soft());
+    bbzvm_ret1();
+}
 
 void setup() {
-    bbzvm_function_register(BBZSTRING_ID(loop), loop);
-    state = STATE_INIT;
-    rcvd_message = 0;
-    should_send = 0;
-    sent_message = 0;
-
-    /*if (kilo_uid == 39) {
-        should_send = 0;
-        state = STATE_DONE;
-    }*/
-}
-
-void loop () {
-    set_color(RGB(0,0,0));
-    switch(state) {
-        case STATE_INIT:
-            set_color(RGB(2,0,1));
-            if (kilo_uid == 14) {
-                msg.type = MSG_DATA;
-                delay(300);
-            }
-            else
-                msg.type = MSG_PING;
-            msg.data[0] = kilo_uid;
-            msg.crc = bbzmessage_crc(&msg);
-            msgbuf = msg;
-            rcvd_message = 0;
-            should_send = 1;
-            state = STATE_PENDING;
-            break;
-        case STATE_PENDING:
-            set_color(RGB(0,0,3));
-            break;
-        case STATE_DONE:
-            set_color(RGB(0,3,0));
-//            if (kilo_uid != 14)
-//                delay(200);
-            if (!should_send &&/* kilo_uid % 2 ==*/ 0) {
-                msg.type = MSG_DATA;
-                msg.data[0] = kilo_uid;//RGB(3,3,3);
-                msg.crc = bbzmessage_crc(&msg);
-                msgbuf = msg;
-                rcvd_message = 0;
-                should_send = 1;
-                state = STATE_PENDING;
-            }
-            break;
-        default:
-            break;
-    }
-    if (sent_message) {
-        sent_message = 0;
-        set_color(RGB(0,1,2));
-        delay(25);
-    }
-    if (rcvd_message) {
-        rcvd_message = 0;
-        set_color(rcvd_data.data[0]);
-        delay(50);
-    }
-
-//    delay(50);
-    bbzvm_ret0();
+    bbzvm_set_error_receiver(err_receiver);
+    bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
+    bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
+    bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
+//    bbzvm_function_register(BBZSTRING_ID(rand), bbz_rand);
+    set_color(RGB(3,0,0));
+    delay(75);
+    set_color(RGB(2,0,1));
+    delay(75);
+    set_color(RGB(1,0,2));
+    delay(75);
+    set_color(RGB(0,0,3));
+    delay(75);
+    set_color(RGB(0,1,2));
+    delay(75);
+    set_color(RGB(0,2,1));
+    delay(75);
+    set_color(RGB(0,3,0));
+    delay(75);
+    set_color(RGB(1,2,0));
+    delay(75);
+    set_color(RGB(2,1,0));
+    delay(75);
+    rand_seed(rand_hard());
+//    delay((rand_soft()>>1) +1);
 }
 
 int main() {
     bbzkilo_init();
-    kilo_message_tx = tx_message;
-    kilo_message_rx = rx_message;
-    kilo_message_tx_success = tx_message_success;
+//    bbzvm_set_error_receiver(err_receiver);
     bbzkilo_start(setup);
 
     return 0;

@@ -84,7 +84,8 @@ TEST(m_out_append) {
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((vm->outmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->outmsgs.buf)->bc.topic, __BBZSTRID_id);
-    ASSERT_EQUAL((vm->outmsgs.buf)->bc.value, val);
+    ASSERT_EQUAL((vm->outmsgs.buf)->bc.value.u.mdata, bbzheap_obj_at(val)->u.mdata);
+    ASSERT_EQUAL((vm->outmsgs.buf)->bc.value.u.value, bbzheap_obj_at(val)->u.value);
 
     bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, 42, __BBZSTRID_put, val, 1);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 3);
@@ -93,7 +94,8 @@ TEST(m_out_append) {
     ASSERT_EQUAL((&vm->outmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.key, __BBZSTRID_put);
-    ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data, val);
+    ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data.u.mdata, bbzheap_obj_at(val)->u.mdata);
+    ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data.u.value, bbzheap_obj_at(val)->u.value);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.lamport, 1);
 
     bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_count,s), val2);
@@ -104,7 +106,8 @@ TEST(m_out_append) {
     ASSERT_EQUAL((&vm->outmsgs.buf[3])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.rid, 42);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.topic, __BBZSTRID_count);
-    ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.value, val2);
+    ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.value.u.mdata, bbzheap_obj_at(val2)->u.mdata);
+    ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.value.u.value, bbzheap_obj_at(val2)->u.value);
 }
 
 TEST(m_out_queue_first) {
@@ -190,8 +193,8 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.topic, __BBZSTRID_id);
-    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at((vm->inmsgs.buf)->bc.value)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~MASK_OBJ_VALID));
-    ASSERT_EQUAL(bbzheap_obj_at((vm->inmsgs.buf)->bc.value)->i.value, obj1.i.value);
+    ASSERT_EQUAL((uint8_t)((vm->inmsgs.buf)->bc.value.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((vm->inmsgs.buf)->bc.value.i.value, obj1.i.value);
 
     bbzinmsg_queue_append(&payload3);
     ASSERT_EQUAL(bbzinmsg_queue_size(), 3);
@@ -200,8 +203,8 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.key, __BBZSTRID_put);
-    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at((&vm->inmsgs.buf[1])->vs.data)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj2.mdata & ~MASK_OBJ_VALID));
-    ASSERT_EQUAL(bbzheap_obj_at((&vm->inmsgs.buf[1])->vs.data)->i.value, obj2.i.value);
+    ASSERT_EQUAL((uint8_t)((&vm->inmsgs.buf[1])->vs.data.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj2.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.data.i.value, obj2.i.value);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.lamport, 1);
 }
 
@@ -226,13 +229,12 @@ TEST(m_in_queue_first) {
     bbzmsg_serialize_obj(&payload1, &obj1);
     bbzinmsg_queue_append(&payload1);
 
-    bbzmsg_t* msg = bbzinmsg_queue_first();
-    bbzinmsg_queue_next();
+    bbzmsg_t* msg = bbzinmsg_queue_extract();
     ASSERT_EQUAL(msg->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL(msg->bc.rid, 42);
     ASSERT_EQUAL(msg->bc.topic, __BBZSTRID_count);
-    ASSERT_EQUAL((uint8_t)(bbzheap_obj_at(msg->bc.value)->mdata & ~MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~MASK_OBJ_VALID));
-    ASSERT_EQUAL((uint16_t)bbzheap_obj_at(msg->bc.value)->u.value, (uint16_t)obj1.u.value);
+    ASSERT_EQUAL((uint8_t)(msg->bc.value.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((uint16_t)msg->bc.value.u.value, (uint16_t)obj1.u.value);
 }
 
 TEST_LIST {

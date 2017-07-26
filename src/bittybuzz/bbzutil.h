@@ -28,4 +28,13 @@ void bbztable_add_function(uint16_t strid, bbzvm_funp fun);
  */
 void bbztable_add_data(uint16_t strid, bbzheap_idx_t data);
 
+/**
+ * @brief Swap the <code>size</code> first bytes between <code>arr1</code> and <code>arr2</code>.
+ * @note Can be used with 2 structures (pointer) of the same size.
+ * @param[in,out] arr1 The first array to swap.
+ * @param[in,out] arr2 The second array to swap.
+ * @param[in] size The number of bytes to swap in each array.
+ */
+void bbzutil_swapArrays(uint8_t *arr1, uint8_t *arr2, uint8_t size);
+
 #endif // !BBZUTIL_H

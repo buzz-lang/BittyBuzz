@@ -91,7 +91,7 @@ typedef struct PACKED {
      *          3rd topmost bit: 'lambda' flag.
      */
     uint8_t mdata;
-    void* value; /**< @brief Closure object's value. */
+    void (*value)(); /**< @brief Closure object's value. */
 } bbzclosure_t;
 
 /**
@@ -137,6 +137,9 @@ typedef union PACKED {
          * @details 8th,7th,6th bit for type
          * 5th bit for valid in heap
          * 4th bit for garbage collection
+         * 3rd bit for type dependent usage ('is_darray' flag for tables; 'is_lambda' flag for closures)
+         * 2nd bit for type dependent usage ('is_swarm' flag for darrays)
+         * 1st bit for permanence flag (if set, the object will not be garbage collected).
          */
         uint8_t mdata;
     }             o; /**< @brief Generic object */
@@ -165,7 +168,7 @@ int8_t bbztype_cmp(const bbzobj_t* a,
  * @brief Returns the type of an object.
  * @param[in] obj The object.
  */
-#define bbztype(obj) ((obj).o.mdata >> 5)
+#define bbztype(obj) ((obj).mdata >> 5)
 
 /**
  * @brief Determines whether an object should be considered as true.
@@ -186,7 +189,7 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @param[in,out] obj  The object.
  * @param[in] type The type.
  */
-#define bbztype_cast(obj, type) (obj).o.mdata = (((obj).o.mdata & 0x1F) | (type << 5))
+#define bbztype_cast(obj, type) (obj).mdata = (((obj).mdata & 0x1F) | ((type) << 5))
 
 /**
  * @brief Returns 1 if an object is nil, 0 otherwise.
@@ -222,7 +225,7 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @brief Returns 1 if an object is dynamic array, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).o.mdata & 0x04))
+#define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).mdata & 0x04))
 
 /**
  * @brief Returns 1 if an object is closure, 0 otherwise.

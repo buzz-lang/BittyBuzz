@@ -56,6 +56,10 @@ typedef struct PACKED {
  */
 typedef union {
     uint8_t type;
+    struct {
+        uint8_t type;
+        bbzrobot_id_t rid;
+    } base;
     bbzmsg_broadcast_t bc;
     bbzmsg_swarm_t sw;
     bbzmsg_vstig_t vs;

@@ -15,13 +15,9 @@
 #define NULL 0
 #endif
 
-#define bbzdarray_mark_cloned(d) (d)->mdata |= 0x02
-#define bbzdarray_unmark_cloned(d) (d)->mdata &= ~0x02
-#define bbzdarray_iscloned(d) ((d)->mdata & 0x02)
-
-#define bbzdarray_mark_swarm(d) (d)->mdata |= 0x01
-#define bbzdarray_unmark_swarm(d) (d)->mdata &= ~0x01
-#define bbzdarray_isswarm(d) ((d)->mdata & 0x01)
+#define bbzdarray_mark_swarm(d) (d)->mdata |= 0x02
+#define bbzdarray_unmark_swarm(d) (d)->mdata &= ~0x02
+#define bbzdarray_isswarm(d) ((d)->mdata & 0x02)
 
 #ifdef __cplusplus
 extern "C" {

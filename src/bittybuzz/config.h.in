@@ -69,6 +69,14 @@
 #define BBZLAMPORT_THRESHOLD @BBZLAMPORT_THRESHOLD@
 
 /**
+ * @brief Max recursion depth for the heap's
+ *        Garbage Collector marking function.
+ */
+#define BBZHEAP_GCMARK_DEPTH @BBZHEAP_GCMARK_DEPTH@
+
+#define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
+
+/**
  * @brief Whether to compile in debug mode.
  */
 #cmakedefine DEBUG @DEBUG@

@@ -20,7 +20,7 @@ extern "C" {
  * @brief Virtual stigmergy element.
  */
 typedef struct PACKED {
-    bbzheap_idx_t key;   /**< @brief Element's key. */
+    uint16_t key;   /**< @brief Element's key. */
     bbzheap_idx_t value; /**< @brief Element's current value. */
     uint8_t timestamp;   /**< @brief Timestamp (Lamport clock) of last update of the value. */
     bbzrobot_id_t robot; /**< @brief Robot ID. */
@@ -36,20 +36,6 @@ typedef struct PACKED {
     uint8_t size;       /**< @brief Number of stigmergy elements. */
     bbzheap_idx_t hpos; /**< @brief Heap's position of the 'stigmergy' table. */
 } bbzvstig_t;
-
-/**
- * @brief Add a stigmergy element to an output message buffer.
- * @param[in] elem The object to add.
- * TODO Message buffer
- */
-void bbvstig_serialize(bbzheap_idx_t elem);
-
-/**
- * @brief Updates/Creates a value from an input message buffer.
- * TODO Message buffer
- * @return The deserialized element.
- */
-bbzheap_idx_t bbzvstig_deserialize();
 
 /**
  * @brief Creates the VM's virtual stigmergy structure.

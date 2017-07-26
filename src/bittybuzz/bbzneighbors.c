@@ -1,7 +1,5 @@
 #include "bbzneighbors.h"
 #include "bbzutil.h"
-#include "bbzvm.h"
-#include "bbztype.h"
 
 /**
  * String ID of the sub-table which contains the neighbors' data tables
@@ -86,6 +84,12 @@ void add_neighborlike_fields(int16_t count) {
 void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
     vm->neighbors.hpos = n;
     vm->neighbors.listeners = l;
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.hpos));
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.listeners));
+#ifdef BBZ_XTREME_MEMORY
+    bbzringbuf_construct(&vm->neighbors.rb, (uint8_t *) vm->neighbors.data, sizeof(bbzneighbors_elem_t),
+                         BBZNEIGHBORS_CAP + 1);
+#endif // BBZ_XTREME_MEMORY
     bbzneighbors_reset();
 }
 
@@ -118,8 +122,13 @@ void bbzneighbors_register() {
 /****************************************/
 
 void bbzneighbors_reset() {
+#ifdef BBZ_XTREME_MEMORY
+    // Reset the ring-buffer
+    bbzringbuf_clear(&vm->neighbors.rb);
+#else
     // Reset the count
     vm->neighbors.count = 0;
+#endif // BBZ_XTREME_MEMORY
 
     // Reset 'neighbor''s count subfield
     bbzvm_pushi(0);
@@ -134,11 +143,8 @@ void bbzneighbors_reset() {
 void bbzneighbors_broadcast() {
     bbzvm_assert_lnum(2);
 
-    // Get args
-    bbzheap_idx_t topic = bbzvm_lsym_at(1);
-    bbzheap_idx_t value = bbzvm_lsym_at(2);
-
-    bbzoutmsg_queue_append_broadcast(topic, value);
+    // Get args and push a new broadcast message.
+    bbzoutmsg_queue_append_broadcast(bbzvm_lsym_at(1), bbzvm_lsym_at(2));
 
     bbzvm_ret0();
 }
@@ -181,7 +187,7 @@ void bbzneighbors_ignore() {
 /****************************************/
 
 /**
- * @brief Function which calls a closure with two areguments.
+ * @brief Function which calls a closure with two arguments.
  * @param[in] key First argument of the closure (the robot ID).
  * @param[in] value Second argument of the closure (the
  * <code>{distance, azimuth, elevation}</code> table).
@@ -199,7 +205,7 @@ void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) 
     bbzvm_closure_call(2);
 
     // Garbage-collect to reduce memory usage.
-//    bbzvm_gc();
+    bbzvm_gc();
 }
 
 void bbzneighbors_foreach() {
@@ -271,7 +277,7 @@ void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     nm->put_elem(value, ret);
 
     // Garbage-collect to reduce memory usage.
-//    bbzvm_gc();
+    bbzvm_gc();
 }
 
 /**
@@ -365,7 +371,7 @@ void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
 
     // Garbage-collect to reduce memory usage.
-//    bbzvm_gc();
+    bbzvm_gc();
 
     // Accumulator is at stack #0.
 }
@@ -421,8 +427,8 @@ void bbzneighbors_get() {
     bbzvm_assert_lnum(1);
 
     // Get args.
-    bbzheap_idx_t robot = bbzvm_lsym_at(1);
-    bbzvm_assert_type(robot, BBZTYPE_INT);
+//    bbzheap_idx_t robot = bbzvm_lsym_at(1);
+    bbzvm_assert_type(bbzvm_lsym_at(1), BBZTYPE_INT);
 
     // Get the sub-table of the table we are using 'get' on.
     bbzvm_lload(0); // Self table
@@ -430,16 +436,18 @@ void bbzneighbors_get() {
     bbzvm_tget();
     bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
 
-    // Entry found?
-    bbzheap_idx_t data;
-    if (bbztable_get(sub_tbl, robot, &data)) {
-        // Found. Push corresponding data table.
-        bbzvm_push(data);
-    }
-    else {
-        // Not found. Push nil instead.
-        bbzvm_pushnil();
-    }
+//    // Entry found?
+//    bbzheap_idx_t data;
+//    if (bbztable_get(sub_tbl, robot, &data)) {
+//        // Found. Push corresponding data table.
+//        bbzvm_push(data);
+//    }
+//    else {
+//        // Not found. Push nil instead.
+//        bbzvm_pushnil();
+//    }
+    bbzvm_lload(1);
+    bbzvm_tget();
 
     bbzvm_ret1();
 }
@@ -482,19 +490,41 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
 // -------------------------------------
 #else // !BBZ_XTREME_MEMORY
 
+static void bringToBottom(bbzringbuf_t *rb, uint8_t pos) {
+    int16_t size = bbzringbuf_size(rb);
+    while (pos < size-1) {
+        bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos)), bbzringbuf_at(rb, (uint8_t) (pos + 1)),
+                           sizeof(bbzneighbors_elem_t));
+        ++pos;
+    }
+}
+
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
-    if (vm->neighbors.count < BBZNEIGHBORS_CAP) {
-        // Set data.
-        bbzneighbors_elem_t* entry = &vm->neighbors.data[vm->neighbors.count];
-        entry->robot     = data->robot;
-        entry->distance  = data->distance;
-        entry->azimuth   = data->azimuth;
-        entry->elevation = data->elevation;
-        ++vm->neighbors.count; // Increment neighbor count (we assume it's a new entry).
+    // Check if the neighbor is already in the table.
+    bbzneighbors_elem_t *entry;
+    uint8_t i = bbzringbuf_size(&vm->neighbors.rb);
+    while (i) {
+        --i;
+        entry = (bbzneighbors_elem_t *) bbzringbuf_at(&vm->neighbors.rb, i);
+        if (entry->robot == data->robot) { // If the neighbor is known, ...
+            // Set data.
+            entry->distance  = data->distance;
+            entry->azimuth   = data->azimuth;
+            entry->elevation = data->elevation;
+            // Put the message at the end of the LIFO buffer, which makes it the newest.
+            bringToBottom(&vm->neighbors.rb, i);
+            return;
+        }
     }
-    else {
-        // TODO Issue some kind of warning when we reach max neighbor count?
-    }
+    entry = (bbzneighbors_elem_t*) bbzringbuf_rawat(&vm->neighbors.rb, bbzringbuf_makeslot(&vm->neighbors.rb));
+    entry->robot     = data->robot;
+    entry->distance  = data->distance;
+    entry->azimuth   = data->azimuth;
+    entry->elevation = data->elevation;
+//    if (vm->neighbors.count < BBZNEIGHBORS_CAP) { // If it's a new entry, ...
+//        ++vm->neighbors.count; // Increment neighbor count.
+//    }
+//    vm->neighbors.count = bbzringbuf_size(&vm->neighbors.rb);
 }
 
 /****************************************/
@@ -527,7 +557,7 @@ void bbzneighbors_get() {
 
     // Perform foreach
     neighbor_get_t ng = {
-        .robot = bbzvm_obj_at(robot)->i.value,
+        .robot = (const uint16_t) bbzvm_obj_at(robot)->i.value,
         .found = 0,
         .ret = vm->nil };
     neighborlike_foreach(neighbor_get, &ng);
@@ -535,6 +565,7 @@ void bbzneighbors_get() {
     // Push return value and return
     bbzvm_push(ng.ret);
     bbzvm_ret1();
+    bbzvm_gc();
 }
 
 /****************************************/
@@ -543,15 +574,13 @@ void bbzneighbors_get() {
 void bbzneighbors_count() {
     bbzvm_assert_lnum(0);
 
-    // Get table we are calling 'count' on.
-    bbzheap_idx_t self = bbzvm_lsym_at(0);
-
     // Push neighbor count.
-    if (self == vm->neighbors.hpos) {
+    if (bbzvm_lsym_at(0) == vm->neighbors.hpos) {
         //
         // 'neighbors' table ; uses optimized C implementation.
         //
-        bbzvm_pushi(vm->neighbors.count);
+//        bbzvm_pushi(vm->neighbors.count);
+        bbzvm_pushi(bbzringbuf_size(&vm->neighbors.rb));
     }
     else {
         //
@@ -579,15 +608,32 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
         //
         // 'neighbors' table ; uses optimized C implementation.
         //
-        for (uint8_t i = 0; i < vm->neighbors.count; ++i) {
-            push_neighbor_data_table(&vm->neighbors.data[i]);
-            bbzvm_pushi(vm->neighbors.data[i].robot);
+//        for (uint8_t i = 0; i < vm->neighbors.count; ++i) {
+//            bbzneighbors_elem_t* elem = (bbzneighbors_elem_t*)bbzringbuf_at(&vm->neighbors.rb,i);
+//            push_neighbor_data_table(elem);
+//            bbzheap_idx_t data = bbzvm_stack_at(0);
+//            bbzvm_pop();
+//            bbzvm_pushi(elem->robot);
+//            bbzheap_idx_t key  = bbzvm_stack_at(0);
+//            bbzvm_pop();
+//            elem_fun(key, data, params);
+//            bbzvm_gc(); // Collect the created data table
+//        }
+        //
+        // Size-optimized loop for AVR MCUs (for kilobots)
+        //
+        uint8_t i = bbzringbuf_size(&vm->neighbors.rb);
+        while (i) {
+            --i;
+            bbzneighbors_elem_t* elem = (bbzneighbors_elem_t*)bbzringbuf_at(&vm->neighbors.rb,i);
+            push_neighbor_data_table(elem);
+            bbzvm_pushi(elem->robot);
             bbzheap_idx_t data = bbzvm_stack_at(1);
             bbzheap_idx_t key  = bbzvm_stack_at(0);
             bbzvm_pop();
             bbzvm_pop();
             elem_fun(key, data, params);
-            bbzvm_gc(); // Collect the created data table
+//            bbzvm_gc(); // Collect the created data table
         }
     }
     else {
@@ -596,6 +642,7 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
         //
         bbztable_foreach(self, elem_fun, params);
     }
+    bbzvm_gc();
 }
 
 #endif // !BBZ_XTREME_MEMORY

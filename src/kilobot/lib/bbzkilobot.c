@@ -1,18 +1,13 @@
 #include <avr/io.h>         // io port and addresses
 #include <avr/interrupt.h>  // interrupt handling
 #include <avr/eeprom.h>     // read eeprom values
+#include <avr/pgmspace.h>   // read flash data
 #include <util/delay.h>     // delay macros
 #include <stdlib.h>         // for rand()
 
 #include "bbzkilobot.h"
 #include "bbzmessage_send.h"
 #include "bbzmacros.h"
-#include "bbzohc.h"
-#include "bbzmessage.h"
-#include <bittybuzz/bbzvm.h>
-#include <bittybuzz/util/bbzstring.h>
-#include <avr/pgmspace.h>
-#include <bittybuzz/bbztype.h>
 
 #define EEPROM_OSCCAL         (uint8_t*)0x01
 #define EEPROM_TXMASK         (uint8_t*)0x90
@@ -30,8 +25,6 @@
 #define rx_bitcycles 269
 /* Number of clock cycles for an entire message. */
 #define rx_msgcycles (11*rx_bitcycles)
-
-typedef void (*AddressPointer_t)(void) __attribute__ ((noreturn));
 
 void message_rx_dummy(message_t *m, distance_measurement_t *d) { }
 message_t *message_tx_dummy() { return NULL; }
@@ -61,8 +54,8 @@ uint8_t kilo_turn_left;
 uint8_t kilo_turn_right;
 uint8_t kilo_straight_left;
 uint8_t kilo_straight_right;
-uint16_t kilo_irhigh[14];
-uint16_t kilo_irlow[14];
+//uint16_t kilo_irhigh[14];
+//uint16_t kilo_irlow[14];
 bbzvm_t kilo_vmObj;
 message_t bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
@@ -80,6 +73,11 @@ static volatile enum {
 } kilo_state;
 
 /***********************************/
+//static uint8_t estimate_distance(const distance_measurement_t *dist);
+
+message_t* bbzwhich_msg_tx() ;
+void bbzmsg_tx_success() ;
+void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) ;
 
 void bbzkilo_init() {
     cli();
@@ -110,18 +108,19 @@ void bbzkilo_init() {
     tx_increment = 255;
     kilo_ticks = 0;
     kilo_state = IDLE;
-    kilo_tx_period = (uint16_t)(rand_hard()>>5) << 3;//512;//3906;//2048;//
+    kilo_tx_period = (uint16_t)(rand_hard()>>4) << 3;//512;//3906;//2048;//
     kilo_uid = eeprom_read_byte(EEPROM_UID) | eeprom_read_byte(EEPROM_UID+1)<<8;
     kilo_turn_left = eeprom_read_byte(EEPROM_LEFT_ROTATE);
     kilo_turn_right = eeprom_read_byte(EEPROM_RIGHT_ROTATE);
     kilo_straight_left = eeprom_read_byte(EEPROM_LEFT_STRAIGHT);
     kilo_straight_right = eeprom_read_byte(EEPROM_RIGHT_STRAIGHT);
 
-    uint8_t i;
-    for (i=0; i<14; i++) {
-        kilo_irlow[i]=(eeprom_read_byte(EEPROM_IRLOW + i*2) <<8) | eeprom_read_byte(EEPROM_IRLOW + i*2+1);
-        kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
-    }
+//    uint8_t i;
+//    for (i=0; i<14; i++) {
+//        kilo_irlow[i]=(eeprom_read_byte(EEPROM_IRLOW + i*2) <<8) | eeprom_read_byte(EEPROM_IRLOW + i*2+1);
+//        kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
+//    }
+    vm = &kilo_vmObj;
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
     kilo_state = SETUP;
@@ -164,9 +163,6 @@ message_t* bbzwhich_msg_tx() {
     if(bbzoutmsg_queue_size()) {
         bbzoutmsg_queue_first(&bbz_payload_buf);
         for (uint8_t i=0;i<9;++i) {
-            bbzmsg_tx.data[i] = 0;
-        }
-        for (uint8_t i=0;i<9;++i) {
             bbzmsg_tx.data[i] = *bbzringbuf_at(&bbz_payload_buf, i);
         }
         bbzmsg_tx.type = BBZMSG;
@@ -187,22 +183,30 @@ void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
         for (uint8_t i = 0; i < 9; ++i) {
             *bbzringbuf_rawat(&bbz_payload_buf, bbzringbuf_makeslot(&bbz_payload_buf)) = msg_rx->data[i];
         }
+        // Add the neighbor data.
+        if (*bbzmsg_buf == BBZMSG_BROADCAST) {
+            uint8_t dist = ((uint8_t)(d->high_gain>>3) + (uint8_t)(d->low_gain>>3))>>1;
+            bbzneighbors_elem_t elem = {.robot=0,.distance=0xFF,.azimuth=0,.elevation=0};
+            elem.robot = *(uint16_t*)(bbzmsg_buf + 1);
+            elem.distance = /*128+64-*/(dist?dist:(uint8_t)1);
+            bbzneighbors_add(&elem);
+        }
         bbzinmsg_queue_append(&bbz_payload_buf);
     }
 }
 
 #ifdef DEBUG
 __attribute__((used))
-void inject_vstig() {
+void inject_vstig(int16_t val, bbzrobot_id_t rid, uint8_t lamport) {
     bbzringbuf_clear(&bbz_payload_buf);
     bbzobj_t o = {0};
     bbztype_cast(o, BBZTYPE_INT);
-    o.i.value = 42;
-    bbzmsg_serialize_u8(&bbz_payload_buf, BBZMSG_VSTIG_QUERY);
-    bbzmsg_serialize_u16(&bbz_payload_buf, 39);
+    o.i.value = val;
+    bbzmsg_serialize_u8(&bbz_payload_buf, BBZMSG_VSTIG_PUT);
+    bbzmsg_serialize_u16(&bbz_payload_buf, rid);
     bbzmsg_serialize_u16(&bbz_payload_buf, 47); // STRID "1"
     bbzmsg_serialize_obj(&bbz_payload_buf, &o);
-    bbzmsg_serialize_u8(&bbz_payload_buf, 1);
+    bbzmsg_serialize_u8(&bbz_payload_buf, lamport);
     bbzinmsg_queue_append(&bbz_payload_buf);
 }
 #endif
@@ -227,9 +231,9 @@ void bbzkilo_start(void (*setup)(void)) {
                 break;
             case IDLE:
                 set_color(RGB(0,3,0));
-                _delay_ms(1);
+                delay(1);
                 set_color(RGB(0,0,0));
-                _delay_ms(200);
+                delay(200);
                 break;
             case BATTERY:
 //                voltage = get_voltage();
@@ -253,10 +257,6 @@ void bbzkilo_start(void (*setup)(void)) {
 //                break;
             case SETUP:
                 if (!has_setup) {
-                    vm = &kilo_vmObj;
-                    kilo_message_tx = bbzwhich_msg_tx;
-                    kilo_message_tx_success = bbzmsg_tx_success;
-                    kilo_message_rx = bbzprocess_msg_rx;
                     bbzvm_construct(kilo_uid);
                     bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
                     setup();
@@ -269,6 +269,9 @@ void bbzkilo_start(void (*setup)(void)) {
                     kilo_state = RUNNING;
                     vm->state = BBZVM_STATE_READY;
                     NFUNCTION_CALL(__BBZSTRID_init);
+                    kilo_message_tx = bbzwhich_msg_tx;
+                    kilo_message_tx_success = bbzmsg_tx_success;
+                    kilo_message_rx = bbzprocess_msg_rx;
                 }
                 break;
             case RUNNING:
@@ -280,42 +283,42 @@ void bbzkilo_start(void (*setup)(void)) {
                 //loop();
                 break;
             case MOVING:
-                if (cur_motion == MOVE_STOP) {
-                    set_motors(0,0);
-                    prev_motion = MOVE_STOP;
-                } else {
-                    if (cur_motion != prev_motion) {
-                        prev_motion = cur_motion;
-                        if (cur_motion == MOVE_LEFT) {
-                            set_motors(0xFF, 0);
-                            _delay_ms(15);
-                            set_motors(kilo_turn_left, 0);
-                        } else if (cur_motion == MOVE_RIGHT) {
-                            set_motors(0, 0xFF);
-                            _delay_ms(15);
-                            set_motors(0, kilo_turn_right);
-                        } else {
-                            set_motors(0, 0xFF);
-                            set_motors(0xFF, 0xFF);
-                            _delay_ms(15);
-                            set_motors(kilo_straight_left, kilo_straight_right);
-                        }
-                    }
-                }
+//                if (cur_motion == MOVE_STOP) {
+//                    set_motors(0,0);
+//                    prev_motion = MOVE_STOP;
+//                } else {
+//                    if (cur_motion != prev_motion) {
+//                        prev_motion = cur_motion;
+//                        if (cur_motion == MOVE_LEFT) {
+//                            set_motors(0xFF, 0);
+//                            _delay_ms(15);
+//                            set_motors(kilo_turn_left, 0);
+//                        } else if (cur_motion == MOVE_RIGHT) {
+//                            set_motors(0, 0xFF);
+//                            _delay_ms(15);
+//                            set_motors(0, kilo_turn_right);
+//                        } else {
+//                            set_motors(0, 0xFF);
+//                            set_motors(0xFF, 0xFF);
+//                            _delay_ms(15);
+//                            set_motors(kilo_straight_left, kilo_straight_right);
+//                        }
+//                    }
+//                }
                 break;
-        } if(vm->state == BBZVM_STATE_COUNT)break;
+        }
     }
 }
-#define JUMPTO_PASTER(addr) do{}while(0); __asm__("jmp "#addr"\n\t")
+#define JUMPTO_PASTER(addr) do{}while(0); __asm__ __volatile__("jmp "#addr"\n\t")
 #define JUMPTO(addr) JUMPTO_PASTER(addr)
 static inline void bbzprocess_message() {
 //    AddressPointer_t reset = (AddressPointer_t)0x0000, bootload = (AddressPointer_t)BBZ_BOOTLOADER_ADDR;
-    calibmsg_t *calibmsg = (calibmsg_t*)&rx_msg.data;
+//    calibmsg_t *calibmsg = (calibmsg_t*)&rx_msg.data;
     if (rx_msg.type < BOOT) {
         kilo_message_rx(&rx_msg, &rx_dist);
         return;
     }
-    if (rx_msg.type != READUID && rx_msg.type != RUN && rx_msg.type != CALIB)
+//    if (rx_msg.type != READUID && rx_msg.type != RUN && rx_msg.type != CALIB)
     motors_off();
     switch (rx_msg.type) {
         case BOOT:
@@ -345,63 +348,63 @@ static inline void bbzprocess_message() {
             }
             break;
         case CALIB:
-            switch(calibmsg->mode) {
-                case CALIB_SAVE:
-                    if (kilo_state == MOVING) {
-                        eeprom_write_byte(EEPROM_UID, kilo_uid&0xFF);
-                        eeprom_write_byte(EEPROM_UID+1, (kilo_uid>>8)&0xFF);
-                        eeprom_write_byte(EEPROM_LEFT_ROTATE, kilo_turn_left);
-                        eeprom_write_byte(EEPROM_RIGHT_ROTATE, kilo_turn_right);
-                        eeprom_write_byte(EEPROM_LEFT_STRAIGHT, kilo_straight_left);
-                        eeprom_write_byte(EEPROM_RIGHT_STRAIGHT, kilo_straight_right);
-                        motors_off();
-                        kilo_state = IDLE;
-                    }
-                    break;
-                case CALIB_UID:
-                    kilo_uid = calibmsg->uid;
-                    cur_motion = MOVE_STOP;
-                    break;
-                case CALIB_TURN_LEFT:
-                    if (cur_motion != MOVE_LEFT || kilo_turn_left != calibmsg->turn_left) {
-                        prev_motion = MOVE_STOP;
-                        cur_motion = MOVE_LEFT;
-                        kilo_turn_left = calibmsg->turn_left;
-                    }
-                    break;
-                case CALIB_TURN_RIGHT:
-                    if (cur_motion != MOVE_RIGHT || kilo_turn_right != calibmsg->turn_right) {
-                        prev_motion = MOVE_STOP;
-                        cur_motion = MOVE_RIGHT;
-                        kilo_turn_right = calibmsg->turn_right;
-                    }
-                    break;
-                case CALIB_STRAIGHT:
-                    if (cur_motion != MOVE_STRAIGHT || kilo_straight_right != calibmsg->straight_right || kilo_straight_left != calibmsg->straight_left) {
-                        prev_motion = MOVE_STOP;
-                        cur_motion = MOVE_STRAIGHT;
-                        kilo_straight_left = calibmsg->straight_left;
-                        kilo_straight_right = calibmsg->straight_right;
-                    }
-                    break;
-            }
-            if (calibmsg->mode != CALIB_SAVE && kilo_state != MOVING) {
-                motors_on();
-                kilo_state = MOVING;
-            }
+//            switch(calibmsg->mode) {
+//                case CALIB_SAVE:
+//                    if (kilo_state == MOVING) {
+//                        eeprom_write_byte(EEPROM_UID, kilo_uid&0xFF);
+//                        eeprom_write_byte(EEPROM_UID+1, (kilo_uid>>8)&0xFF);
+//                        eeprom_write_byte(EEPROM_LEFT_ROTATE, kilo_turn_left);
+//                        eeprom_write_byte(EEPROM_RIGHT_ROTATE, kilo_turn_right);
+//                        eeprom_write_byte(EEPROM_LEFT_STRAIGHT, kilo_straight_left);
+//                        eeprom_write_byte(EEPROM_RIGHT_STRAIGHT, kilo_straight_right);
+//                        motors_off();
+//                        kilo_state = IDLE;
+//                    }
+//                    break;
+//                case CALIB_UID:
+//                    kilo_uid = calibmsg->uid;
+//                    cur_motion = MOVE_STOP;
+//                    break;
+//                case CALIB_TURN_LEFT:
+//                    if (cur_motion != MOVE_LEFT || kilo_turn_left != calibmsg->turn_left) {
+//                        prev_motion = MOVE_STOP;
+//                        cur_motion = MOVE_LEFT;
+//                        kilo_turn_left = calibmsg->turn_left;
+//                    }
+//                    break;
+//                case CALIB_TURN_RIGHT:
+//                    if (cur_motion != MOVE_RIGHT || kilo_turn_right != calibmsg->turn_right) {
+//                        prev_motion = MOVE_STOP;
+//                        cur_motion = MOVE_RIGHT;
+//                        kilo_turn_right = calibmsg->turn_right;
+//                    }
+//                    break;
+//                case CALIB_STRAIGHT:
+//                    if (cur_motion != MOVE_STRAIGHT || kilo_straight_right != calibmsg->straight_right || kilo_straight_left != calibmsg->straight_left) {
+//                        prev_motion = MOVE_STOP;
+//                        cur_motion = MOVE_STRAIGHT;
+//                        kilo_straight_left = calibmsg->straight_left;
+//                        kilo_straight_right = calibmsg->straight_right;
+//                    }
+//                    break;
+//            }
+//            if (calibmsg->mode != CALIB_SAVE && kilo_state != MOVING) {
+//                motors_on();
+//                kilo_state = MOVING;
+//            }
             break;
         case READUID:
-            if (kilo_state != MOVING) {
-                motors_on();
-                set_color(RGB(0,0,0));
-                prev_motion = cur_motion = MOVE_STOP;
-                kilo_state = MOVING;
-            }
-
-            if (kilo_uid&(1<<rx_msg.data[0]))
-                cur_motion = MOVE_LEFT;
-            else
-                cur_motion = MOVE_STOP;
+//            if (kilo_state != MOVING) {
+//                motors_on();
+//                set_color(RGB(0,0,0));
+//                prev_motion = cur_motion = MOVE_STOP;
+//                kilo_state = MOVING;
+//            }
+//
+//            if (kilo_uid&(1<<rx_msg.data[0]))
+//                cur_motion = MOVE_LEFT;
+//            else
+//                cur_motion = MOVE_STOP;
             break;
         default:
             break;
@@ -410,10 +413,10 @@ static inline void bbzprocess_message() {
 
 void delay(uint16_t ms) {
 #ifndef DEBUG
-    while (ms > 0) {
+    while (ms) {
+        --ms;
         _delay_ms(1);
-        ms--;
-    }
+    };
 #endif
 }
 
@@ -511,65 +514,61 @@ int16_t get_voltage() {
     return voltage;
 }
 
-uint8_t estimate_distance(const distance_measurement_t *dist) {
-    uint8_t i;
-    uint8_t index_high=13;
-    uint8_t index_low=255;
-    uint8_t dist_high=255;
-    uint8_t dist_low=255;
-
-    if (dist->high_gain < 900) {
-        if (dist->high_gain > kilo_irhigh[0]) {
-            dist_high=0;
-        } else {
-            for (i=1; i<14; i++) {
-                if (dist->high_gain > kilo_irhigh[i]) {
-                    index_high = i;
-                    break;
-                }
-            }
-
-            double slope=(kilo_irhigh[index_high]-kilo_irhigh[index_high-1])/0.5;
-            double b=(double)kilo_irhigh[index_high]-(double)slope*((double)index_high*(double)0.5+(double)0.0);
-            b=(((((double)dist->high_gain-(double)b)*(double)10)));
-            b=((int)((int)b/(int)slope));
-            dist_high=b;
-        }
-    }
-
-    if (dist->high_gain > 700) {
-        if (dist->low_gain > kilo_irlow[0]) {
-            dist_low=0;
-        } else {
-            for(i=1; i<14; i++) {
-                if(dist->low_gain > kilo_irlow[i]) {
-                    index_low = i;
-                    break;
-                }
-            }
-
-            if(index_low == 255) {
-                dist_low=90;
-            } else {
-                double slope=(kilo_irlow[index_low]-kilo_irlow[index_low-1])/0.5;
-                double b=(double)kilo_irlow[index_low]-(double)slope*((double)index_low*(double)0.5+(double)0.0);
-                b=(((((double)dist->low_gain-(double)b)*(double)10)));
-                b=((int)((int)b/(int)slope));
-                dist_low=b;
-            }
-        }
-    }
-
-    if (dist_low != 255) {
-        if (dist_high != 255) {
-            return 33 + ((double)dist_high*(900.0-dist->high_gain)+(double)dist_low*(dist->high_gain-700.0))/200.0;
-        } else {
-            return 33 + dist_low;
-        }
-    } else {
-        return 33 + dist_high;
-    }
-}
+//static uint8_t estimate_distance(const distance_measurement_t *dist) {
+//    uint8_t i;
+//    uint8_t index_high=13;
+//    uint8_t index_low=255;
+//    uint8_t dist_high=255;
+//    uint8_t dist_low=255;
+//
+//    if (dist->high_gain < 900) {
+//        if (dist->high_gain > kilo_irhigh[0]) {
+//            dist_high=0;
+//        } else {
+//            for (i=1; i<14; i++) {
+//                if (dist->high_gain > kilo_irhigh[i]) {
+//                    index_high = i;
+//                    break;
+//                }
+//            }
+//
+//            uint16_t slope=(kilo_irhigh[index_high]-kilo_irhigh[index_high-1])<<1;
+//            uint16_t b=kilo_irhigh[index_high]-slope*(index_high>>1);
+//            dist_high=(((dist->high_gain-b)*10)/slope);
+//        }
+//    }
+//
+//    if (dist->high_gain > 700) {
+//        if (dist->low_gain > kilo_irlow[0]) {
+//            dist_low=0;
+//        } else {
+//            for(i=1; i<14; i++) {
+//                if(dist->low_gain > kilo_irlow[i]) {
+//                    index_low = i;
+//                    break;
+//                }
+//            }
+//
+//            if(index_low == 255) {
+//                dist_low=90;
+//            } else {
+//                uint16_t slope=(kilo_irlow[index_low]-kilo_irlow[index_low-1])<<1;
+//                uint16_t b=kilo_irlow[index_low]-slope*(index_low>>1);
+//                dist_low=((dist->low_gain-b)*10)/slope;
+//            }
+//        }
+//    }
+//
+//    if (dist_low != 255) {
+//        if (dist_high != 255) {
+//            return 33 + (dist_high*(900-dist->high_gain)+dist_low*(dist->high_gain-700))/200;
+//        } else {
+//            return 33 + dist_low;
+//        }
+//    } else {
+//        return 33 + dist_high;
+//    }
+//}
 
 /**
  * Timer0 interrupt.

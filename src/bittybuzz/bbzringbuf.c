@@ -11,7 +11,7 @@ void bbzringbuf_construct(bbzringbuf_t *rb, uint8_t *buf, uint8_t elsz, uint8_t 
 uint8_t bbzringbuf_size(const bbzringbuf_t* rb) {
     return ((rb->dataend >=  rb->datastart) ?
             (rb->dataend  -  rb->datastart) :
-            (rb->capacity - (rb->datastart - rb->dataend - (uint8_t)1)));
+            (rb->capacity - (rb->datastart - rb->dataend/* - (uint8_t)1*/)));
 }
 
 /****************************************/

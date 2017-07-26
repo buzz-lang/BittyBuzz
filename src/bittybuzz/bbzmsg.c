@@ -1,4 +1,5 @@
 #include "bbzmsg.h"
+#include "bbzutil.h"
 
 /****************************************/
 /****************************************/
@@ -62,28 +63,14 @@ void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos) {
 /****************************************/
 /****************************************/
 
-void swapArrays(uint8_t *arr1, uint8_t *arr2, uint8_t size) {
-    for (uint8_t i=0;i<size;++i) {
-        arr1[i] ^= arr2[i];
-        arr2[i] ^= arr1[i];
-        arr1[i] ^= arr2[i];
-    }
-}
-
 void bbzmsg_sort_priority(bbzringbuf_t* rb) {
     // +=-=-=-= QuickSort=-=-=-=+
-
-    // The last space is never used. So we use it as a temporary variable.
-//    bbzmsg_t* tmp = ((bbzmsg_t*)bbzringbuf_at(rb, rb->dataend + rb->capacity));
     for(uint16_t i = 1; i < bbzringbuf_size(rb); ++i) {
-//        *tmp = *(bbzmsg_t*)bbzringbuf_at(rb, (uint8_t)i);
         uint16_t j = i;
-        while(j > 0 && /*/ tmp->type /*/((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j)))->type/**/ < ((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j-1)))->type) {/**/
-            swapArrays(bbzringbuf_at(rb,(uint8_t)(j)),bbzringbuf_at(rb,(uint8_t)(j-1)),sizeof(bbzmsg_t));/*/
-            *((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j))) = *((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j-1)));/**/
+        while(j > 0 && ((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j)))->type < ((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j-1)))->type) {
+            bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (j)), bbzringbuf_at(rb, (uint8_t) (j - 1)), sizeof(bbzmsg_t));
             --j;
         }
-//        *((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j))) = *tmp;
     }
 }
 

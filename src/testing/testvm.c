@@ -71,7 +71,8 @@ void bbzvm_skip_instr() {
 void set_last_error(bbzvm_error errcode) {
     last_error = errcode;
 #ifdef DEBUG
-//    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
+    bbzheap_print();
+    printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
 #endif
 }
 
@@ -627,11 +628,11 @@ TEST(vm_message_processing) {
     bbzinmsg_queue_append(&payload1);
 
     bbzvm_process_inmsgs();
-    ASSERT(vm->state != BBZVM_STATE_ERROR);
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(!!bbzinmsg_queue_isempty(), !!1);
     ASSERT_EQUAL(bbzinmsg_queue_size(), 0);
     ASSERT_EQUAL(vm->vstig.data[0].robot, 42);
-    ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].key)->s.value, __BBZSTRID_put);
+    ASSERT_EQUAL(vm->vstig.data[0].key, __BBZSTRID_put);
     ASSERT_EQUAL(bbztype(*bbzheap_obj_at(vm->vstig.data[0].value)), BBZTYPE_INT);
     ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].value)->i.value, obj1.i.value);
     ASSERT_EQUAL(vm->vstig.data[0].timestamp, 1);

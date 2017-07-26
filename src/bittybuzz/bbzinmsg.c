@@ -6,12 +6,12 @@
 void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     int16_t pos = 0;
     bbzmsg_t* m = vm->inmsgs.buf+vm->inmsgs.queue.capacity;
-    bbzmsg_deserialize_u8(&m->type, payload, &pos);
+    bbzmsg_deserialize_u8(&m->base.type, payload, &pos);
     if (pos < 0) return;
-    switch(m->type) {
+    bbzmsg_deserialize_u16(&m->bc.rid, payload, &pos);
+    if (pos < 0) return;
+    switch(m->base.type) {
         case BBZMSG_BROADCAST:
-            bbzmsg_deserialize_u16(&m->bc.rid, payload, &pos);
-            if (pos < 0) return;
             bbzmsg_deserialize_u16(&m->bc.topic, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->bc.value, payload, &pos);
@@ -20,8 +20,6 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             break;
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
-            bbzmsg_deserialize_u16(&m->vs.rid, payload, &pos);
-            if (pos < 0) return;
             bbzmsg_deserialize_u16(&m->vs.key, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->vs.data, payload, &pos);
@@ -31,8 +29,6 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             if (pos < 0) return;
             break;
         case BBZMSG_SWARM_CHUNK:
-            bbzmsg_deserialize_u16(&m->sw.rid, payload, &pos);
-            if (pos < 0) return;
             bbzmsg_deserialize_u16(&m->sw.lamport, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_u8(&m->sw.swarms, payload, &pos);

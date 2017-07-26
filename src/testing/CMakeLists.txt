@@ -22,6 +22,7 @@ endfunction()
 # =              CMAKE SCRIPT              =
 # ==========================================
 use_native_compiler()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3")
 
 add_custom_target(test_resources)
 add_custom_target(test_executables ALL DEPENDS test_resources)

@@ -19,9 +19,6 @@
 #include "bbzoutmsg.h"
 #include "bbzinmsg.h"
 
-//#include "bbzTEMP.h" // FIXME Remove this
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -619,8 +616,9 @@ extern "C" {
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
      */
-    ALWAYS_INLINE
-    uint16_t bbzvm_stack_size() { return vm->stackptr + (uint16_t)1; }
+//    ALWAYS_INLINE
+//    uint16_t bbzvm_stack_size() { return vm->stackptr + (uint16_t)1; }
+    #define bbzvm_stack_size() (vm->stackptr + (int16_t)1)
 
     /**
      * @brief Gets the element at given stack position,
@@ -630,8 +628,7 @@ extern "C" {
      * @return The heap index of the element at given stack index.
      */
     ALWAYS_INLINE
-    bbzheap_idx_t bbzvm_stack_at(uint16_t idx) { return vm->stack[vm->stackptr - idx]; }
-
+    bbzheap_idx_t bbzvm_stack_at(int16_t idx) { return vm->stack[vm->stackptr - idx]; }
 
     /**
      * @brief Gets the element at given local symbols position,
@@ -675,8 +672,8 @@ extern "C" {
         {                                                               \
             bbzobj_t* o = bbzheap_obj_at(idx);                          \
             if (bbztype(*o) != tpe                                      \
-    			&& ((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)         \
-    			&& !bbztype_isclosure(*o)) {                            \
+    			&& !(!((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)      \
+    			|| bbztype_isclosure(*o))) {                            \
                 bbzvm_seterror(BBZVM_ERROR_TYPE);                       \
                 return;                                                 \
             }                                                           \
@@ -703,8 +700,8 @@ extern "C" {
      * @brief Assert the state of the VM. To be used after explicit usage of
      * instructions such as bbzvm_pop() or bbzvm_gload();
      */
-    #define bbzvm_assert_state()                                        \
-        if(vm->state == BBZVM_STATE_ERROR) return;
+    #define bbzvm_assert_state(...)                                     \
+        if(vm->state == BBZVM_STATE_ERROR) return __VA_ARGS__
 
     #define bbzvm_get(arg, TYPE) ({             \
         bbzvm_push ## TYPE(arg);                \

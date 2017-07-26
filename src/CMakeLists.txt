@@ -48,7 +48,7 @@ include(${INCLUDE_FILES_CMAKE}/BittyBuzzFindBuzzPrgms.cmake)
 #
 # Find Argos
 #
-include(${INCLUDE_FILES_CMAKE}/BittyBuzzBuildChecks.cmake)
+#include(${INCLUDE_FILES_CMAKE}/BittyBuzzBuildChecks.cmake)
 
 #
 # Descend into the subdirectories

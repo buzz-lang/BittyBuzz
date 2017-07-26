@@ -3,32 +3,39 @@
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
 
-#include <bittybuzz/bbzTEMP.h>
-#include <bittybuzz/bbzvm.h>
-#include <bittybuzz/bbztype.h>
 
+void ___led(uint8_t x) {set_color(x); delay(10); set_color(0); delay(90);}
 
 void err_receiver(bbzvm_error errcode) {
-    set_led(M); set_led(R); set_led(M);
-    _delay_ms(1000.0);
+    uint8_t i;
+    for (i = 4; i; --i) {
+        ___led(RGB(1,2,0));
+    }
+    delay(300);
 #if 1
-    switch(errcode) {
-        case BBZVM_ERROR_INSTR:  set_led(R); break;
-        case BBZVM_ERROR_STACK:  set_led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { set_led(R); } else if (bbzvm_stack_size() <= 0) { set_led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { set_led(Y); } break;
-        case BBZVM_ERROR_LNUM:   set_led(B); break;
-        case BBZVM_ERROR_PC:     set_led(C); break;
-        case BBZVM_ERROR_FLIST:  set_led(Y); break;
-        case BBZVM_ERROR_TYPE:   set_led(R); set_led(G); break;
-        case BBZVM_ERROR_STRING: set_led(G); set_led(B); break;
-        case BBZVM_ERROR_SWARM:  set_led(B); set_led(C); break;
-        case BBZVM_ERROR_MEM:    set_led(C); set_led(Y); break;
-        default: set_led(M); set_led(M); break;
+    for (i = 4; i; --i) {
+        delay(800);
+        switch(errcode) {
+            case BBZVM_ERROR_INSTR:  ___led(RGB(2,0,0)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_STACK:  ___led(RGB(1,2,0)); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { ___led(RGB(0,3,0)); } else if (bbzvm_stack_size() <= 0) { ___led(RGB(2,0,0)); } else { ___led(RGB(1,2,0)); } break;
+            case BBZVM_ERROR_LNUM:   ___led(RGB(3,1,0)); ___led(RGB(3,1,0)); break;
+            case BBZVM_ERROR_PC:     ___led(RGB(0,3,0)); ___led(RGB(0,3,0)); break;
+            case BBZVM_ERROR_FLIST:  ___led(RGB(0,3,0)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_TYPE:   ___led(RGB(0,3,0)); ___led(RGB(1,2,0)); break;
+            case BBZVM_ERROR_RET:    ___led(RGB(0,3,0)); ___led(RGB(0,0,2)); break;
+            case BBZVM_ERROR_STRING: ___led(RGB(0,2,1)); ___led(RGB(0,2,1)); break;
+            case BBZVM_ERROR_SWARM:  ___led(RGB(0,2,1)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_VSTIG:  ___led(RGB(0,2,1)); ___led(RGB(1,2,0)); break;
+            case BBZVM_ERROR_MEM:    ___led(RGB(0,2,1)); ___led(RGB(0,0,2)); break;
+            case BBZVM_ERROR_MATH:   ___led(RGB(0,0,2)); ___led(RGB(0,0,2)); break;
+            default: ___led(RGB(2,0,2)); ___led(RGB(2,0,2)); break;
+        }
     }
 #endif
-    set_led(W);
-    set_led(W);
-    set_led(W);
-    set_led(O);
+    ___led(RGB(2,2,2));
+    ___led(RGB(2,2,2));
+    ___led(RGB(2,2,2));
+    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {

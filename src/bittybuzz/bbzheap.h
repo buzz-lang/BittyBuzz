@@ -106,7 +106,8 @@ void bbzheap_clear();
 uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o);
 
-#define MASK_OBJ_VALID (uint8_t)0x10
+#define BBZHEAP_MASK_OBJ_VALID (uint8_t)0x10
+#define BBZHEAP_MASK_PERMANENT (uint8_t)0x01
 
 /**
  * @brief Returns a pointer located at position i within the heap.
@@ -120,14 +121,29 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).o.mdata & (uint8_t)MASK_OBJ_VALID)
+#define bbzheap_obj_isvalid(x) ((x).mdata & (uint8_t)BBZHEAP_MASK_OBJ_VALID)
 
 /**
  *  @brief Copy the value of an object to an other object.
  *  @param [in] iSrc The position of the source object.
  *  @param [in] iDest The position of the destination object.
  */
-#define bbzheap_obj_copy(iSrc, iDest) (*bbzheap_obj_at(iDest)) = (*bbzheap_obj_at(iSrc))
+#define bbzheap_obj_copy(iSrc, iDest) do{(*bbzheap_obj_at(iDest)) = (*bbzheap_obj_at(iSrc));}while(0)
+
+/**
+ * @brief Check if an object is permanent (should never be garbage collected).
+ * @param[in] x The index of the object to check the permanence.
+ * @return non-zero if the object is permanent.
+ */
+#define bbzheap_obj_ispermanent(x) ((x).mdata&BBZHEAP_MASK_PERMANENT)
+
+/**
+ * @brief Make an object permanent.
+ * @param[in,out] x The object to make permanent.
+ */
+#define bbzheap_obj_make_permanent(x) do{(x).mdata|=BBZHEAP_MASK_PERMANENT;}while(0)
+
+#define bbzheap_obj_remove_permanence(x) do{(x).mdata&=~BBZHEAP_MASK_PERMANENT;}while(0)
 
 /**
  * @brief Allocates space for a table segment on the heap.
@@ -298,7 +314,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makevalid(obj)   (obj).o.mdata |= MASK_OBJ_VALID
+#define obj_makevalid(obj)   (obj).mdata |= BBZHEAP_MASK_OBJ_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -306,7 +322,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makeinvalid(obj) (obj).o.mdata &= ~MASK_OBJ_VALID
+#define obj_makeinvalid(obj) (obj).mdata &= ~BBZHEAP_MASK_OBJ_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.

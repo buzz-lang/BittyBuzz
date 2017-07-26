@@ -52,7 +52,7 @@ TEST(vstig_put) {
     bbzvm_closure_call(2);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(vm->vstig.size, 1);
-    ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].key)->s.value, __BBZSTRID_data);
+    ASSERT_EQUAL(vm->vstig.data[0].key, __BBZSTRID_data);
     ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].value)->i.value, 42);
     putWorks = 1;
 

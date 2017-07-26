@@ -228,7 +228,7 @@ extern message_tx_success_t kilo_message_tx_success;
  * precalibrated.
  */
 
-uint8_t estimate_distance(const distance_measurement_t *d);
+//uint8_t estimate_distance(const distance_measurement_t *d);
 
 /**
  * @brief Pauses the program for the specified amount of time.

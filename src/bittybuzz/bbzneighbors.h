@@ -52,6 +52,7 @@
 #define BBZNEIGHBORS_H
 
 #include "bbzinclude.h"
+#include "bbzringbuf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,10 +76,11 @@ typedef struct PACKED {
 typedef struct PACKED {
     bbzheap_idx_t hpos;      /**< @brief Heap's position of the 'neighbors' table. */
     bbzheap_idx_t listeners; /**< @brief Neighbor value listeners. */
-    uint8_t count;           /**< @brief Current number of neighbors. */
-
 #ifdef BBZ_XTREME_MEMORY
-    bbzneighbors_elem_t data[BBZNEIGHBORS_CAP]; /**< @brief Neighbor data. */
+    bbzringbuf_t rb;         /**< @brief Data buffer. */
+    bbzneighbors_elem_t data[BBZNEIGHBORS_CAP+1]; /**< @brief Neighbor data. */
+#else
+    uint8_t count;           /**< @brief Current number of neighbors. */
 #endif // BBZ_XTREME_MEMORY
 
 } bbzneighbors_t;

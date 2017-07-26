@@ -9,7 +9,7 @@
 
 void err_receiver(bbzvm_error errcode) {
     set_led(M); set_led(R); set_led(M);
-    _delay_ms(1000.0);
+    delay(1000);
     switch(errcode) {
         case BBZVM_ERROR_INSTR:  set_led(R); break;
         case BBZVM_ERROR_STACK:  set_led(G); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { set_led(R); } else if (bbzvm_stack_size() <= 0) { set_led(C); } else if (bbzvm_stack_size() + 5 >= BBZSTACK_SIZE) { set_led(Y); } break;
@@ -57,11 +57,17 @@ void bbz_setmotor() {
     bbzvm_ret0();
 }
 
+void bbz_rand() {
+    bbzvm_pushi(((uint16_t)rand_soft() << 8) | rand_soft());
+    bbzvm_ret1();
+}
+
 void setup() {
     bbzvm_set_error_receiver(err_receiver);
     bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
+//    bbzvm_function_register(BBZSTRING_ID(rand), bbz_rand);
     set_color(RGB(3,0,0));
     delay(75);
     set_color(RGB(2,0,1));
@@ -80,10 +86,13 @@ void setup() {
     delay(75);
     set_color(RGB(2,1,0));
     delay(75);
+    rand_seed(rand_hard());
+//    delay((rand_soft()>>1) +1);
 }
 
 int main() {
     bbzkilo_init();
+//    bbzvm_set_error_receiver(err_receiver);
     bbzkilo_start(setup);
 
     return 0;
