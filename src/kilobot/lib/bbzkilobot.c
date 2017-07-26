@@ -185,10 +185,10 @@ void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
         }
         // Add the neighbor data.
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
-            uint8_t dist = ((uint8_t)(d->high_gain>>3) + (uint8_t)(d->low_gain>>3))>>1;
-            bbzneighbors_elem_t elem = {.robot=0,.distance=0xFF,.azimuth=0,.elevation=0};
+            uint8_t dist = ((uint8_t)(d->high_gain>>2) + (uint8_t)(d->low_gain>>2))>>1;
+            bbzneighbors_elem_t elem = {.azimuth=0,.elevation=0};
             elem.robot = *(uint16_t*)(bbzmsg_buf + 1);
-            elem.distance = /*128+64-*/(dist?dist:(uint8_t)1);
+            elem.distance = 0xEF - (dist?dist:(uint8_t)1);
             bbzneighbors_add(&elem);
         }
         bbzinmsg_queue_append(&bbz_payload_buf);

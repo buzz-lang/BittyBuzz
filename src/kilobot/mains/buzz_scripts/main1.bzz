@@ -29,7 +29,7 @@ function init() {
             else {
                 led(1) # Red
             }
-            led(0) # Off
+#            led(0) # Off
         }
     )
     led(7) # White
@@ -41,7 +41,7 @@ function init() {
 function step() {
     if(id == 7) {
         neighbors.broadcast("Hello world!", 42)
-        led(4) # Cyan
+        led(4) # Blue
         led(0) # Off
         delay(200)
     }
