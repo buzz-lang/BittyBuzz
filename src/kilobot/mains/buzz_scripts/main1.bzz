@@ -29,7 +29,7 @@ function init() {
             else {
                 led(1) # Red
             }
-#            led(0) # Off
+            led(0) # Off
         }
     )
     led(7) # White

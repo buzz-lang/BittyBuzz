@@ -3,6 +3,8 @@
 #include "bbzvm.h"
 #include "bbztype.h"
 
+#ifndef BBZ_DISABLE_VSTIGS
+
 #define BBZVSTIG_ONCONFLICT_FIELD __BBZSTRID___INTERNAL_1_DO_NOT_USE__
 #define BBZVSTIG_ONCONFLICTLOST_FIELD __BBZSTRID___INTERNAL_2_DO_NOT_USE__
 
@@ -196,3 +198,6 @@ void bbzvstig_size() {
     bbzvm_pushi(vm->vstig.size);
     bbzvm_ret1();
 }
+#endif // !BBZ_DISABLE_VSTIGS
+
+void bbzvstig_dummy() {bbzvm_ret0();};

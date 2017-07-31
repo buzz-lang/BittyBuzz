@@ -20,10 +20,12 @@ extern "C" {
  * @brief Virtual stigmergy element.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_VSTIGS
     uint16_t key;   /**< @brief Element's key. */
     bbzheap_idx_t value; /**< @brief Element's current value. */
     uint8_t timestamp;   /**< @brief Timestamp (Lamport clock) of last update of the value. */
     bbzrobot_id_t robot; /**< @brief Robot ID. */
+#endif
 } bbzvstig_elem_t;
 
 /**
@@ -32,15 +34,18 @@ typedef struct PACKED {
  * is only a single instance: <code>vm->vstig.hpos</code>.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_VSTIGS
     bbzvstig_elem_t data[BBZVSTIG_CAP]; /**< @brief Data of the stigmergy. */
     uint8_t size;       /**< @brief Number of stigmergy elements. */
     bbzheap_idx_t hpos; /**< @brief Heap's position of the 'stigmergy' table. */
+#endif
 } bbzvstig_t;
 
+#ifndef BBZ_DISABLE_VSTIGS
 /**
  * @brief Creates the VM's virtual stigmergy structure.
  */
-#define bbzvstig_construct() vm->vstig.size = 0;
+#define bbzvstig_construct() do{vm->vstig.size = 0;}while(0)
 
 /**
  * @brief Registers the 'stigmergy' table, as well as its methods, in the VM.
@@ -87,6 +92,17 @@ void bbzvstig_put();
  * stigmergy structure.
  */
 void bbzvstig_size();
+#else
+#define bbzvstig_construct(...)
+#define bbzvstig_register(...)
+void bbzvstig_dummy();
+#define bbzvstig_create bbzvstig_dummy
+#define bbzvstig_onconflict bbzvstig_dummy
+#define bbzvstig_onconflictlost bbzvstig_dummy
+#define bbzvstig_get bbzvstig_dummy
+#define bbzvstig_put bbzvstig_dummy
+#define bbzvstig_size bbzvstig_dummy
+#endif // !BBZ_DISABLE_VSTIGS
 
 #ifdef __cplusplus
 }

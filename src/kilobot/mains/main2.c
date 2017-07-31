@@ -4,9 +4,10 @@
 #include <bbzkilobot_include.h>
 
 
-void ___led(uint8_t x) {set_color(x); delay(10); set_color(0); delay(90);}
+void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 
 void err_receiver(bbzvm_error errcode) {
+    set_motors(0,0);
     uint8_t i;
     for (i = 4; i; --i) {
         ___led(RGB(1,2,0));
@@ -14,7 +15,7 @@ void err_receiver(bbzvm_error errcode) {
     delay(300);
 #if 1
     for (i = 4; i; --i) {
-        delay(800);
+        delay(700);
         switch(errcode) {
             case BBZVM_ERROR_INSTR:  ___led(RGB(2,0,0)); ___led(RGB(2,0,0)); break;
             case BBZVM_ERROR_STACK:  ___led(RGB(1,2,0)); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { ___led(RGB(0,3,0)); } else if (bbzvm_stack_size() <= 0) { ___led(RGB(2,0,0)); } else { ___led(RGB(1,2,0)); } break;
@@ -34,8 +35,8 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-    ___led(RGB(2,2,2));
-    ___led(RGB(2,2,2));
+//    ___led(RGB(2,2,2));
+//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {
@@ -82,24 +83,24 @@ void setup() {
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
     bbzvm_function_register(BBZSTRING_ID(abs), bbz_abs);
-    set_color(RGB(3,0,0));
-    delay(75);
-    set_color(RGB(2,0,1));
-    delay(75);
-    set_color(RGB(1,0,2));
-    delay(75);
-    set_color(RGB(0,0,3));
-    delay(75);
-    set_color(RGB(0,1,2));
-    delay(75);
-    set_color(RGB(0,2,1));
-    delay(75);
-    set_color(RGB(0,3,0));
-    delay(75);
-    set_color(RGB(1,2,0));
-    delay(75);
-    set_color(RGB(2,1,0));
-    delay(75);
+//    set_color(RGB(3,0,0));
+//    delay(75);
+//    set_color(RGB(2,0,1));
+//    delay(75);
+//    set_color(RGB(1,0,2));
+//    delay(75);
+//    set_color(RGB(0,0,3));
+//    delay(75);
+//    set_color(RGB(0,1,2));
+//    delay(75);
+//    set_color(RGB(0,2,1));
+//    delay(75);
+//    set_color(RGB(0,3,0));
+//    delay(75);
+//    set_color(RGB(1,2,0));
+//    delay(75);
+//    set_color(RGB(2,1,0));
+//    delay(75);
 }
 
 int main() {

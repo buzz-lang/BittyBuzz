@@ -2,12 +2,11 @@ stig = nil
 
 function init() {
     stig = stigmergy.create(0)
-#    stig.onconflict(function(key, ld, rd) {
-#            return ld
-#    })
+    stig.onconflict(function(key, ld, rd) {
+            return ld
+    })
     if (id == 7) {
-        stig.put("1", 69)
-        stig.put("1", 42)
+        stig.put("1", 41)
     }
     led(0)
     delay(200)
@@ -16,16 +15,14 @@ function init() {
     led(0)
 }
 
-#i = 0
+i = 0
 
 function step() {
-#    i = i + 1
-#    if (id == 7 and i % 5 == 0) {
-#        stig.put("1", 69)
-#        stig.put("1", 42)
-#        led(4)
-#        delay(10)
-#    }
+    i = i + 1
+    if (id == 7 and i % 20 == 0) {
+        stig.put("1", 41 + ((i / 20) % 3))
+        led(7)
+    }
     var val = stig.get("1")
     if (val == nil) {
         led(0)
@@ -42,6 +39,4 @@ function step() {
     else {
         led(2)
     }
-#    led(0)
-#    delay(50)
 }

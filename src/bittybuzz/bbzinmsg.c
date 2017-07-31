@@ -1,5 +1,6 @@
 #include "bbzinmsg.h"
 
+#ifndef BBZ_DISABLE_MESSAGES
 /****************************************/
 /****************************************/
 
@@ -8,18 +9,23 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     bbzmsg_t* m = vm->inmsgs.buf+vm->inmsgs.queue.capacity;
     bbzmsg_deserialize_u8(&m->base.type, payload, &pos);
     if (pos < 0) return;
-    bbzmsg_deserialize_u16(&m->bc.rid, payload, &pos);
+    bbzmsg_deserialize_u16(&m->base.rid, payload, &pos);
     if (pos < 0) return;
     switch(m->base.type) {
         case BBZMSG_BROADCAST:
+#ifndef BBZ_DISABLE_NEIGHBORS
             bbzmsg_deserialize_u16(&m->bc.topic, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->bc.value, payload, &pos);
             obj_makevalid(m->bc.value);
             if (pos < 0) return;
             break;
+#else
+            return;
+#endif
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
+#ifndef BBZ_DISABLE_VSTIGS
             bbzmsg_deserialize_u16(&m->vs.key, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->vs.data, payload, &pos);
@@ -28,12 +34,19 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             bbzmsg_deserialize_u8(&m->vs.lamport, payload, &pos);
             if (pos < 0) return;
             break;
+#else
+            return;
+#endif
         case BBZMSG_SWARM_CHUNK:
+#ifndef BBZ_DISABLE_SWARMS
             bbzmsg_deserialize_u16(&m->sw.lamport, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_u8(&m->sw.swarms, payload, &pos);
             if (pos < 0) return;
             break;
+#else
+            return;
+#endif
         default:
             // Unknown type of message, the message is dropped.
             return;
@@ -66,3 +79,4 @@ bbzmsg_t * bbzinmsg_queue_extract() {
 
 /****************************************/
 /****************************************/
+#endif // !BBZ_DISABLE_MESSAGES

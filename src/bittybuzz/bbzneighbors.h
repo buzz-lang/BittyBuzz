@@ -62,10 +62,12 @@ extern "C" {
  * @brief Type for an entry of the neighbors structure.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_NEIGHBORS
     bbzrobot_id_t robot; /**< @brief ID of the robot this entry is for. */
     uint8_t distance;    /**< @brief Distance between to the given robot. */
     uint8_t azimuth;     /**< @brief Angle (in rad) on the XY plane. */
     uint8_t elevation;   /**< @brief Angle (in rad) between the XY plane and the robot. */
+#endif // !BBZ_DISABLE_NEIGHBORS
 } bbzneighbors_elem_t;
 
 /**
@@ -74,6 +76,7 @@ typedef struct PACKED {
  * is only a single instance: <code>vm->neighbors.hpos</code>.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_NEIGHBORS
     bbzheap_idx_t hpos;      /**< @brief Heap's position of the 'neighbors' table. */
     bbzheap_idx_t listeners; /**< @brief Neighbor value listeners. */
 #ifdef BBZ_XTREME_MEMORY
@@ -82,9 +85,10 @@ typedef struct PACKED {
 #else
     uint8_t count;           /**< @brief Current number of neighbors. */
 #endif // BBZ_XTREME_MEMORY
-
+#endif // !BBZ_DISABLE_NEIGHBORS
 } bbzneighbors_t;
 
+#ifndef BBZ_DISABLE_NEIGHBORS
 /**
  * @brief Registers the 'neighbors' table into the VM.
  */
@@ -167,11 +171,27 @@ void bbzneighbors_filter();
  * @brief Buzz C closure which pushes the number of neighbors on the stack.
  */
 void bbzneighbors_count();
+#else
+#define bbzneighbors_register(...)
+#define bbzneighbors_reset(...)
+#define bbzneighbors_add(...)
+void bbzneighbors_dummy();
+void bbzneighbors_dummyret();
+#define bbzneighbors_broadcast bbzneighbors_dummy
+#define bbzneighbors_listen bbzneighbors_dummy
+#define bbzneighbors_ignore bbzneighbors_dummy
+#define bbzneighbors_get bbzneighbors_dummy
+#define bbzneighbors_foreach bbzneighbors_dummy
+#define bbzneighbors_map bbzneighbors_dummy
+#define bbzneighbors_reduce bbzneighbors_dummy
+#define bbzneighbors_filter bbzneighbors_dummy
+#define bbzneighbors_count bbzneighbors_dummy
+#endif // !BBZ_DISABLE_NEIGHBORS
+
+#include "bbzvm.h" // Include AFTER bbzneighbors.h because of circular dependencies.
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
-
-#include "bbzvm.h" // Include AFTER bbzneighbors.h because of circular dependencies.
 
 #endif // !BBZNEIGHBORS_H

@@ -1,13 +1,15 @@
 #include <avr/io.h>         // io port and addresses
+#include <avr/wdt.h>        // watch dog timer
 #include <avr/interrupt.h>  // interrupt handling
 #include <avr/eeprom.h>     // read eeprom values
 #include <avr/pgmspace.h>   // read flash data
+#include <avr/sleep.h>      // enter powersaving sleep mode
 #include <util/delay.h>     // delay macros
-#include <stdlib.h>         // for rand()
 
 #include "bbzkilobot.h"
 #include "bbzmessage_send.h"
 #include "bbzmacros.h"
+#include "bbzohc.h"
 
 #define EEPROM_OSCCAL         (uint8_t*)0x01
 #define EEPROM_TXMASK         (uint8_t*)0x90
@@ -26,13 +28,12 @@
 /* Number of clock cycles for an entire message. */
 #define rx_msgcycles (11*rx_bitcycles)
 
-void message_rx_dummy(message_t *m, distance_measurement_t *d) { }
+void message_rx_txsuccess_dummy() { }
 message_t *message_tx_dummy() { return NULL; }
-void message_tx_success_dummy() {}
 
-message_rx_t kilo_message_rx = message_rx_dummy;
+message_rx_t kilo_message_rx = (message_rx_t)message_rx_txsuccess_dummy;
 message_tx_t kilo_message_tx = message_tx_dummy;
-message_tx_success_t kilo_message_tx_success = message_tx_success_dummy;
+message_tx_success_t kilo_message_tx_success = (message_tx_success_t)message_rx_txsuccess_dummy;
 
 message_t rx_msg;                  // message being received
 distance_measurement_t rx_dist;    // signal strength of message being received
@@ -57,6 +58,7 @@ uint8_t kilo_straight_right;
 //uint16_t kilo_irhigh[14];
 //uint16_t kilo_irlow[14];
 bbzvm_t kilo_vmObj;
+uint16_t bbzkilo_bcodesize;
 message_t bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
 bbzmsg_payload_t bbz_payload_buf;
@@ -73,10 +75,8 @@ static volatile enum {
 } kilo_state;
 
 /***********************************/
-//static uint8_t estimate_distance(const distance_measurement_t *dist);
 
 message_t* bbzwhich_msg_tx() ;
-void bbzmsg_tx_success() ;
 void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) ;
 
 void bbzkilo_init() {
@@ -121,6 +121,7 @@ void bbzkilo_init() {
 //        kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
 //    }
     vm = &kilo_vmObj;
+    bbzkilo_bcodesize = pgm_read_word((uint16_t)&bcode_size);
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
     kilo_state = SETUP;
@@ -142,24 +143,22 @@ static volatile uint8_t prev_motion = MOVE_STOP, cur_motion = MOVE_STOP;
 
 uint8_t buf[4];
 const uint8_t* bbzkilo_bcodeFetcher(int16_t offset, uint8_t size) {
-    switch(size) {
-        case 1:
-            *((uint8_t*)buf) = pgm_read_byte((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        case 2:
-            *((uint16_t*)buf) = pgm_read_word((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        case 4:
-            *((uint32_t*)buf) = pgm_read_dword((uint16_t)&bcode + sizeof(*bcode)*offset);
-            break;
-        default:
-            break;
-    }
+    uint16_t __addr16 = (uint16_t) ((uint16_t) ((uint16_t) &bcode + sizeof(*bcode) * offset));
+    __asm__ __volatile__("subi %0, 1  \n\t"
+                         "brvs .+14   \n\t"
+                         "lpm %A2, Z+ \n\t"
+                         "sbrc %0, 0  \n\t"
+                         "lpm %B2, Z+ \n\t"
+                         "sbrs %0, 1  \n\t"
+                         "rjmp .+4    \n\t"
+                         "lpm %C2, Z+ \n\t"
+                         "lpm %D2, Z  \n\t"
+                        :"=r"(size), "=z"(__addr16), "=r"(buf):"0"(size), "1"(__addr16));
     return buf;
 }
 
-//volatile uint8_t bbzmsg_tx_sent = 0;
 message_t* bbzwhich_msg_tx() {
+#ifndef BBZ_DISABLE_MESSAGES
     if(bbzoutmsg_queue_size()) {
         bbzoutmsg_queue_first(&bbz_payload_buf);
         for (uint8_t i=0;i<9;++i) {
@@ -169,30 +168,30 @@ message_t* bbzwhich_msg_tx() {
         bbzmsg_tx.crc = bbzmessage_crc(&bbzmsg_tx);
         return &bbzmsg_tx;
     }
+#endif
     return 0;
 }
 
-void bbzmsg_tx_success() {
-    bbzoutmsg_queue_next();
-//    bbzmsg_tx_sent = 1;
-}
-
 void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
+#ifndef BBZ_DISABLE_MESSAGES
     if (msg_rx->type == BBZMSG) {
         bbzringbuf_clear(&bbz_payload_buf);
         for (uint8_t i = 0; i < 9; ++i) {
             *bbzringbuf_rawat(&bbz_payload_buf, bbzringbuf_makeslot(&bbz_payload_buf)) = msg_rx->data[i];
         }
         // Add the neighbor data.
+#ifndef BBZ_DISABLE_NEIGHBORS
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
             uint8_t dist = ((uint8_t)(d->high_gain>>2) + (uint8_t)(d->low_gain>>2))>>1;
             bbzneighbors_elem_t elem = {.azimuth=0,.elevation=0};
             elem.robot = *(uint16_t*)(bbzmsg_buf + 1);
-            elem.distance = 0xEF - (dist?dist:(uint8_t)1);
+            elem.distance = 0xE7 - (dist>0xE7?0xE7:dist);
             bbzneighbors_add(&elem);
         }
+#endif // !BBZ_DISABLE_NEIGHBORS
         bbzinmsg_queue_append(&bbz_payload_buf);
     }
+#endif // !BBZ_DISABLE_MESSAGES
 }
 
 #ifdef DEBUG
@@ -209,17 +208,35 @@ void inject_vstig(int16_t val, bbzrobot_id_t rid, uint8_t lamport) {
     bbzmsg_serialize_u8(&bbz_payload_buf, lamport);
     bbzinmsg_queue_append(&bbz_payload_buf);
 }
-#endif
+#ifndef BBZ_DISABLE_NEIGHBORS
+__attribute__((used))
+void inject_bc(int16_t val, bbzrobot_id_t rid, uint8_t dist) {
+    bbzringbuf_clear(&bbz_payload_buf);
+    bbzobj_t o = {0};
+    bbztype_cast(o, BBZTYPE_INT);
+    o.i.value = val;
+    bbzmsg_serialize_u8(&bbz_payload_buf, BBZMSG_BROADCAST);
+    bbzmsg_serialize_u16(&bbz_payload_buf, rid);
+    bbzmsg_serialize_u16(&bbz_payload_buf, 49); // STRID "1"
+    bbzmsg_serialize_obj(&bbz_payload_buf, &o);
+    bbzinmsg_queue_append(&bbz_payload_buf);
+    bbzneighbors_elem_t elem = {.azimuth=0,.elevation=0};
+    elem.robot = rid;
+    elem.distance = dist;
+    bbzneighbors_add(&elem);
+}
+#endif // !BBZ_DISABLE_NEIGHBORS
+#endif // DEBUG
 
-#define NFUNCTION_CALL(strid) do{               \
-    bbzvm_pushs(strid);                         \
-    bbzheap_idx_t l = bbzvm_stack_at(0);        \
-    bbzvm_pop();                                \
-    if(bbztable_get(kilo_vmObj.gsyms, l, &l)) { \
-        bbzvm_push(l);                          \
-        bbzvm_closure_call(0);                  \
-    }                                           \
-}while(0)
+void bbzkilo_func_call(uint16_t strid) {
+    bbzvm_pushs(strid);
+    bbzheap_idx_t l = bbzvm_stack_at(0);
+    bbzvm_pop();
+    if(bbztable_get(kilo_vmObj.gsyms, l, &l)) {
+        bbzvm_push(l);
+        bbzvm_closure_call(0);
+    }
+}
 
 
 void bbzkilo_start(void (*setup)(void)) {
@@ -228,6 +245,32 @@ void bbzkilo_start(void (*setup)(void)) {
     while (1) {
         switch(kilo_state) {
             case SLEEPING:
+                do{}while(0);cli();
+                acomp_off();
+                adc_off();
+                ports_off();
+                wdt_enable(WDTO_8S);
+                WDTCSR |= (1<<WDIE);
+                set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+                cli();
+                sleep_enable();
+                sei();
+                sleep_cpu();
+                sleep_disable();
+                sei();
+                rx_busy = 0;
+                ports_on();
+                adc_on();
+                _delay_us(300);
+                acomp_on();
+
+                set_color(RGB(3,3,3));
+                delay(10);
+                if (rx_busy) {
+                    set_color(RGB(3,0,0));
+                    delay(100);
+                }
+                set_color(RGB(0,0,0));
                 break;
             case IDLE:
                 set_color(RGB(0,3,0));
@@ -258,7 +301,7 @@ void bbzkilo_start(void (*setup)(void)) {
             case SETUP:
                 if (!has_setup) {
                     bbzvm_construct(kilo_uid);
-                    bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
+                    bbzvm_set_bcode(bbzkilo_bcodeFetcher, bbzkilo_bcodesize);
                     setup();
                     has_setup = 1;
                 }
@@ -268,19 +311,20 @@ void bbzkilo_start(void (*setup)(void)) {
                 else {
                     kilo_state = RUNNING;
                     vm->state = BBZVM_STATE_READY;
-                    NFUNCTION_CALL(__BBZSTRID_init);
+                    bbzkilo_func_call(__BBZSTRID_init);
+#ifndef BBZ_DISABLE_MESSAGES
                     kilo_message_tx = bbzwhich_msg_tx;
-                    kilo_message_tx_success = bbzmsg_tx_success;
+                    kilo_message_tx_success = bbzoutmsg_queue_next;
                     kilo_message_rx = bbzprocess_msg_rx;
+#endif
                 }
                 break;
             case RUNNING:
                 if (vm->state != BBZVM_STATE_ERROR) {
                     bbzvm_process_inmsgs();
-                    NFUNCTION_CALL(__BBZSTRID_step);
+                    bbzkilo_func_call(__BBZSTRID_step);
                     bbzvm_process_outmsgs();
                 }
-                //loop();
                 break;
             case MOVING:
 //                if (cur_motion == MOVE_STOP) {
@@ -309,6 +353,21 @@ void bbzkilo_start(void (*setup)(void)) {
         }
     }
 }
+//// Ensure that wdt is inactive after system reset.
+void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+
+void wdt_init(void) {
+    MCUSR = 0;
+    wdt_disable();
+}
+
+/**
+ * Watchdog timer interrupt.
+ * Used to wakeup from low power sleep mode.
+ */
+ISR(WDT_vect) {
+    wdt_disable();
+}
 #define JUMPTO_PASTER(addr) do{}while(0); __asm__ __volatile__("jmp "#addr"\n\t")
 #define JUMPTO(addr) JUMPTO_PASTER(addr)
 static inline void bbzprocess_message() {
@@ -318,7 +377,7 @@ static inline void bbzprocess_message() {
         kilo_message_rx(&rx_msg, &rx_dist);
         return;
     }
-//    if (rx_msg.type != READUID && rx_msg.type != RUN && rx_msg.type != CALIB)
+    if (/*rx_msg.type != READUID && */rx_msg.type != RUN/* && rx_msg.type != CALIB*/)
     motors_off();
     switch (rx_msg.type) {
         case BOOT:
@@ -330,7 +389,7 @@ static inline void bbzprocess_message() {
             JUMPTO(0x0000);
             break;
         case SLEEP:
-//            kilo_state = SLEEPING;
+            kilo_state = SLEEPING;
             break;
         case WAKEUP:
 //            kilo_state = IDLE;
@@ -466,7 +525,7 @@ int16_t get_temperature() {
 uint8_t rand_hard() {
     uint8_t num = 0;
     uint8_t a, b, i, tries;
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; ++i) {
         tries = 0;
         do {
             cli();
@@ -514,62 +573,6 @@ int16_t get_voltage() {
     return voltage;
 }
 
-//static uint8_t estimate_distance(const distance_measurement_t *dist) {
-//    uint8_t i;
-//    uint8_t index_high=13;
-//    uint8_t index_low=255;
-//    uint8_t dist_high=255;
-//    uint8_t dist_low=255;
-//
-//    if (dist->high_gain < 900) {
-//        if (dist->high_gain > kilo_irhigh[0]) {
-//            dist_high=0;
-//        } else {
-//            for (i=1; i<14; i++) {
-//                if (dist->high_gain > kilo_irhigh[i]) {
-//                    index_high = i;
-//                    break;
-//                }
-//            }
-//
-//            uint16_t slope=(kilo_irhigh[index_high]-kilo_irhigh[index_high-1])<<1;
-//            uint16_t b=kilo_irhigh[index_high]-slope*(index_high>>1);
-//            dist_high=(((dist->high_gain-b)*10)/slope);
-//        }
-//    }
-//
-//    if (dist->high_gain > 700) {
-//        if (dist->low_gain > kilo_irlow[0]) {
-//            dist_low=0;
-//        } else {
-//            for(i=1; i<14; i++) {
-//                if(dist->low_gain > kilo_irlow[i]) {
-//                    index_low = i;
-//                    break;
-//                }
-//            }
-//
-//            if(index_low == 255) {
-//                dist_low=90;
-//            } else {
-//                uint16_t slope=(kilo_irlow[index_low]-kilo_irlow[index_low-1])<<1;
-//                uint16_t b=kilo_irlow[index_low]-slope*(index_low>>1);
-//                dist_low=((dist->low_gain-b)*10)/slope;
-//            }
-//        }
-//    }
-//
-//    if (dist_low != 255) {
-//        if (dist_high != 255) {
-//            return 33 + (dist_high*(900-dist->high_gain)+dist_low*(dist->high_gain-700))/200;
-//        } else {
-//            return 33 + dist_low;
-//        }
-//    } else {
-//        return 33 + dist_high;
-//    }
-//}
-
 /**
  * Timer0 interrupt.
  * Used to send messages every kilo_tx_period ticks.
@@ -587,7 +590,7 @@ ISR(TIMER0_COMPA_vect) {
                 kilo_message_tx_success();
                 tx_clock = 0;
             } else {
-                tx_increment = rand()&0xFF;
+                tx_increment = rand_hard()&0xFF;
                 OCR0A = tx_increment;
             }
         }

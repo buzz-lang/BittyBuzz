@@ -1,6 +1,7 @@
 #include "bbzneighbors.h"
 #include "bbzutil.h"
 
+#ifndef BBZ_DISABLE_NEIGHBORS
 /**
  * String ID of the sub-table which contains the neighbors' data tables
  * (the {distance, azimuth, elevation} tables).
@@ -537,14 +538,13 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 typedef struct {
     const bbzrobot_id_t robot; /**< @brief Sought robot ID. */
     uint8_t found;             /**< @brief Whether we already found the robot ID. */
-    bbzheap_idx_t ret;         /**< @brief The found data table. */
 } neighbor_get_t;
 
 void neighbor_get(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     neighbor_get_t* ng = (neighbor_get_t*)params;
     if (!ng->found && bbzvm_obj_at(key)->i.value == ng->robot) {
         ng->found = 1;
-        ng->ret = value;
+        bbzvm_push(value);
     }
 }
 
@@ -558,12 +558,13 @@ void bbzneighbors_get() {
     // Perform foreach
     neighbor_get_t ng = {
         .robot = (const uint16_t) bbzvm_obj_at(robot)->i.value,
-        .found = 0,
-        .ret = vm->nil };
+        .found = 0 };
     neighborlike_foreach(neighbor_get, &ng);
 
     // Push return value and return
-    bbzvm_push(ng.ret);
+    if (!ng.found) {
+        bbzvm_pushnil();
+    }
     bbzvm_ret1();
     bbzvm_gc();
 }
@@ -633,7 +634,7 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
             bbzvm_pop();
             bbzvm_pop();
             elem_fun(key, data, params);
-//            bbzvm_gc(); // Collect the created data table
+            bbzvm_gc(); // Collect the created data table
         }
     }
     else {
@@ -646,3 +647,7 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
 }
 
 #endif // !BBZ_XTREME_MEMORY
+#else // !BBZ_DISABLE_NEIGHBORS
+void bbzneighbors_dummy(){bbzvm_ret0();}
+void bbzneighbors_dummyret(){bbzvm_pushnil();bbzvm_ret1();}
+#endif // !BBZ_DISABLE_NEIGHBORS

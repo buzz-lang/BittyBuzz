@@ -77,6 +77,14 @@
 #define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
 
 /**
+ * @brief Features Disabling Macros
+ */
+#cmakedefine BBZ_DISABLE_NEIGHBORS
+#cmakedefine BBZ_DISABLE_VSTIGS
+#cmakedefine BBZ_DISABLE_SWARMS
+#cmakedefine BBZ_DISABLE_MESSAGES
+
+/**
  * @brief Whether to compile in debug mode.
  */
 #cmakedefine DEBUG @DEBUG@

@@ -15,7 +15,7 @@
 #include <bittybuzz/bbzvm.h>
 #include <bittybuzz/util/bbzstring.h>
 
-#define RGB(r,g,b) (r&3)|(((g&3)<<2))|((b&3)<<4)
+#define RGB(r,g,b) (((r)&3)|(((g)&3)<<2)|(((b)&3)<<4))
 #define TICKS_PER_SEC 31
 
 #ifdef __cplusplus

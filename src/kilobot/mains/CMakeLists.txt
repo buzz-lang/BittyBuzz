@@ -27,12 +27,12 @@ function(generate_hex c_source bzz_source)
         add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
                 BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} -B ${ARGN} ${c_source}
-                DEPENDS ${bzz_source} ${c_source} ${ARGN} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
+                DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} ${ARGN} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
     else()
         add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
                 BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
                 COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} ${c_source}
-                DEPENDS ${bzz_source} ${c_source} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
+                DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} bbzkilobot bittybuzz bo2bbo kilo_bcodegen)
     endif()
 
     add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${HEX_FILE} ${COMPILER_SCRIPT})

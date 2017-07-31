@@ -1,7 +1,6 @@
-#include <avr/pgmspace.h>
-
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
+#include <bittybuzz/bbzutil.h>
 
 void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 
@@ -41,10 +40,8 @@ void err_receiver(bbzvm_error errcode) {
 void bbz_led() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
-    uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
-    //set_led(color);
-    set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
-    //bin_count(color, 1);
+    const uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    set_color((uint8_t)RGB(color&1?3:0, color&2?3:0, color&4?3:0));
 #endif
     bbzvm_ret0();
 }
@@ -52,58 +49,60 @@ void bbz_led() {
 void bbz_delay() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
-    uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    const uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
     delay(d);
 #endif
     bbzvm_ret0();
 }
 
-void bbz_setmotor() {
+void bbz_min() {
     bbzvm_assert_lnum(2);
-#ifndef DEBUG
-    spinup_motors();
-    set_motors((uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value, (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(2))->i.value);
-#endif
-    bbzvm_ret0();
-}
-
-void bbz_rand() {
-    bbzvm_pushi(((uint16_t)rand_soft() << 8) | rand_soft());
+    bbzvm_lload(bbztype_cmp(bbzheap_obj_at(bbzvm_lsym_at(1)),bbzheap_obj_at(bbzvm_lsym_at(2)))>0?2:1);
     bbzvm_ret1();
 }
 
+void bbz_show_dist() {
+    bbzvm_assert_lnum(1);
+    const int16_t dist = bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
+    if (dist > 500) {
+        set_color(RGB(2,0,2));
+    }
+    else if (dist > 400) {
+        set_color(RGB(0,0,2));
+    }
+    else if (dist > 300) {
+        set_color(RGB(0,2,1));
+    }
+    else if (dist > 200) {
+        set_color(RGB(0,3,0));
+    }
+    else if (dist > 100) {
+        set_color(RGB(1,2,0));
+    }
+    else if (dist > -1) {
+        set_color(RGB(2,0,0));
+    }
+    else {
+        set_color(0);
+    }
+    bbzvm_ret0();
+}
+
+#define funreg_PASTER(NAME) bbzvm_function_register(BBZSTRING_ID(NAME), bbz_ ## NAME);
+#define funreg(NAME) funreg_PASTER(NAME)
 void setup() {
     bbzvm_set_error_receiver(err_receiver);
-    bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
-    bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
-    bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
-//    bbzvm_function_register(BBZSTRING_ID(rand), bbz_rand);
-    set_color(RGB(3,0,0));
-    delay(75);
-    set_color(RGB(2,0,1));
-    delay(75);
-    set_color(RGB(1,0,2));
-    delay(75);
-    set_color(RGB(0,0,3));
-    delay(75);
-    set_color(RGB(0,1,2));
-    delay(75);
-    set_color(RGB(0,2,1));
-    delay(75);
-    set_color(RGB(0,3,0));
-    delay(75);
-    set_color(RGB(1,2,0));
-    delay(75);
-    set_color(RGB(2,1,0));
-    delay(75);
-    rand_seed(rand_hard());
-//    delay((rand_soft()>>1) +1);
+    funreg(led);
+    funreg(delay);
+//    funreg(show_dist);
+    bbzvm_pusht(); // "math"
+    bbztable_add_function(BBZSTRING_ID(min), bbz_min);
+    bbzvm_gsym_register(BBZSTRING_ID(math), bbzvm_stack_at(0));
+    bbzvm_pop();
 }
 
 int main() {
     bbzkilo_init();
-//    bbzvm_set_error_receiver(err_receiver);
     bbzkilo_start(setup);
-
     return 0;
 }

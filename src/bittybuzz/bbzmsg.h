@@ -24,37 +24,44 @@ extern "C" {
  * @brief Broadcast message data
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_NEIGHBORS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     uint16_t topic; /**< @brief The topic of the broadcast. @note A string ID */
     bbzobj_t value; /**< @brief The broadcasted value. */
+#endif
 } bbzmsg_broadcast_t;
 
 /**
  * @brief Swarm message data
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_SWARMS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     bbzlamport_t lamport;
     bbzswarmlist_t swarms;
+#endif
 } bbzmsg_swarm_t;
 
 /**
  * @brief Virtual stigmergy message data
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_VSTIGS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
     uint8_t lamport;
     uint16_t key;
     bbzobj_t data;
+#endif
 } bbzmsg_vstig_t;
 
 /**
  * @brief Generic message data
  */
 typedef union {
+#ifndef BBZ_DISABLE_MESSAGES
     uint8_t type;
     struct {
         uint8_t type;
@@ -63,6 +70,7 @@ typedef union {
     bbzmsg_broadcast_t bc;
     bbzmsg_swarm_t sw;
     bbzmsg_vstig_t vs;
+#endif
 } bbzmsg_t;
 
 /**
@@ -70,6 +78,7 @@ typedef union {
  */
 typedef bbzringbuf_t bbzmsg_payload_t;
 
+#ifndef BBZ_DISABLE_MESSAGES
 /**
  * @brief Serializes a 8-bit unsigned integer.
  * @details The data is appended to the given buffer.
@@ -130,6 +139,18 @@ void bbzmsg_serialize_obj(bbzringbuf_t *rb, bbzobj_t *obj);
  */
 void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos);
 
+#ifndef BBZ_DISABLE_NEIGHBORS
+void bbzmsg_process_broadcast(bbzmsg_t* msg);
+#endif
+
+#ifndef BBZ_DISABLE_VSTIGS
+void bbzmsg_process_vstig(bbzmsg_t* msg);
+#endif
+
+#ifndef BBZ_DISABLE_SWARMS
+void bbzmsg_process_swarm(bbzmsg_t* msg);
+#endif
+
 // +=-=-=-=-=-=-=-=-=-=-=-=-=-=+
 // | Message utility functions |
 // +=-=-=-=-=-=-=-=-=-=-=-=-=-=+
@@ -141,6 +162,25 @@ void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos);
  * @param[in,out] rb The ring buffer which we want to sort.
  */
 void bbzmsg_sort_priority(bbzringbuf_t* rb);
+#else // !BBZ_DISABLE_MESSAGES
+#define bbzmsg_serialize_u8(...)
+#define bbzmsg_deserialize_u8(...)
+#define bbzmsg_serialize_u16(...)
+#define bbzmsg_deserialize_u16(...)
+#define bbzmsg_serialize_obj(...)
+#define bbzmsg_deserialize_obj(...)
+#define bbzmsg_sort_priority(...)
+#endif // !BBZ_DISABLE_MESSAGES
+
+#if defined(BBZ_DISABLE_NEIGHBORS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzmsg_process_broadcast(...)
+#endif
+#if defined(BBZ_DISABLE_VSTIGS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzmsg_process_vstig(...)
+#endif
+#if defined(BBZ_DISABLE_SWARMS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzmsg_process_swarm(...)
+#endif
 
 /*
  * Uncomment this line if the sorting algorithm above needs

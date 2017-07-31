@@ -3,12 +3,10 @@
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
 
-#include <bittybuzz/bbzTEMP.h>
-#include <bittybuzz/bbzvm.h>
-
-void ___led(uint8_t x) {set_color(x); delay(10); set_color(0); delay(90);}
+void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 
 void err_receiver(bbzvm_error errcode) {
+    set_motors(0,0);
     uint8_t i;
     for (i = 4; i; --i) {
         ___led(RGB(1,2,0));
@@ -16,7 +14,7 @@ void err_receiver(bbzvm_error errcode) {
     delay(300);
 #if 1
     for (i = 4; i; --i) {
-        delay(800);
+        delay(700);
         switch(errcode) {
             case BBZVM_ERROR_INSTR:  ___led(RGB(2,0,0)); ___led(RGB(2,0,0)); break;
             case BBZVM_ERROR_STACK:  ___led(RGB(1,2,0)); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { ___led(RGB(0,3,0)); } else if (bbzvm_stack_size() <= 0) { ___led(RGB(2,0,0)); } else { ___led(RGB(1,2,0)); } break;
@@ -36,8 +34,8 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-    ___led(RGB(2,2,2));
-    ___led(RGB(2,2,2));
+//    ___led(RGB(2,2,2));
+//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {
@@ -104,7 +102,6 @@ void setup() {
 
 int main() {
     bbzkilo_init();
-//    bbzvm_set_error_receiver(err_receiver);
     bbzkilo_start(setup);
 
     return 0;

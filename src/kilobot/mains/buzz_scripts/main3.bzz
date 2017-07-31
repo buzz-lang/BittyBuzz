@@ -6,7 +6,7 @@ function init() {
                 led(2) # Green
             }
             else if (value == nil) {
-                led(0) # Off
+                led(7) # Off
             }
             else if (value == 0) {
                 led(1) # Red

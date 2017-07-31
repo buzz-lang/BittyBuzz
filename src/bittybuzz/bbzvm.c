@@ -6,191 +6,24 @@ bbzvm_t* vm; // Global extern variable 'vm'.
 /****************************************/
 /****************************************/
 
-static uint8_t bbzlamport_isnewer(bbzlamport_t lamport, bbzlamport_t old_lamport) {
-    // This function uses a circular Lamport model (0 == 255 + 1).
-    // A Lamport clock is 'newer' than an old Lamport clock if its value
-    // is less than 'LAMPORT_THRESHOLD' ticks ahead of the old clock.
-
-    /*/uint8_t lamport_overflow = (uint8_t)((uint16_t)UINT8_MAX - old_lamport < BBZLAMPORT_THRESHOLD);
-    if (lamport_overflow) {
-        return (uint8_t)(lamport > old_lamport ||
-                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
-    }
-    else {
-        return (uint8_t)(lamport > old_lamport &&
-                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
-    }/*/
-    return (uint8_t) ((uint8_t) (lamport - old_lamport + (UINT8_MAX)) < BBZLAMPORT_THRESHOLD);/**/
-}
-
 void bbzvm_process_inmsgs() {
     if(vm->state == BBZVM_STATE_ERROR) return;
     /* Go through the messages */
     uint8_t count = 0;
-    bbzheap_idx_t o;
     while(!bbzinmsg_queue_isempty() && count++ < BBZMSG_IN_PROC_MAX) {
         bbzvm_gc();
         /* Extract the message data */
         bbzmsg_t* msg = bbzinmsg_queue_extract();
         switch(msg->type) {
             case BBZMSG_BROADCAST:
-                // Get the topic
-                bbzvm_pushs(msg->bc.topic);
-                bbzheap_idx_t topic = bbzvm_stack_at(0);
-                bbzvm_pop();
-                // Check if the topic has a listener. Break out of the switch if not.
-                bbzheap_idx_t l;
-                if (!bbztable_get(vm->neighbors.listeners, topic, &l)) break;
-                // Call the listener
-                bbzvm_push(l);
-                bbzvm_push(topic);
-                bbzvm_pushu(0);
-                bbztype_cast(*bbzheap_obj_at(bbzvm_stack_at(0)), bbztype(msg->bc.value));
-                bbzheap_obj_at(bbzvm_stack_at(0))->biggest.value = msg->bc.value.biggest.value;
-                bbzvm_pushi(msg->bc.rid);
-                bbzvm_closure_call(3);
+                bbzmsg_process_broadcast(msg);
                 break;
             case BBZMSG_VSTIG_QUERY: // fallthrough
-            case BBZMSG_VSTIG_PUT: {
-                // Search the key in the vstig
-                uint8_t inLocalVStig = 0;
-                bbzvstig_elem_t* data;
-                for (uint16_t i = 0; i < vm->vstig.size; ++i) {
-                    data = (vm->vstig.data + i);
-                    if (msg->vs.key == data->key) {
-                        inLocalVStig = 1;
-                        if (bbzlamport_isnewer(msg->vs.lamport, data->timestamp)) {
-                            // Update the value
-                            data->robot = msg->vs.rid;
-                            data->key = msg->vs.key;
-                            obj_makeinvalid(*bbzheap_obj_at(data->value));
-                            bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
-                            *bbzheap_obj_at(o) = msg->vs.data;
-                            obj_makevalid(*bbzheap_obj_at(o));
-                            bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
-                            data->value = o;
-                            bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
-                            data->timestamp = msg->vs.lamport;
-                            // Propagate the value.
-                            bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, data->robot,
-                                                         data->key,
-                                                         data->value, data->timestamp);
-                        } // The following "else if" is only for VSTIG_QUERY mesages.
-                        else if (msg->type == BBZMSG_VSTIG_QUERY &&
-                                bbzlamport_isnewer(data->timestamp, msg->vs.lamport)) {
-                            /* Local element is newer */
-                            /* Append a PUT message to the out message queue */
-                            bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, vm->robot, msg->vs.key,
-                                                         data->value, data->timestamp);
-                        }
-                        else if (data->timestamp == msg->vs.lamport &&
-                                 data->robot != msg->vs.rid) {
-                            // Conflict! Call the onconflict callback closure.
-                            bbzheap_idx_t tmp = vm->nil;
-                            // Check if there is a callback closure.
-                            if (bbztable_get(vm->vstig.hpos, bbzvm_get(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, s),
-                                             &tmp)) {
-                                bbzvm_push(tmp);
-                                bbzvm_pushs(msg->vs.key);
-                                // push the local data
-                                bbzvm_pusht();
-                                bbztable_add_data(__BBZSTRID_robot, bbzvm_get(data->robot, i));
-                                bbztable_add_data(__BBZSTRID_data, data->value);
-                                bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(data->timestamp, i));
-                                // push the remote data
-                                bbzvm_pusht();
-                                bbzheap_idx_t rd = bbzvm_stack_at(0);
-                                bbztable_add_data(__BBZSTRID_robot, bbzvm_get(msg->vs.rid, i));
-                                bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
-                                *bbzheap_obj_at(o) = msg->vs.data;
-                                obj_makevalid(*bbzheap_obj_at(o));
-                                bbztable_add_data(__BBZSTRID_data, o);
-                                bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(msg->vs.lamport, i));
-                                bbzvm_closure_call(3);
-                                bbzvm_assert_stack(1);
-                                // Update the value with the table returned by the closure.
-                                if (bbztype_istable(*bbzheap_obj_at(bbzvm_stack_at(0)))) {
-                                    tmp = 0;
-                                    bbztable_get(bbzvm_stack_at(0), bbzvm_get(__BBZSTRID_robot, s), &tmp);
-                                    bbzrobot_id_t oldRID = data->robot;
-                                    data->robot = tmp ?
-                                                              (bbzrobot_id_t) bbzheap_obj_at(tmp)->i.value :
-                                                              data->robot;
-                                    tmp = vm->nil;
-                                    obj_makeinvalid(*bbzheap_obj_at(data->value));
-                                    bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
-                                    bbztable_get(bbzvm_stack_at(0), bbzvm_get(__BBZSTRID_data, s), &tmp);
-                                    data->value = tmp;
-                                    bbzheap_obj_make_permanent(*bbzheap_obj_at(tmp));
-                                    data->timestamp = msg->vs.lamport;
-                                    // If this is the robot that lost, call the onconflictlost callback closure.
-                                    if ((bbzrobot_id_t) bbzheap_obj_at(tmp)->i.value != vm->robot &&
-                                        oldRID == vm->robot) {
-                                        // Check if there is an onconflictlost callback closure.
-                                        tmp = vm->nil;
-                                        if (bbztable_get(vm->vstig.hpos,
-                                                         bbzvm_get(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, s), &tmp)) {
-                                            bbzvm_push(tmp);
-                                            bbzvm_pushs(msg->vs.key);
-                                            bbzvm_push(rd);
-                                            bbzvm_closure_call(2);
-                                        }
-                                    }
-                                    // Propagate the winning value.
-                                    bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, data->robot,
-                                                                 data->key,
-                                                                 data->value, data->timestamp);
-                                } else {
-                                    // Error, either no value was returned, or the returned value is of the wrong type.
-                                    bbzvm_seterror(BBZVM_ERROR_RET);
-                                    return;
-                                }
-                            }
-                            else {
-                                // No conflict manager, use default behavior.
-                                if (msg->vs.rid >= data->robot) {
-                                    data->robot = msg->vs.rid;
-                                    data->key = msg->vs.key;
-                                    obj_makeinvalid(*bbzheap_obj_at(data->value));
-                                    bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
-                                    *bbzheap_obj_at(o) = msg->vs.data;
-                                    obj_makevalid(*bbzheap_obj_at(o));
-                                    bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
-                                    data->value = o;
-                                    bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
-                                    data->timestamp = msg->vs.lamport;
-                                }
-                                // Propagate the winning value.
-                                bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT, data->robot,
-                                                             data->key,
-                                                             data->value, data->timestamp);
-                            }
-                        }
-                        break;
-                    }
-                }
-                if (!inLocalVStig) {
-                    data = vm->vstig.data + vm->vstig.size;
-                    data->robot = msg->vs.rid;
-                    data->key = msg->vs.key;
-                    bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
-                    *bbzheap_obj_at(o) = msg->vs.data;
-                    obj_makevalid(*bbzheap_obj_at(o));
-//                    bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
-                    data->value = o;
-                    bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
-                    data->timestamp = msg->vs.lamport;
-                    bbzoutmsg_queue_append_vstig(BBZMSG_VSTIG_PUT,
-                                                 data->robot,
-                                                 data->key,
-                                                 data->value,
-                                                 data->timestamp);
-                    ++vm->vstig.size;
-                }
+            case BBZMSG_VSTIG_PUT:
+                bbzmsg_process_vstig(msg);
                 break;
-            }
             case BBZMSG_SWARM_CHUNK: {
-                // TODO
+                bbzmsg_process_swarm(msg);
                 break;
             }
             default:
@@ -268,6 +101,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     // Allocate singleton objects
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->nil));
+    bbzheap_obj_at(vm->nil)->i.value = 0;
     bbzdarray_new(&vm->dflt_actrec);
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->dflt_actrec));
     bbzdarray_push(vm->dflt_actrec, vm->nil);
@@ -646,7 +480,7 @@ static void bbzvm_binary_op_arith(binary_op_arith op) {
 
     // MCUs usually only support integer operations.
     // Disallow floating-point operations.
-    uint8_t ok = (uint8_t) (bbztype_isint(*lhs) && bbztype_isint(*rhs));
+    uint8_t ok = (uint8_t) (!bbztype_isfloat(*lhs) && !bbztype_isfloat(*rhs));
     if (ok) {
         bbzheap_idx_t idx;
         bbzvm_assert_mem_alloc(BBZTYPE_INT, &idx);

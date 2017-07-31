@@ -41,6 +41,7 @@ bbzmsg_t* bbzoutmsg_queue_append_template() {
 /****************************************/
 /****************************************/
 
+#ifndef BBZ_DISABLE_NEIGHBORS
 void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) {
     /* Make a new BROADCAST message */
     bbzmsg_t* m = bbzoutmsg_queue_append_template();
@@ -50,10 +51,12 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) 
     m->bc.value = *bbzheap_obj_at(value);
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
+#endif
 
 /****************************************/
 /****************************************/
 
+#ifndef BBZ_DISABLE_SWARMS
 void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms, bbzlamport_t lamport) {
     /* Make a new SWARM_CHUNK message */
     bbzmsg_t* m = bbzoutmsg_queue_append_template();
@@ -63,10 +66,12 @@ void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms
     m->sw.swarms = swarms;
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
+#endif
 
 /****************************************/
 /****************************************/
 
+#ifndef BBZ_DISABLE_VSTIGS
 void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   bbzrobot_id_t rid,
                                   uint16_t key,
@@ -81,6 +86,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
     m->vs.data = *bbzheap_obj_at(value);
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
+#endif
 
 /****************************************/
 /****************************************/
@@ -92,21 +98,33 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
     bbzmsg_serialize_u16(buf, msg->base.rid);
     switch (msg->type) {
         case BBZMSG_BROADCAST:
+#ifndef BBZ_DISABLE_NEIGHBORS
             if (bbztype_istable(msg->bc.value)) return;
             bbzmsg_serialize_u16(buf, msg->bc.topic);
             bbzmsg_serialize_obj(buf, &msg->bc.value);
             break;
+#else
+            return;
+#endif
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
+#ifndef BBZ_DISABLE_VSTIGS
             if (bbztype_istable(msg->vs.data)) return;
             bbzmsg_serialize_u16(buf, msg->vs.key);
             bbzmsg_serialize_obj(buf, &msg->vs.data);
             bbzmsg_serialize_u8(buf, msg->vs.lamport);
             break;
+#else
+            return;
+#endif
         case BBZMSG_SWARM_CHUNK:
+#ifndef BBZ_DISABLE_SWARMS
             bbzmsg_serialize_u16(buf, msg->sw.lamport);
             bbzmsg_serialize_u8(buf, msg->sw.swarms);
             break;
+#else
+            return;
+#endif
         default:
             break;
     }

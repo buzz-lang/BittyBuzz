@@ -20,10 +20,13 @@ extern "C" {
  * we assume there is only a single instance: vm->outmsgs.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_MESSAGES
     bbzringbuf_t queue; /**< @brief Message queue. */
     bbzmsg_t buf[BBZOUTMSG_QUEUE_CAP+2]; /**< @brief Output message buffer */
+#endif
 } bbzoutmsg_queue_t;
 
+#ifndef BBZ_DISABLE_MESSAGES
 /**
  * @brief Constructs the VM's outgoing message queue.
  */
@@ -40,13 +43,16 @@ void bbzoutmsg_queue_destruct();
  */
 uint16_t bbzoutmsg_queue_size();
 
+#ifndef BBZ_DISABLE_NEIGHBORS
 /**
  * @brief Appends a new BROADCAST message to the output queue.
  * @param[in] topic The topic on which to send (a string object).
  * @param[in] value The value.
  */
 void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
+#endif
 
+#ifndef BBZ_DISABLE_SWARMS
 /**
  * @brief Appends a new SWARM_CHUNK message to the output queue.
  * @param[in] swarms The swarmlist to append.
@@ -54,7 +60,9 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
  * TODO
  */
 void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms, bbzlamport_t lamport);
+#endif
 
+#ifndef BBZ_DISABLE_VSTIGS
 /**
  * @brief Appends a new VSTIG_PUT/VSTIG_QUERY message to the output queue.
  * @param[in] type The type of the message to append.
@@ -68,6 +76,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   uint16_t key,
                                   bbzheap_idx_t value,
                                   uint8_t lamport);
+#endif
 
 /**
  * @brief Serializes and returns the first message in the queue.
@@ -81,6 +90,24 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t *buf);
 void bbzoutmsg_queue_next();
 
 #define bbzoutmsg_queue_get(pos) ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, pos))
+#else // !BBZ_DISABLE_MESSAGES
+#define bbzoutmsg_queue_construct(...)
+#define bbzoutmsg_queue_destruct(...)
+#define bbzoutmsg_queue_size(...) (0)
+#define bbzoutmsg_queue_first(...)
+void bbzoutmsg_queue_next(){}
+#define bbzoutmsg_queue_get(...) ((bbzmsg_t*)NULL)
+#endif // !BBZ_DISABLE_MESSAGES
+
+#if defined(BBZ_DISABLE_NEIGHBORS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzoutmsg_queue_append_broadcast(...)
+#endif
+#if defined(BBZ_DISABLE_VSTIGS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzoutmsg_queue_append_vstig(...)
+#endif
+#if defined(BBZ_DISABLE_SWARMS) || defined(BBZ_DISABLE_MESSAGES)
+#define bbzoutmsg_queue_append_swarm_chunk(...)
+#endif
 
 #ifdef __cplusplus
 }

@@ -21,10 +21,13 @@ extern "C" {
  * we assume there is only a single instance: vm->inmsgs.
  */
 typedef struct PACKED {
+#ifndef BBZ_DISABLE_MESSAGES
     bbzringbuf_t queue; /**< @brief Message queue. */
     bbzmsg_t buf[BBZINMSG_QUEUE_CAP+2]; /**< @brief Output message buffer */
+#endif
 } bbzinmsg_queue_t;
 
+#ifndef BBZ_DISABLE_MESSAGES
 /**
  * Appends a message to the queue.
  * @param[in] payload The message payload.
@@ -37,10 +40,6 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload);
  * @param[out] buf A buffer where to put the deserialized payload of the received message.
  */
 bbzmsg_t * bbzinmsg_queue_extract();
-
-#ifdef __cplusplus
-}
-#endif // __cplusplus
 
 /**
  * Create a new message queue.
@@ -72,6 +71,19 @@ bbzmsg_t * bbzinmsg_queue_extract();
  * @return The message at the given position.
  */
 #define bbzinmsg_queue_get(pos) ((bbzmsg_t*)bbzringbuf_at(&vm->inmsgs.queue, pos))
+#else
+#define bbzinmsg_queue_append(...)
+#define bbzinmsg_queue_extract(...) ((bbzmsg_t*)NULL)
+#define bbzinmsg_queue_construct(...)
+#define bbzinmsg_queue_destruct(...)
+#define bbzinmsg_queue_size(...) (0)
+#define bbzinmsg_queue_isempty(...) (1)
+#define bbzinmsg_queue_get(...) ((bbzmsg_t*)NULL)
+#endif // !BBZ_DISABLE_MESSAGES
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #include "bbzvm.h" // Include AFTER bbzinmsg.h because of circular dependencies.
 
