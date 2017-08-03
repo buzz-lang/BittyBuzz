@@ -1,7 +1,44 @@
 use_native_compiler()
 
-file(GLOB BBZ_HEADERS "*.h")
-file(GLOB BBZ_SOURCES "*.c")
+#file(GLOB BBZ_HEADERS "*.h")
+set(BBZ_HEADERS
+        bbzdarray.h
+        bbzenums.h
+        bbzfloat.h
+        bbzheap.h
+        bbzinclude.h
+        bbzinmsg.h
+        bbzmsg.h
+        bbzneighbors.h
+        bbzobjringbuf.h
+        bbzoutmsg.h
+        bbzringbuf.h
+        bbzstrids.h
+        bbzswarm.h
+        bbztable.h
+        bbztype.h
+        bbzutil.h
+        bbzvm.h
+        bbzvstig.h
+        config.h
+)
+#file(GLOB BBZ_SOURCES "*.c")
+set(BBZ_SOURCES
+        bbzdarray.c
+        bbzfloat.c
+        bbzheap.c
+        bbzinmsg.c
+        bbzmsg.c
+        bbzneighbors.c
+        bbzoutmsg.c
+        bbzringbuf.c
+        bbzswarm.c
+        bbztable.c
+        bbztype.c
+        bbzutil.c
+        bbzvm.c
+        bbzvstig.c
+)
 list(APPEND BBZ_SOURCES ${BBZ_HEADERS})
 
 if(NOT CMAKE_CROSSCOMPILING)

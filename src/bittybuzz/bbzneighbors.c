@@ -160,7 +160,7 @@ void bbzneighbors_listen() {
     bbzheap_idx_t topic = bbzvm_lsym_at(1);
     bbzvm_assert_type(topic, BBZTYPE_STRING);
     bbzheap_idx_t c = bbzvm_lsym_at(2);
-    bbzvm_assert_exec(bbztype_isclosure(*bbzheap_obj_at(c)), BBZVM_ERROR_TYPE);
+    bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Set listener
     bbztable_set(vm->neighbors.listeners, topic, c);
@@ -195,10 +195,8 @@ void bbzneighbors_ignore() {
  * @param[in,out] params The closure to call.
  */
 void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
-    bbzheap_idx_t c = *(bbzheap_idx_t*)params;
-
     // Push closure and args
-    bbzvm_push(c);
+    bbzvm_push(*(bbzheap_idx_t*)params);
     bbzvm_push(key);
     bbzvm_push(value);
 
@@ -400,8 +398,8 @@ void bbzneighbors_reduce() {
 // -------------------------------------
 // -      REGULAR IMPLEMENTATIONS      -
 // -------------------------------------
-#ifndef BBZ_XTREME_MEMORY
 
+#ifndef BBZ_XTREME_MEMORY
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     // Get 'neighbors''s sub-table
     bbzvm_push(vm->neighbors.hpos);
@@ -522,10 +520,6 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     entry->distance  = data->distance;
     entry->azimuth   = data->azimuth;
     entry->elevation = data->elevation;
-//    if (vm->neighbors.count < BBZNEIGHBORS_CAP) { // If it's a new entry, ...
-//        ++vm->neighbors.count; // Increment neighbor count.
-//    }
-//    vm->neighbors.count = bbzringbuf_size(&vm->neighbors.rb);
 }
 
 /****************************************/
@@ -608,19 +602,6 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
     if (self == vm->neighbors.hpos) {
         //
         // 'neighbors' table ; uses optimized C implementation.
-        //
-//        for (uint8_t i = 0; i < vm->neighbors.count; ++i) {
-//            bbzneighbors_elem_t* elem = (bbzneighbors_elem_t*)bbzringbuf_at(&vm->neighbors.rb,i);
-//            push_neighbor_data_table(elem);
-//            bbzheap_idx_t data = bbzvm_stack_at(0);
-//            bbzvm_pop();
-//            bbzvm_pushi(elem->robot);
-//            bbzheap_idx_t key  = bbzvm_stack_at(0);
-//            bbzvm_pop();
-//            elem_fun(key, data, params);
-//            bbzvm_gc(); // Collect the created data table
-//        }
-        //
         // Size-optimized loop for AVR MCUs (for kilobots)
         //
         uint8_t i = bbzringbuf_size(&vm->neighbors.rb);

@@ -9,9 +9,10 @@ void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 void err_receiver(bbzvm_error errcode) {
     set_motors(0,0);
     uint8_t i;
-    for (i = 4; i; --i) {
-        ___led(RGB(1,2,0));
-    }
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
     delay(300);
 #if 1
     for (i = 4; i; --i) {
@@ -35,8 +36,6 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {
@@ -72,7 +71,8 @@ void bbz_abs() {
     bbzvm_assert_lnum(1);
 
     bbzvm_push(bbzvm_lsym_at(1));
-    bbzheap_obj_at(bbzvm_stack_at(0))->i.value = bbzheap_obj_at(bbzvm_stack_at(0))->i.value < 0 ? -bbzheap_obj_at(bbzvm_stack_at(0))->i.value : bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
+    int16_t* x = &bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
+    *x = *x < 0 ? -*x : *x;
 
     bbzvm_ret1();
 }
@@ -83,24 +83,6 @@ void setup() {
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
     bbzvm_function_register(BBZSTRING_ID(abs), bbz_abs);
-//    set_color(RGB(3,0,0));
-//    delay(75);
-//    set_color(RGB(2,0,1));
-//    delay(75);
-//    set_color(RGB(1,0,2));
-//    delay(75);
-//    set_color(RGB(0,0,3));
-//    delay(75);
-//    set_color(RGB(0,1,2));
-//    delay(75);
-//    set_color(RGB(0,2,1));
-//    delay(75);
-//    set_color(RGB(0,3,0));
-//    delay(75);
-//    set_color(RGB(1,2,0));
-//    delay(75);
-//    set_color(RGB(2,1,0));
-//    delay(75);
 }
 
 int main() {

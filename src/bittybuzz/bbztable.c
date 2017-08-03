@@ -109,8 +109,8 @@ uint8_t bbztable_set(bbzheap_idx_t t,
                 uint16_t pi = bbzheap_obj_at(t)->t.value;
                 bbzheap_tseg_t* pd = bbzheap_tseg_at(pi);
                 while(bbzheap_tseg_next_get(pd) != si) {
-                pi = bbzheap_tseg_next_get(pd);
-                pd = bbzheap_tseg_at(pi);
+                    pi = bbzheap_tseg_next_get(pd);
+                    pd = bbzheap_tseg_at(pi);
                 }
                 /* Set the next of the preceding to the next of current */
                 bbzheap_tseg_next_set(pd, bbzheap_tseg_next_get(sd));

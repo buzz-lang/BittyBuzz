@@ -58,7 +58,6 @@ uint8_t kilo_straight_right;
 //uint16_t kilo_irhigh[14];
 //uint16_t kilo_irlow[14];
 bbzvm_t kilo_vmObj;
-uint16_t bbzkilo_bcodesize;
 message_t bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
 bbzmsg_payload_t bbz_payload_buf;
@@ -121,7 +120,6 @@ void bbzkilo_init() {
 //        kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
 //    }
     vm = &kilo_vmObj;
-    bbzkilo_bcodesize = pgm_read_word((uint16_t)&bcode_size);
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
     kilo_state = SETUP;
@@ -245,6 +243,7 @@ void bbzkilo_start(void (*setup)(void)) {
     while (1) {
         switch(kilo_state) {
             case SLEEPING:
+#ifndef DEBUG
                 do{}while(0);cli();
                 acomp_off();
                 adc_off();
@@ -271,6 +270,7 @@ void bbzkilo_start(void (*setup)(void)) {
                     delay(100);
                 }
                 set_color(RGB(0,0,0));
+#endif
                 break;
             case IDLE:
                 set_color(RGB(0,3,0));
@@ -301,7 +301,7 @@ void bbzkilo_start(void (*setup)(void)) {
             case SETUP:
                 if (!has_setup) {
                     bbzvm_construct(kilo_uid);
-                    bbzvm_set_bcode(bbzkilo_bcodeFetcher, bbzkilo_bcodesize);
+                    bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
                     setup();
                     has_setup = 1;
                 }
@@ -353,6 +353,7 @@ void bbzkilo_start(void (*setup)(void)) {
         }
     }
 }
+#ifndef DEBUG
 //// Ensure that wdt is inactive after system reset.
 void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
 
@@ -368,6 +369,7 @@ void wdt_init(void) {
 ISR(WDT_vect) {
     wdt_disable();
 }
+#endif
 #define JUMPTO_PASTER(addr) do{}while(0); __asm__ __volatile__("jmp "#addr"\n\t")
 #define JUMPTO(addr) JUMPTO_PASTER(addr)
 static inline void bbzprocess_message() {
@@ -657,6 +659,7 @@ ISR(TIMER1_COMPA_vect) {
     adc_trigger_high_gain();
 }
 
+#ifndef DEBUG
 /**
  * Analog comparator trigger interrupt.
  * Triggerred for incoming IR pulses (i.e. individual bits).
@@ -721,3 +724,4 @@ ISR(ANALOG_COMP_vect) {
         }
     }
 }
+#endif

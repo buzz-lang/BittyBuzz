@@ -7,6 +7,7 @@
 
 bbzvm_t vmObj;
 
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES)
 TEST(m_serialize8) {
     uint8_t buf[4];
     bbzringbuf_t rb;
@@ -236,8 +237,10 @@ TEST(m_in_queue_first) {
     ASSERT_EQUAL((uint8_t)(msg->bc.value.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_MASK_OBJ_VALID));
     ASSERT_EQUAL((uint16_t)msg->bc.value.u.value, (uint16_t)obj1.u.value);
 }
+#endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_NEIGHBORS && !BBZ_DISABLE_VSTIGS && !BBZ_DISABLE_MESSAGES
 
 TEST_LIST {
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES)
     ADD_TEST(m_serialize8);
     ADD_TEST(m_deserialize8);
     ADD_TEST(m_serialize16);
@@ -246,4 +249,5 @@ TEST_LIST {
     ADD_TEST(m_out_queue_first);
     ADD_TEST(m_in_append);
     ADD_TEST(m_in_queue_first);
+#endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_NEIGHBORS && !BBZ_DISABLE_VSTIGS && !BBZ_DISABLE_MESSAGES
 }

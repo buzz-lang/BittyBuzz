@@ -90,10 +90,6 @@ extern "C" {
         /* Current VM error message */
         // TODO ... maybe not?
         bbzrobot_id_t robot;       /**< @brief This robot's id */
-        /* Random number generator state */
-        // TODO
-        /* Random number generator index */
-        // TODO
 #ifdef DEBUG
         int16_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
         bbzvm_instr instr;         /**< @brief Current instruction */
@@ -164,7 +160,7 @@ extern "C" {
     /**
      * @brief Runs the VM's garbage collector.
      */
-    uint8_t bbzvm_gc();
+    void bbzvm_gc();
 
     /**
      * @brief Executes the next step in the bytecode, if possible.
@@ -669,15 +665,7 @@ extern "C" {
      * @param[in] tpe The type to check.
      */
     #define bbzvm_assert_type(idx, tpe)                                 \
-        {                                                               \
-            bbzobj_t* o = bbzheap_obj_at(idx);                          \
-            if (bbztype(*o) != tpe                                      \
-    			&& !(!((tpe & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)      \
-    			|| bbztype_isclosure(*o))) {                            \
-                bbzvm_seterror(BBZVM_ERROR_TYPE);                       \
-                return;                                                 \
-            }                                                           \
-        }
+        bbzvm_assert_exec(bbztype_is(*bbzheap_obj_at(idx), tpe), BBZVM_ERROR_TYPE)
 
     /**
      * @brief Allocate memory on the heap. If the heap is out of memory,
@@ -703,11 +691,11 @@ extern "C" {
     #define bbzvm_assert_state(...)                                     \
         if(vm->state == BBZVM_STATE_ERROR) return __VA_ARGS__
 
-    #define bbzvm_get(arg, TYPE) ({             \
-        bbzvm_push ## TYPE(arg);                \
-        bbzheap_idx_t __tmp = bbzvm_stack_at(0);\
-        bbzvm_pop();                            \
-        (bbzheap_idx_t)__tmp;                   \
+    #define bbzvm_get(arg, TYPE) ({                                     \
+        bbzvm_push ## TYPE(arg);                                        \
+        bbzheap_idx_t __tmp = bbzvm_stack_at(0);                        \
+        bbzvm_pop();                                                    \
+        (bbzheap_idx_t)__tmp;                                           \
     })
 
 

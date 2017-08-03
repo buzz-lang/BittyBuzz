@@ -14,17 +14,34 @@
 extern "C" {
 #endif // __cplusplus
 
-/*
- * Object types in BittyBuzz
+#define BBZTYPE_TYPEDEP_FLAG1 1
+#define BBZTYPE_TYPEDEP_FLAG2 0
+
+#define BBZCLOSURE_NATIVE_MASK (1 << BBZTYPE_TYPEDEP_FLAG1)
+#define BBZCLOSURE_LAMBDA_MASK (1 << BBZTYPE_TYPEDEP_FLAG2)
+
+#define BBZTABLE_DARRAY_MASK (1 << BBZTYPE_TYPEDEP_FLAG1)
+#define BBZTABLE_DARRAY_SWARM_MASK (1 << BBZTYPE_TYPEDEP_FLAG2)
+
+/**
+ * @brief Object types in BittyBuzz
  */
-#define BBZTYPE_NIL      ((uint8_t)0) /**< @def a @brief Nil type. */
-#define BBZTYPE_INT      ((uint8_t)1) /**< @def Integer type. */
-#define BBZTYPE_FLOAT    ((uint8_t)2) /**< @def Float type. */
-#define BBZTYPE_STRING   ((uint8_t)3) /**< @def String type. */
-#define BBZTYPE_TABLE    ((uint8_t)4) /**< @def Table type. */
-#define BBZTYPE_CLOSURE  ((uint8_t)5) /**< @def Closure type. */
-#define BBZTYPE_USERDATA ((uint8_t)6) /**< @def User-data type. */
-#define BBZTYPE_NCLOSURE ((uint8_t)7) /**< @def Native closure type. */
+typedef enum bbztype_t {
+    BBZTYPE_NIL = 0,    /**< @def a @brief Nil type. */
+    BBZTYPE_INT,        /**< @def Integer type. */
+    BBZTYPE_FLOAT,      /**< @def Float type. */
+    BBZTYPE_STRING,     /**< @def String type. */
+    BBZTYPE_TABLE,      /**< @def Table type. */
+    BBZTYPE_CLOSURE,    /**< @def Closure type. */
+    BBZTYPE_USERDATA,   /**< @def User-data type. */
+} bbztype_t;
+//#define BBZTYPE_NIL      ((uint8_t)0) /**< @def a @brief Nil type. */
+//#define BBZTYPE_INT      ((uint8_t)1) /**< @def Integer type. */
+//#define BBZTYPE_FLOAT    ((uint8_t)2) /**< @def Float type. */
+//#define BBZTYPE_STRING   ((uint8_t)3) /**< @def String type. */
+//#define BBZTYPE_TABLE    ((uint8_t)4) /**< @def Table type. */
+//#define BBZTYPE_CLOSURE  ((uint8_t)5) /**< @def Closure type. */
+//#define BBZTYPE_USERDATA ((uint8_t)6) /**< @def User-data type. */
 
 /**
  * @brief Nil type
@@ -71,8 +88,7 @@ typedef struct PACKED {
 typedef struct PACKED {
     /**
      * @brief Object metadata.
-     * @details 3rd bit: 1 if is dynamic array,
-     * 2nd bit: 1 if elements need invalidation on array destroy
+     * @details 2nd bit: 1 if is dynamic array
      */
     uint8_t mdata;
     /**
@@ -88,7 +104,7 @@ typedef struct PACKED {
     /**
      * @brief Object metadata.
      * @details 7th topmost bit: 'native' flag.
-     *          3rd topmost bit: 'lambda' flag.
+     *          2nd topmost bit: 'lambda' flag.
      */
     uint8_t mdata;
     void (*value)(); /**< @brief Closure object's value. */
@@ -189,70 +205,88 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @param[in,out] obj  The object.
  * @param[in] type The type.
  */
-#define bbztype_cast(obj, type) (obj).mdata = (((obj).mdata & 0x1F) | ((type) << 5))
+#define bbztype_cast(obj, type) {(obj).mdata = (((obj).mdata & ~(0x07 << 5)) | ((type) << 5));}
+
+/**
+ * @brief Copy the type from the source object to the destination object
+ * @param[in]   src  The source object from which the type will be copied.
+ * @param[out]  dest The destination object to which the type will be copied.
+ */
+#define bbztype_copy(src, dest) {(dest).mdata = ((dest).mdata & ~(0x07 << 5)) | ((src).mdata & (0x07 << 5));}
+
+/**
+ * @brief Returns 1 if an object is of the specified type, 0 otherwise.
+ * @param[in] obj  The object.
+ * @param[in] type The type to assert.
+ * @return 1 if an object is of the specified type, 0 otherwise.
+ */
+#define bbztype_is(obj, type) (((obj).mdata & (0x07 << 5)) == (type) << 5)
 
 /**
  * @brief Returns 1 if an object is nil, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isnil(obj) (bbztype(obj) == BBZTYPE_NIL)
+#define bbztype_isnil(obj) bbztype_is(obj, BBZTYPE_NIL)
 
 /**
  * @brief Returns 1 if an object is int, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isint(obj) (bbztype(obj) == BBZTYPE_INT)
+#define bbztype_isint(obj) bbztype_is(obj, BBZTYPE_INT)
 
 /**
  * @brief Returns 1 if an object is float, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isfloat(obj) (bbztype(obj) == BBZTYPE_FLOAT)
+#define bbztype_isfloat(obj) bbztype_is(obj, BBZTYPE_FLOAT)
 
 /**
  * @brief Returns 1 if an object is string, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isstring(obj) (bbztype(obj) == BBZTYPE_STRING)
+#define bbztype_isstring(obj) bbztype_is(obj, BBZTYPE_STRING)
 
 /**
  * @brief Returns 1 if an object is table, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_istable(obj) (bbztype(obj) == BBZTYPE_TABLE)
+#define bbztype_istable(obj) bbztype_is(obj, BBZTYPE_TABLE)
 
 /**
  * @brief Returns 1 if an object is dynamic array, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isdarray(obj) (bbztype(obj) == BBZTYPE_TABLE && ((obj).mdata & 0x04))
+#define bbztype_isdarray(obj) (bbztype_istable(obj) && ((obj).mdata & BBZTABLE_DARRAY_MASK))
 
 /**
  * @brief Returns 1 if an object is closure, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isclosure(obj) ((bbztype(obj) & BBZTYPE_CLOSURE) == BBZTYPE_CLOSURE)
+#define bbztype_isclosure(obj) bbztype_is(obj, BBZTYPE_CLOSURE)
 
 /**
  * @brief Returns 1 if an object is userdata, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isuserdata(obj) (bbztype(obj) == BBZTYPE_USERDATA)
+#define bbztype_isuserdata(obj) bbztype_is(obj, BBZTYPE_USERDATA)
 
 /**
- * @brief Returns 1 if a closure is native, 0 otherwise.
+ * @brief Returns non-0 if a closure is native, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isclosurenative(obj) ((obj).c.mdata & 0x40)
+#define bbztype_isclosurenative(obj) ((obj).mdata & BBZCLOSURE_NATIVE_MASK)
+
+#define bbzclosure_make_native(obj) do{(obj).mdata |= BBZCLOSURE_NATIVE_MASK;}while(0)
+#define bbzclosure_unmake_native(obj) do{(obj).mdata &= ~BBZCLOSURE_NATIVE_MASK;}while(0)
 
 /**
- * @brief Returns 1 if a closure is a lambda closure, 0 otherwise.
+ * @brief Returns non-0 if a closure is a lambda closure, 0 otherwise.
  * @param[in] obj The object.
  */
-#define bbztype_isclosurelambda(obj) ((obj).c.mdata & 0x04)
+#define bbztype_isclosurelambda(obj) ((obj).mdata & BBZCLOSURE_LAMBDA_MASK)
 
-#define bbzclosure_make_lambda(obj) ((obj).l.mdata |= 0x04)
-#define bbzclosure_unmake_lambda(obj) ((obj).l.mdata &= ~0x04)
+#define bbzclosure_make_lambda(obj) do{(obj).mdata |= BBZCLOSURE_LAMBDA_MASK;}while(0)
+#define bbzclosure_unmake_lambda(obj) do{(obj).mdata &= ~BBZCLOSURE_LAMBDA_MASK;}while(0)
 
 #ifdef __cplusplus
 }

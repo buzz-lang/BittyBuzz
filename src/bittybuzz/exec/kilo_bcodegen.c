@@ -132,8 +132,9 @@ int main(int argc, char** argv) {
 
     fprintf(f_out, "#ifndef KILOBCODEGEN_H\n");
     fprintf(f_out, "#define KILOBCODEGEN_H\n\n");
-    fprintf(f_out, "#include <inttypes.h>\n\n");
-    fprintf(f_out, "__attribute__((section(\".bcode.data\"))) "
+    fprintf(f_out, "#include <inttypes.h>\n");
+    fprintf(f_out, "#include <avr/pgmspace.h>\n\n");
+    fprintf(f_out, "/*__attribute__((section(\".bcode.data\")))*/ PROGMEM "
             "// Write bytecode inside the flash\n");
     fprintf(f_out, "const uint8_t bcode[] = {");
 
@@ -153,7 +154,7 @@ int main(int argc, char** argv) {
     }
 
     fprintf(f_out, "};\n\n");
-    fprintf(f_out, "__attribute__((section(\".bcode.size\"))) __attribute__((used))\n");
+    fprintf(f_out, "/*__attribute__((section(\".bcode.size\")))*/ PROGMEM __attribute__((used))\n");
     fprintf(f_out, "const uint16_t bcode_size = %d;\n\n", (unsigned int)bcode_size);
 
     FILE* f_obj = fopen(argv[1], "rb");

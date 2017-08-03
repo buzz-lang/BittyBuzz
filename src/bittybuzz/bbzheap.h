@@ -107,7 +107,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o);
 
 #define BBZHEAP_MASK_OBJ_VALID (uint8_t)0x10
-#define BBZHEAP_MASK_PERMANENT (uint8_t)0x01
+#define BBZHEAP_MASK_PERMANENT (uint8_t)0x04
 
 /**
  * @brief Returns a pointer located at position i within the heap.
@@ -135,7 +135,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  * @param[in] x The index of the object to check the permanence.
  * @return non-zero if the object is permanent.
  */
-#define bbzheap_obj_ispermanent(x) ((x).mdata&BBZHEAP_MASK_PERMANENT)
+#define bbzheap_obj_ispermanent(x) ((x).mdata & BBZHEAP_MASK_PERMANENT)
 
 /**
  * @brief Make an object permanent.

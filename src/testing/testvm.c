@@ -71,8 +71,8 @@ void bbzvm_skip_instr() {
 void set_last_error(bbzvm_error errcode) {
     last_error = errcode;
 #ifdef DEBUG
-    bbzheap_print();
     printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", state_desc[vm->state], vm->dbg_pc, instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)], error_desc[vm->error]);
+    bbzheap_print();
 #endif
 }
 
@@ -105,7 +105,6 @@ void printIntVal() {
     bbzvm_assert_lnum(1);
     bbzheap_idx_t idx = bbzvm_lsym_at(1);
     printf("#%d taken as integer: %d\n", idx, bbzvm_obj_at(idx)->i.value);
-    bbzvm_pop();
     return bbzvm_ret0();
 }
 
@@ -134,7 +133,6 @@ void logfunc() {
             case BBZTYPE_STRING:
                 //printf("[s]%d", (o->s.value));
                 break;
-            case BBZTYPE_NCLOSURE: // fallthrough
             case BBZTYPE_CLOSURE:
                 if (bbztype_isclosurelambda(*o))
                     printf("[cl]%d", o->l.value.ref);
@@ -556,7 +554,13 @@ TEST(all) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(vm->state == BBZVM_STATE_READY) {
 #ifdef DEBUG
-        printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);
+        uint8_t instr = *vm->bcode_fetch_fun(vm->pc,1);
+        if (instr > BBZVM_INSTR_CALLS) {
+            printf("[%d: %s %d]\n", vm->pc, instr_desc[instr], *(int16_t*)vm->bcode_fetch_fun(vm->pc+1,2));
+        }
+        else {
+            printf("[%d: %s]\n", vm->pc, instr_desc[instr]);
+        }
 #endif
         bbzvm_step();
     }
@@ -591,7 +595,13 @@ TEST(all) {
 
     while (vm->state == BBZVM_STATE_READY) {
 #ifdef DEBUG
-        printf("[%d: %s]\n", vm->pc, instr_desc[*vm->bcode_fetch_fun(vm->pc,1)]);
+        uint8_t instr = *vm->bcode_fetch_fun(vm->pc,1);
+        if (instr > BBZVM_INSTR_CALLS) {
+            printf("[%d: %s %d]\n", vm->pc, instr_desc[instr], *(int16_t*)vm->bcode_fetch_fun(vm->pc+1,2));
+        }
+        else {
+            printf("[%d: %s]\n", vm->pc, instr_desc[instr]);
+        }
 #endif
         bbzvm_step();
         ASSERT(vm->state != BBZVM_STATE_ERROR);
@@ -629,8 +639,8 @@ TEST(vm_message_processing) {
 
     bbzvm_process_inmsgs();
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    ASSERT_EQUAL(!!bbzinmsg_queue_isempty(), !!1);
-    ASSERT_EQUAL(bbzinmsg_queue_size(), 0);
+    ASSERT(bbzinmsg_queue_isempty());
+    REQUIRE(bbzinmsg_queue_size() == 0);
     ASSERT_EQUAL(vm->vstig.data[0].robot, 42);
     ASSERT_EQUAL(vm->vstig.data[0].key, __BBZSTRID_put);
     ASSERT_EQUAL(bbztype(*bbzheap_obj_at(vm->vstig.data[0].value)), BBZTYPE_INT);

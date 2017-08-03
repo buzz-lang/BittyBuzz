@@ -13,6 +13,9 @@
 void bbzheap_clear() {
     vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
     vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
+    for(int16_t i = (RESERVED_ACTREC_MAX-1)* sizeof(bbzobj_t); i >= 0; --i) {
+        vm->heap.data[i] = 0;
+    }
 }
 
 /****************************************/
@@ -214,20 +217,16 @@ void bbzheap_gc(bbzheap_idx_t* st,
         }
     }
     /* Move rightmost object pointer as far left as possible */
-    for(i = qot;
-        i >= RESERVED_ACTREC_MAX;
-        --i)
-        if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i)))
-            vm->heap.rtobj -= sizeof(bbzobj_t);
-        else
+    for(;
+        vm->heap.rtobj > vm->heap.data + RESERVED_ACTREC_MAX*sizeof(bbzobj_t);
+        vm->heap.rtobj -= sizeof(bbzobj_t))
+        if(bbzheap_obj_isvalid(*(bbzobj_t*)(vm->heap.rtobj - sizeof(bbzobj_t))))
             break;
     /* Move leftmost table segment pointer as far right as possible */
-    for(i = qot2;
-        i >= 0;
-        --i) {
-        if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i)))
-            vm->heap.ltseg += sizeof(bbzheap_tseg_t);
-        else
+    for(;
+        vm->heap.ltseg < vm->heap.data + BBZHEAP_SIZE;
+        vm->heap.ltseg += sizeof(bbzheap_tseg_t)) {
+        if(bbzheap_tseg_isvalid(*(bbzheap_tseg_t*)vm->heap.ltseg))
             break;
     }
 }
@@ -235,10 +234,9 @@ void bbzheap_gc(bbzheap_idx_t* st,
 /****************************************/
 /****************************************/
 
-#ifdef DEBUG
 #ifndef BBZCROSSCOMPILING
 
-static const char* bbzvm_types_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata", "native closure" };
+static const char* bbzvm_types_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata" };
 
 #define obj_isvalid(x) ((x).mdata & 0x10)
 
@@ -270,7 +268,6 @@ void bbzheap_print() {
                 case BBZTYPE_USERDATA:
                     printf(" %" PRIXPTR, bbzheap_obj_at(i)->u.value);
                     break;
-                case BBZTYPE_NCLOSURE: // fallthrough
                 case BBZTYPE_CLOSURE:
                     if (bbztype_isclosurelambda(*bbzheap_obj_at(i)))
                         printf("[l] %d", (uint8_t)bbzheap_obj_at(i)->l.value.ref);
@@ -305,4 +302,3 @@ void bbzheap_print() {
     printf("\n");
 }
 #endif // !BBZCROSSCOMPILING
-#endif // DEBUG
