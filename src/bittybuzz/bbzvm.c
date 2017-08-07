@@ -11,6 +11,7 @@ void bbzvm_process_inmsgs() {
     uint8_t count = 0;
     while(!bbzinmsg_queue_isempty() && count++ < BBZMSG_IN_PROC_MAX) {
         bbzvm_gc();
+        bbzvm_assert_state();
         /* Extract the message data */
         bbzmsg_t* msg = bbzinmsg_queue_extract();
         switch(msg->type) {
@@ -55,6 +56,9 @@ void bbzvm_clear_stack() {
     }
 }
 
+extern char* _state_desc[];
+extern char* _error_desc[];
+extern char* _instr_desc[];
 #if defined(DEBUG) && !defined(BBZ_XTREME_MEMORY)
 char* _state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_STOPPED", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR",
                        "BBZVM_STATE_COUNT"};
@@ -67,13 +71,13 @@ char* _instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "
                        "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
 #endif // defined(DEBUG) && !defined(BBZ_XTREME_MEMORY)
 
-ALWAYS_INLINE
-void dftl_error_receiver(bbzvm_error errcode) {
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+ALWAYS_INLINE void dftl_error_receiver(bbzvm_error errcode) {
 #ifdef DEBUG
     bbzheap_print();
 #ifndef BBZ_XTREME_MEMORY
     printf("VM:\n\tstate: %s\n\tpc: %d\n\tinstr: %s\n\terror state: %s\n", _state_desc[vm->state], vm->dbg_pc,
-           vm->bcode_fetch_fun ? _instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)] : "N/A", _error_desc[vm->error]);
+           vm->bcode_fetch_fun ? _instr_desc[*vm->bcode_fetch_fun(vm->dbg_pc, 1)] : "N/A", _error_desc[errcode]);
 #endif // !BBZ_XTREME_MEMORY
 #endif // DEBUG
 }
@@ -150,7 +154,6 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
     // 1) Reset the VM
     vm->state = BBZVM_STATE_READY;
     vm->error = BBZVM_ERROR_NONE;
-    vm->pc = 0;
 
     // 2) Set the bytecode
     vm->bcode_fetch_fun = bcode_fetch_fun;
@@ -171,7 +174,7 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
 /****************************************/
 /****************************************/
 
-#define assert_pc(IDX) if((IDX) < 0 || (IDX) > vm->bcode_size) { bbzvm_seterror(BBZVM_ERROR_PC); return; }
+#define assert_pc(IDX) if((IDX) > vm->bcode_size) { bbzvm_seterror(BBZVM_ERROR_PC); return; }
 
 #define inc_pc() assert_pc(vm->pc); ++vm->pc;
 
@@ -186,7 +189,7 @@ void bbzvm_gc() {
  */
 //ALWAYS_INLINE
 static void bbzvm_exec_instr() {
-    int16_t instrOffset = vm->pc; // Save PC in case of error or DONE.
+    bbzpc_t instrOffset = vm->pc; // Save PC in case of error or DONE.
 
     uint8_t instr = *(*vm->bcode_fetch_fun)(vm->pc, 1);
 #ifdef DEBUG
@@ -454,23 +457,25 @@ static int16_t mul(int16_t lhs, int16_t rhs) { return lhs * rhs; }
 static int16_t div(int16_t lhs, int16_t rhs) { return lhs / rhs; }
 static int16_t mod(int16_t lhs, int16_t rhs) { return lhs % rhs; }
 static int16_t bbzpow(int16_t lhs, int16_t rhs) {
+    int16_t ret;
     if (rhs >= 0) {
         int32_t res = 1;
-        for (uint16_t i = rhs-1; i; --i) {
+        while (rhs--) {
             res *= lhs;
         }
-        return (int16_t)res;
+        ret = (int16_t)res;
     }
     else if (lhs == 1) {
-        return 1;
+        ret = 1;
     }
     else if (lhs == -1) {
-        return -1;
+        ret = -1;
     }
     else {
         bbzvm_seterror(BBZVM_ERROR_MATH);
-        return 0;
+        ret = 0;
     }
+    return ret;
 }
 
 /****************************************/
@@ -851,7 +856,7 @@ void bbzvm_call(uint8_t isswrm) {
     /* Add function arguments to the local symbols */
     /* and */
     /* Get rid of the function arguments */
-    int16_t i;
+    uint16_t i;
     for (i = argn; i; --i) {
         bbzdarray_push(vm->lsyms, bbzvm_stack_at(i - (uint16_t)1));
     }
@@ -864,22 +869,22 @@ void bbzvm_call(uint8_t isswrm) {
     bbzvm_assert_state();
     /* Push block pointer */
     bbzvm_pushi(vm->blockptr);
-    vm->blockptr = vm->stackptr;
     bbzvm_assert_state();
+    vm->blockptr = vm->stackptr;
     /* Jump to/execute the function */
     if (bbztype_isclosurenative(*c)) {
         if (bbztype_isclosurelambda(*c)) {
-            bbzdarray_get(vm->flist, c->l.value.ref, (uint16_t*)&i);
-            i = bbzvm_obj_at((uint16_t)i)->i.value;
+            bbzdarray_get(vm->flist, c->l.value.ref, &i);
+            i = (uint16_t)bbzvm_obj_at((uint16_t)i)->i.value;
         }
         else {
-            i = (int16_t)c->i.value;
+            i = (uint16_t)c->i.value;
         }
         vm->pc = i;
     }
     else {
         if (bbztype_isclosurelambda(*c)) {
-            bbzdarray_get(vm->flist, c->l.value.ref, (uint16_t*)&i);
+            bbzdarray_get(vm->flist, c->l.value.ref, &i);
             ((bbzvm_funp)bbzvm_obj_at((uint16_t)i)->u.value)();
         }
         else {
@@ -972,7 +977,7 @@ void bbzvm_pushs(uint16_t strid) {
     bbzobj_t tmp = {0};
     bbztype_cast(tmp, BBZTYPE_STRING);
     tmp.s.value = strid;
-    for (o = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; o >= RESERVED_ACTREC_MAX; --o) {
+    for (o = (bbzheap_idx_t)(vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t) - 1; o >= RESERVED_ACTREC_MAX; --o) {
         if (bbzheap_obj_isvalid(*bbzheap_obj_at(o)) &&
             bbztype_isstring(*bbzheap_obj_at(o)) &&
             bbztype_cmp(&tmp, bbzheap_obj_at(o)) == 0) {
@@ -1108,7 +1113,6 @@ void bbzvm_gload() {
     else {
         bbzvm_pushnil();
     }
-    bbzvm_assert_state();
 }
 
 /****************************************/
@@ -1144,8 +1148,6 @@ void bbzvm_ret0() {
     vm->stackptr = vm->blockptr;
     vm->blockptr = bbzvm_obj_at(vm->stack[vm->stackptr])->i.value;
     bbzvm_pop();
-    /* Make sure the stack contains at least one element */
-    bbzvm_assert_stack(1);
     /* Pop local symbol table */
     bbzheap_obj_remove_permanence(*bbzheap_obj_at(vm->lsyms));
     bbzdarray_destroy(vm->lsyms);
@@ -1156,7 +1158,7 @@ void bbzvm_ret0() {
     /* Make sure that element is an integer */
     bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
     /* Use that element as program counter */
-    vm->pc = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
+    vm->pc = (bbzpc_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */
     bbzvm_pop();
 }
@@ -1187,7 +1189,7 @@ void bbzvm_ret1() {
     /* Make sure that element is an integer */
     bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
     /* Use that element as program counter */
-    vm->pc = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
+    vm->pc = (bbzpc_t)bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */
     bbzvm_pop();
     /* Push the return value */

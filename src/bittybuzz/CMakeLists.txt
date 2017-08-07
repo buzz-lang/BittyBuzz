@@ -1,6 +1,5 @@
 use_native_compiler()
 
-#file(GLOB BBZ_HEADERS "*.h")
 set(BBZ_HEADERS
         bbzdarray.h
         bbzenums.h
@@ -22,7 +21,6 @@ set(BBZ_HEADERS
         bbzvstig.h
         config.h
 )
-#file(GLOB BBZ_SOURCES "*.c")
 set(BBZ_SOURCES
         bbzdarray.c
         bbzfloat.c

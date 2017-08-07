@@ -7,9 +7,10 @@ void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 void err_receiver(bbzvm_error errcode) {
     set_motors(0,0);
     uint8_t i;
-    for (i = 4; i; --i) {
-        ___led(RGB(1,2,0));
-    }
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
     delay(300);
 #if 1
     for (i = 4; i; --i) {
@@ -33,8 +34,6 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {
@@ -61,40 +60,12 @@ void bbz_min() {
     bbzvm_ret1();
 }
 
-void bbz_show_dist() {
-    bbzvm_assert_lnum(1);
-    const int16_t dist = bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
-    if (dist > 500) {
-        set_color(RGB(2,0,2));
-    }
-    else if (dist > 400) {
-        set_color(RGB(0,0,2));
-    }
-    else if (dist > 300) {
-        set_color(RGB(0,2,1));
-    }
-    else if (dist > 200) {
-        set_color(RGB(0,3,0));
-    }
-    else if (dist > 100) {
-        set_color(RGB(1,2,0));
-    }
-    else if (dist > -1) {
-        set_color(RGB(2,0,0));
-    }
-    else {
-        set_color(0);
-    }
-    bbzvm_ret0();
-}
-
 #define funreg_PASTER(NAME) bbzvm_function_register(BBZSTRING_ID(NAME), bbz_ ## NAME);
 #define funreg(NAME) funreg_PASTER(NAME)
 void setup() {
     bbzvm_set_error_receiver(err_receiver);
     funreg(led);
     funreg(delay);
-//    funreg(show_dist);
     bbzvm_pusht(); // "math"
     bbztable_add_function(BBZSTRING_ID(min), bbz_min);
     bbzvm_gsym_register(BBZSTRING_ID(math), bbzvm_stack_at(0));

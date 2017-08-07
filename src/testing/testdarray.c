@@ -177,6 +177,8 @@ TEST(da_clone) {
 }
 
 void foreach(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params) {
+    RM_UNUSED_WARN(darray);
+    RM_UNUSED_WARN(params);
     ((bbzint_t*)bbzheap_obj_at(pos))->value += 20;
 }
 

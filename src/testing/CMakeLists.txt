@@ -5,17 +5,23 @@
 # Adds all executables in the testing directory and adds them as
 # test executables.
 function(add_tests)
-#    file(GLOB test_sources "*.c")
     set(test_sources
             testdarray.c
             testfloat.c
             testheap.c
             testmsgs.c
-            testneighbors.c
             testringbuf.c
             testvm.c
-            testvstig.c
     )
+
+    if (NOT BBZ_DISABLE_MESSAGES)
+        if (NOT BBZ_DISABLE_NEIGHBORS)
+            set(test_sources ${test_sources} testneighbors.c)
+        endif (NOT BBZ_DISABLE_NEIGHBORS)
+        if (NOT BBZ_DISABLE_VSTIGS)
+            set(test_sources ${test_sources} testvstig.c)
+        endif (NOT BBZ_DISABLE_VSTIGS)
+    endif (NOT BBZ_DISABLE_MESSAGES)
 
     foreach(test_source ${test_sources})
         get_filename_component(test_executable ${test_source} NAME_WE)

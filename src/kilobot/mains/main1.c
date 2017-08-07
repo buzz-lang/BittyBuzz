@@ -1,5 +1,3 @@
-#include <avr/pgmspace.h>
-
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
 
@@ -34,17 +32,13 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
     uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
-    //set_led(color);
     set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
-    //bin_count(color, 1);
 #endif
     bbzvm_ret0();
 }
@@ -78,24 +72,6 @@ void setup() {
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(set_motor), bbz_setmotor);
 //    bbzvm_function_register(BBZSTRING_ID(rand), bbz_rand);
-    set_color(RGB(3,0,0));
-    delay(75);
-    set_color(RGB(2,0,1));
-    delay(75);
-    set_color(RGB(1,0,2));
-    delay(75);
-    set_color(RGB(0,0,3));
-    delay(75);
-    set_color(RGB(0,1,2));
-    delay(75);
-    set_color(RGB(0,2,1));
-    delay(75);
-    set_color(RGB(0,3,0));
-    delay(75);
-    set_color(RGB(1,2,0));
-    delay(75);
-    set_color(RGB(2,1,0));
-    delay(75);
     rand_seed(rand_hard());
 //    delay((rand_soft()>>1) +1);
 }

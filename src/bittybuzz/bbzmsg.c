@@ -1,6 +1,5 @@
 #include "bbzmsg.h"
 #include "bbzutil.h"
-#include "bbztype.h"
 
 #ifndef BBZ_DISABLE_MESSAGES
 /****************************************/
@@ -94,9 +93,11 @@ void bbzmsg_process_broadcast(bbzmsg_t* msg) {
     bbzvm_pushu(0);
     bbzobj_t* x = bbzheap_obj_at(bbzvm_stack_at(0));
     bbztype_copy(msg->bc.value, *x);
+    bbzheap_obj_remove_permanence(*x);
     x->biggest.value = msg->bc.value.biggest.value;
     bbzvm_pushi(msg->bc.rid);
     bbzvm_closure_call(3);
+    bbzvm_gc();
 }
 #endif
 
@@ -108,16 +109,6 @@ static uint8_t bbzlamport_isnewer(bbzlamport_t lamport, bbzlamport_t old_lamport
     // This function uses a circular Lamport model (0 == 255 + 1).
     // A Lamport clock is 'newer' than an old Lamport clock if its value
     // is less than 'LAMPORT_THRESHOLD' ticks ahead of the old clock.
-
-    /*/uint8_t lamport_overflow = (uint8_t)((uint16_t)UINT8_MAX - old_lamport < BBZLAMPORT_THRESHOLD);
-    if (lamport_overflow) {
-        return (uint8_t)(lamport > old_lamport ||
-                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
-    }
-    else {
-        return (uint8_t)(lamport > old_lamport &&
-                         lamport <= old_lamport + (uint8_t)BBZLAMPORT_THRESHOLD);
-    }/*/
     return (uint8_t)(((lamport - old_lamport) & 0xFF) < BBZLAMPORT_THRESHOLD);/**/
 }
 void bbzmsg_process_vstig(bbzmsg_t* msg) {
@@ -259,6 +250,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
 
 #ifndef BBZ_DISABLE_SWARMS
 void bbzmsg_process_swarm(bbzmsg_t* msg) {
+    RM_UNUSED_WARN(msg);
     // TODO
 }
 #endif

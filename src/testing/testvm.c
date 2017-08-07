@@ -2,7 +2,7 @@
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
 
-#define NUM_TEST_CASES 2
+#define NUM_TEST_CASES 5
 #define TEST_MODULE vm
 #include "testingconfig.h"
 
@@ -14,6 +14,7 @@ FILE* fbcode;
 uint16_t fsize;
 uint8_t buf[4];
 bbzvm_error last_error;
+static bbzvm_t vmObj;
 
 char* state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_STOPPED", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR"};
 char* error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STACK", "BBZVM_ERROR_LNUM", "BBZVM_ERROR_PC",
@@ -30,7 +31,7 @@ char* instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "A
  * @param[in] size Size of the data to fetch.
  * @return A pointer to the data fetched.
  */
-const uint8_t* testBcode(int16_t offset, uint8_t size) {
+const uint8_t* testBcode(bbzpc_t offset, uint8_t size) {
     if (offset + size - 2 >= fsize) {
         fprintf(stderr, "Trying to read outside of bytecode. Offset: %"
                         PRIu16 ", size: %" PRIu8 ".", offset, size);
@@ -60,7 +61,7 @@ void bbzvm_skip_instr() {
     uint8_t has_operand = (*testBcode(vm->pc, sizeof(uint8_t)) >= BBZVM_INSTR_PUSHF);
     vm->pc += sizeof(uint8_t); // Skip opcode
     if (has_operand) {
-    vm->pc += sizeof(uint16_t); // Skip operand
+        vm->pc += sizeof(uint16_t); // Skip operand
     }
 }
 
@@ -103,8 +104,10 @@ bbzvm_error get_last_error() {
  */
 void printIntVal() {
     bbzvm_assert_lnum(1);
+#ifdef DEBUG
     bbzheap_idx_t idx = bbzvm_lsym_at(1);
     printf("#%d taken as integer: %d\n", idx, bbzvm_obj_at(idx)->i.value);
+#endif
     return bbzvm_ret0();
 }
 
@@ -152,8 +155,10 @@ void bbzvm_log() {
     for (uint16_t i = 0; i < nArg; ++i) {
         bbzvm_lload(nArg - i);
     }
+#ifdef DEBUG
     bbzvm_pushi(nArg);
     logfunc();fflush(stdout);
+#endif
     return bbzvm_ret0();
 }
 
@@ -172,10 +177,10 @@ void bbzvm_dummy() {
 }
 
 int8_t bbzvm_register_functions() {
-    if (bbzvm_function_register(BBZVM_SYMID_LOG, bbzvm_log) < 0) return -1;
-    if (bbzvm_function_register(BBZVM_SYMID_FORWARD, bbzvm_dummy) < 0) return -1;
-    if (bbzvm_function_register(BBZVM_SYMID_STOP, bbzvm_dummy) < 0) return -1;
-    if (bbzvm_function_register(BBZVM_SYMID_TURN, bbzvm_dummy) < 0) return -1;
+    if (bbzvm_function_register(BBZVM_SYMID_LOG, bbzvm_log) == 0) return -1;
+    if (bbzvm_function_register(BBZVM_SYMID_FORWARD, bbzvm_dummy) == 0) return -1;
+    if (bbzvm_function_register(BBZVM_SYMID_STOP, bbzvm_dummy) == 0) return -1;
+    if (bbzvm_function_register(BBZVM_SYMID_TURN, bbzvm_dummy) == 0) return -1;
     return 0;
 }
 
@@ -190,7 +195,6 @@ int8_t bbzvm_register_functions() {
 #define SKIP_JUMP  sizeof(uint8_t) + sizeof(uint16_t)
 
 TEST(all) {
-    bbzvm_t vmObj;
     vm = &vmObj;
 
     // ------------------------
@@ -227,7 +231,7 @@ TEST(all) {
     // 2) Set the bytecode in the VM.
     bbzvm_set_bcode(&testBcode, fsize);
 
-    ASSERT(vm->bcode_fetch_fun == &testBcode);
+    ASSERT_EQUAL((uintptr_t)vm->bcode_fetch_fun, (uintptr_t)&testBcode);
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
@@ -282,7 +286,7 @@ TEST(all) {
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 
     // Save PC for jump tests.
-    uint16_t pushiLabel = vm->pc;
+    bbzpc_t pushiLabel = vm->pc;
 
     // 5) Pushi
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHI);
@@ -321,7 +325,7 @@ TEST(all) {
     vm->pc += SKIP_JUMP;
 
     // Save PC
-    uint16_t jumpzLabel = vm->pc;
+    bbzpc_t jumpzLabel = vm->pc;
 
     // 8) Jumpz when operand is BBZTYPE_NIL. Should jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPZ);
@@ -355,7 +359,7 @@ TEST(all) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm->pc, jumpzLabel + SKIP_JUMP);
+    ASSERT_EQUAL(vm->pc, (typeof(vm->pc))(jumpzLabel + SKIP_JUMP));
 
     // Save PC.
     uint16_t jumpnzLabel = vm->pc;
@@ -378,7 +382,7 @@ TEST(all) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm->pc, jumpnzLabel + SKIP_JUMP);
+    ASSERT_EQUAL(vm->pc, (typeof(vm->pc))(jumpnzLabel + SKIP_JUMP));
 
     // Do the jumpnz again.
     vm->pc = jumpnzLabel;
@@ -389,7 +393,7 @@ TEST(all) {
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
-    ASSERT_EQUAL(vm->pc, jumpnzLabel + SKIP_JUMP);
+    ASSERT_EQUAL(vm->pc, (typeof(vm->pc))(jumpnzLabel + SKIP_JUMP));
 
     // 14) Empty the stack
     while (bbzvm_stack_size() != 0) {
@@ -509,16 +513,32 @@ TEST(all) {
     // -----------------------
 
     bbzvm_destruct();
+    fclose(fbcode);
+}
 
-    // -----------------
-    // - Closure tests -
-    // -----------------
+TEST(vm_construct) {
+    vm = &vmObj;
 
-    // - Set up -
+    uint16_t robot = 0;
     bbzvm_construct(robot);
+
+    ASSERT_EQUAL(vm->pc, 0);
+    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->flist)));
+    ASSERT(bbztype_istable (*bbzvm_obj_at(vm->gsyms)));
+    ASSERT(bbztype_isnil   (*bbzvm_obj_at(vm->nil)));
+    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->dflt_actrec)));
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_NOCODE);
+    ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
+    ASSERT_EQUAL(vm->robot, robot);
+
+    bbzvm_destruct();
+}
+
+TEST(vm_closures) {
+    vm = &vmObj;
+    bbzvm_construct(0);
     bbzvm_set_error_receiver(&set_last_error);
 
-    fclose(fbcode);
     fbcode = fopen(FILE_TEST3, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
@@ -534,7 +554,7 @@ TEST(all) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     bbzheap_idx_t c = bbzvm_function_register(BBZVM_SYMID_LOG, printIntVal);
 
-    REQUIRE(c >= 0);
+    REQUIRE(c > 0);
     ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_CLOSURE);
     ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)printIntVal);
 
@@ -550,7 +570,7 @@ TEST(all) {
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 
-    // D) Execute the rest of the script
+    // D) Execute the rest of the script to check if a call from a buzz script works properly
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(vm->state == BBZVM_STATE_READY) {
 #ifdef DEBUG
@@ -567,50 +587,6 @@ TEST(all) {
     ASSERT(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_destruct();
-
-    // --------------------------
-    // - Script execution tests -
-    // --------------------------
-
-    #if BBZHEAP_SIZE < 2048
-    #warning\
-    Test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
-    on 32 and 64 bit systems. The script execution test will be disabled.
-    #else
-
-    bbzvm_construct(robot);
-    bbzvm_set_error_receiver(&set_last_error);
-
-    fclose(fbcode);
-    fbcode = fopen(FILE_TEST4, "rb");
-    REQUIRE(fbcode != NULL);
-    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
-    fsize = ftell(fbcode);
-    fseek(fbcode, 0, SEEK_SET);
-
-    bbzvm_set_bcode(&testBcode, fsize);
-
-    REQUIRE(vm->state == BBZVM_STATE_READY);
-    REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
-
-    while (vm->state == BBZVM_STATE_READY) {
-#ifdef DEBUG
-        uint8_t instr = *vm->bcode_fetch_fun(vm->pc,1);
-        if (instr > BBZVM_INSTR_CALLS) {
-            printf("[%d: %s %d]\n", vm->pc, instr_desc[instr], *(int16_t*)vm->bcode_fetch_fun(vm->pc+1,2));
-        }
-        else {
-            printf("[%d: %s]\n", vm->pc, instr_desc[instr]);
-        }
-#endif
-        bbzvm_step();
-        ASSERT(vm->state != BBZVM_STATE_ERROR);
-    }
-    ASSERT_EQUAL(vm->state, BBZVM_STATE_DONE);
-    ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-
-    bbzvm_destruct();
-    #endif
     fclose(fbcode);
 }
 
@@ -650,7 +626,53 @@ TEST(vm_message_processing) {
     bbzvm_destruct();
 }
 
+TEST(vm_script_execution) {
+    vm = &vmObj;
+
+    uint16_t robot = 0;
+    bbzvm_construct(robot);
+    bbzvm_set_error_receiver(&set_last_error);
+    fbcode = fopen(FILE_TEST4, "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    fseek(fbcode, 0, SEEK_SET);
+
+    bbzvm_set_bcode(&testBcode, fsize);
+
+    REQUIRE(vm->state == BBZVM_STATE_READY);
+    REQUIRE(bbzvm_register_functions() >= 0); // If this fails, it means that the heap doesn't have enough memory allocated to execute this test.
+
+    while (vm->state == BBZVM_STATE_READY) {
+#ifdef DEBUG
+        uint8_t instr = *vm->bcode_fetch_fun(vm->pc,1);
+        if (instr > BBZVM_INSTR_CALLS) {
+            printf("[%d: %s %d]\n", vm->pc, instr_desc[instr], *(int16_t*)vm->bcode_fetch_fun(vm->pc+1,2));
+        }
+        else {
+            printf("[%d: %s]\n", vm->pc, instr_desc[instr]);
+        }
+#endif
+        bbzvm_step();
+        ASSERT(vm->state != BBZVM_STATE_ERROR);
+    }
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_DONE);
+    ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
 TEST_LIST {
     ADD_TEST(all);
+    ADD_TEST(vm_construct);
+    ADD_TEST(vm_closures);
     ADD_TEST(vm_message_processing);
+    #if BBZHEAP_SIZE < 2048
+    #warning\
+    In test file "testvm.c": Running test of all features requires BBZHEAP_SIZE >= 2048\
+    on 32 and 64 bit systems. The script execution test will be disabled.
+    #else
+    ADD_TEST(vm_script_execution);
+    #endif
 }

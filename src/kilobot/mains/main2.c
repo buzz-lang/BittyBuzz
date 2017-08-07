@@ -1,8 +1,5 @@
-#include <avr/pgmspace.h>
-
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
-
 
 void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 
@@ -42,9 +39,7 @@ void bbz_led() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
     uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
-    //set_led(color);
     set_color(RGB(color&1?3:0, color&2?3:0, color&4?3:0));
-    //bin_count(color, 1);
 #endif
     bbzvm_ret0();
 }

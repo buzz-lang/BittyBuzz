@@ -5,8 +5,8 @@
 #include "bittybuzz/bbzfloat.h"
 
 #define read_write(buf) {\
-    fread(&buf,sizeof(buf),1,f_in);\
-    fwrite(&buf,sizeof(buf),1,f_out);\
+    (void)fread(&buf,sizeof(buf),1,f_in);\
+    (void)fwrite(&buf,sizeof(buf),1,f_out);\
 }
 
 typedef enum {
@@ -113,7 +113,7 @@ void insertTable(dtable* t, void* key, void* element) {
 }
 
 void setTable(dtable *t, void *key, void *element) {
-    for (int i = 0; i < t->keys.used; ++i) {
+    for (unsigned int i = 0; i < t->keys.used; ++i) {
         if(t->cmp(t->keys.array[i], key) == 0) {
             t->values.array[i] = element;
             return;
@@ -123,7 +123,7 @@ void setTable(dtable *t, void *key, void *element) {
 }
 
 void* getTable(dtable* t, void* key) {
-    for (int i = 0; i < t->keys.used; ++i) {
+    for (unsigned int i = 0; i < t->keys.used; ++i) {
         if(t->cmp(t->keys.array[i], key) == 0) {
             return t->values.array[i];
         }
@@ -141,7 +141,7 @@ void freeTable(dtable* t) {
 typedef void (*foreach_func)(void* key, void* value, void* params);
 
 void foreachTable(dtable* t, foreach_func func, void* params) {
-    for (int i = 0; i < t->keys.used; ++i) {
+    for (unsigned int i = 0; i < t->keys.used; ++i) {
         func(t->keys.array[i], t->values.array[i], params);
     }
 }
@@ -162,7 +162,7 @@ void foreachint(void* key, void* value, void* params) {
     fseek(p->f_out, (long)key, SEEK_SET);
     int16_t v = (int16_t)(intptr_t)getTable(p->refs, value);
     fwrite(&v, sizeof(v), 1, p->f_out);
-    /* Prints corresponding addresses from the input file to the output file */
+    /* Prints corresponding addresses from the input file to the output file on the terminal. */
     //printf("%d => %d\n", (int)(intptr_t)value, (int)v);
 }
 
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     read_write(str_cnt);
     char charBuf;
     for(int i = 0; i < str_cnt; ++i) {
-        do fread(&charBuf,1,1,f_in);
+        do (void)fread(&charBuf,1,1,f_in);
         while (charBuf != 0);
     }
     uint8_t  opcode;
@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
             case INSTR_CALLS:
                 break;
             case INSTR_PUSHF:
-                fread(&argf,sizeof(argf),1,f_in);
+                (void)fread(&argf,sizeof(argf),1,f_in);
                 bufi = (uint16_t)bbzfloat_fromfloat(argf);
                 fwrite(&bufi,sizeof(bufi),1,f_out);
                 break;
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
             case INSTR_PUSHS:   // fallthrough
             case INSTR_LLOAD:   // fallthrough
             case INSTR_LSTORE:  // fallthrough
-                fread(&argi,sizeof(argi),1,f_in);
+                (void)fread(&argi,sizeof(argi),1,f_in);
                 bufi = (uint16_t)argi;
                 fwrite(&bufi,sizeof(bufi),1,f_out);
                 if (argi > INT16_MAX || argi < INT16_MIN) {
@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
             case INSTR_PUSHL:   // fallthrough
             case INSTR_PUSHCN:  // fallthrough
             case INSTR_PUSHCC:
-                fread(&argi,sizeof(argi),1,f_in);
+                (void)fread(&argi,sizeof(argi),1,f_in);
                 insertTable(&repl, (void *) (intptr_t)ftell(f_out), (void *) (intptr_t)argi);
                 bufi = (uint16_t)(argi);
                 fwrite(&bufi,sizeof(bufi),1,f_out);

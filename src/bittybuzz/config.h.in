@@ -87,6 +87,6 @@
 /**
  * @brief Whether to compile in debug mode.
  */
-#cmakedefine DEBUG @DEBUG@
+#cmakedefine DEBUG
 
 #endif // !CONFIG_H

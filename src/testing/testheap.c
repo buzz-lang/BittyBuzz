@@ -1,6 +1,8 @@
 #include <bittybuzz/bbzvm.h>
 
 void foreach_test_fun(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+    RM_UNUSED_WARN(key);
+    RM_UNUSED_WARN(value);
     uint8_t* num_calls_foreach = (uint8_t*)params;
     ++(*num_calls_foreach);
 }

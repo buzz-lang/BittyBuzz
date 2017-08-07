@@ -123,6 +123,7 @@ void bbzkilo_init() {
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
     kilo_state = SETUP;
+    kilo_uid = 0;
 #endif // DEBUG
 #endif // !BOOTLOADER
     sei();
@@ -140,7 +141,7 @@ enum {
 static volatile uint8_t prev_motion = MOVE_STOP, cur_motion = MOVE_STOP;
 
 uint8_t buf[4];
-const uint8_t* bbzkilo_bcodeFetcher(int16_t offset, uint8_t size) {
+const uint8_t* bbzkilo_bcodeFetcher(bbzpc_t offset, uint8_t size) {
     uint16_t __addr16 = (uint16_t) ((uint16_t) ((uint16_t) &bcode + sizeof(*bcode) * offset));
     __asm__ __volatile__("subi %0, 1  \n\t"
                          "brvs .+14   \n\t"
@@ -297,7 +298,7 @@ void bbzkilo_start(void (*setup)(void)) {
 //                    _delay_ms(200);
 //                } else
 //                    set_color(RGB(0,0,0));
-//                break;
+                break;
             case SETUP:
                 if (!has_setup) {
                     bbzvm_construct(kilo_uid);

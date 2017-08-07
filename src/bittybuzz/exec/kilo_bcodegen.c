@@ -4,6 +4,7 @@
 #include <libgen.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
 #define PATH_SEP '\\'
@@ -61,7 +62,7 @@ char *remove_ext (char* mystr, char dot, char sep) {
     return retstr;
 }
 
-uint8_t is_valid_char(char c) {
+bool is_valid_char(char c) {
     return
         (c >= 'A' && c <= 'Z') ||
         (c >= 'a' && c <= 'z') ||
@@ -142,7 +143,7 @@ int main(int argc, char** argv) {
         uint8_t buf;
         fread(&buf, 1, 1, f_in);
         fprintf(f_out, "%" PRIu8, buf);
-        for (int i = 1; i < bcode_size; ++i) {
+        for (unsigned int i = 1; i < bcode_size; ++i) {
             fread(&buf, 1, 1, f_in);
             fprintf(f_out, ",%" PRIu8, buf);
         }

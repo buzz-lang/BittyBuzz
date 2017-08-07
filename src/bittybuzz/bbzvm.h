@@ -37,7 +37,7 @@ extern "C" {
      * try to read 4 bytes (uint32_t).
      * @return A pointer to the data to the data.
      */
-    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(int16_t offset, uint8_t size);
+    typedef const uint8_t* (*bbzvm_bcode_fetch_fun)(bbzpc_t offset, uint8_t size);
 
     /**
      * @brief Type for the pointer to a function that is called whenever the
@@ -66,7 +66,7 @@ extern "C" {
         bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         bbzvm_bcode_fetch_fun bcode_fetch_fun; /**< @brief Bytecode fetcher function */
         uint16_t bcode_size;       /**< @brief Size of the loaded bytecode */
-        int16_t pc;                /**< @brief Program counter */
+        bbzpc_t pc;                /**< @brief Program counter */
         bbzheap_idx_t lsyms;       /**< @brief Current local variable table */
         bbzheap_idx_t gsyms;       /**< @brief Global symbols */
         bbzheap_t heap;            /**< @brief Heap content */
@@ -91,7 +91,7 @@ extern "C" {
         // TODO ... maybe not?
         bbzrobot_id_t robot;       /**< @brief This robot's id */
 #ifdef DEBUG
-        int16_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
+        bbzpc_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
         bbzvm_instr instr;         /**< @brief Current instruction */
 #endif
         int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */

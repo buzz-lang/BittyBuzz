@@ -13,7 +13,11 @@ TEST(nadd) {
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
+#ifndef BBZ_XTREME_MEMORY
     ASSERT_EQUAL(vm->neighbors.count, 1);
+#else
+    ASSERT_EQUAL(bbzringbuf_size(&vm->neighbors.rb), 1);
+#endif
 
     bbzvm_gc();
     bbzvm_destruct();

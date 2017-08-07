@@ -9,16 +9,21 @@
 #include "bbzinclude.h"
 #include "bbzringbuf.h"
 
-#ifndef BBZ_XTREME_MEMORY
-#include <netinet/in.h>
+#ifdef BBZ_XTREME_MEMORY
+#define htons(x) (x)
+#define ntohs(x) (x)
 #else
-ALWAYS_INLINE uint16_t htons(uint16_t x) {return x;};
-ALWAYS_INLINE uint16_t ntohs(uint16_t x) {return x;};
+#include <netinet/in.h>
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+typedef struct PACKED {
+    bbzmsg_payload_type_t type;
+    bbzrobot_id_t rid;
+} bbzmsg_base_t;
 
 /**
  * @brief Broadcast message data
@@ -62,11 +67,8 @@ typedef struct PACKED {
  */
 typedef union {
 #ifndef BBZ_DISABLE_MESSAGES
-    uint8_t type;
-    struct {
-        uint8_t type;
-        bbzrobot_id_t rid;
-    } base;
+    bbzmsg_payload_type_t type;
+    bbzmsg_base_t base;
     bbzmsg_broadcast_t bc;
     bbzmsg_swarm_t sw;
     bbzmsg_vstig_t vs;

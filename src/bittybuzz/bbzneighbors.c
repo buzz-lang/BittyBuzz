@@ -65,6 +65,8 @@ void add_neighborlike_fields(int16_t count) {
     bbzheap_idx_t cnt = bbzvm_stack_at(0);
     bbzvm_pop();
     bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
+#else
+    RM_UNUSED_WARN(count);
 #endif // !BBZ_XTREME_MEMORY
 
     // Add function fields
@@ -311,6 +313,7 @@ void neighbors_map_base(put_elem_funp put_elem) {
  * @param[in] ret The value returned by the user's closure.
  */
 void map_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
+    RM_UNUSED_WARN(value);
     bbzvm_push(ret);
     bbzvm_tput();
 }
@@ -433,8 +436,8 @@ void bbzneighbors_get() {
     bbzvm_lload(0); // Self table
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
-    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
-
+//    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
+//
 //    // Entry found?
 //    bbzheap_idx_t data;
 //    if (bbztable_get(sub_tbl, robot, &data)) {

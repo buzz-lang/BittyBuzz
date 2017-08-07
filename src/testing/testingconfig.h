@@ -110,13 +110,13 @@ static uint16_t __error_count__ = 0;
         }                                                               \
                                                                         \
         if (__error_count__ > 0) {                                      \
-            fprintf(stderr, "\n\n*** %" PRIu16 " failures detected in " \
+            fprintf(stderr, "\n*** %" PRIu16 " failures detected in "   \
                             "test suite \""  #name "\"\n",              \
                             __error_count__);                           \
             return 1;                                                   \
         }                                                               \
         else {                                                          \
-            fprintf(stderr, "\n*** No errors detected\n");              \
+            fprintf(stderr, "*** No errors detected\n");                \
             return 0;                                                   \
         }                                                               \
     }
@@ -157,7 +157,7 @@ TEST_UNIT(TEST_MODULE);
         ++__test_cases_size__;                                          \
     }                                                                   \
     else {                                                              \
-        fprintf(stderr, "\n\nWARNING: Trying to add more test files "   \
+        fprintf(stderr, "\nWARNING: Trying to add more test files "     \
                         "than NUM_TEST_CASES. Some test cases will"     \
                         "not be run. Increase the value of the "        \
                         "NUM_TEST_CASES macro.\n");                     \
@@ -194,7 +194,7 @@ TEST_UNIT(TEST_MODULE);
  */
 #define ASSERT_EQUAL(lhs, rhs)                                          \
     {                                                                   \
-        uint8_t eval = (lhs == rhs);                                    \
+        uint8_t eval = ((lhs) == (rhs));                                \
         if (!eval) {                                                    \
             fprintf(stderr, __FILE__ "(%d): error in \"%s\": "          \
                     "check " #lhs " == " #rhs " failed [%d != %d]\n",   \

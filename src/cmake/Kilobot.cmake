@@ -38,9 +38,9 @@ set(NATIVE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME} CACHE STRING
 set(NATIVE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING
     "Processor type for the system we are programming for.")
 set(NATIVE_C_COMPILER ${CMAKE_C_COMPILER} CACHE STRING
-    "Path to the compiler for the system we are programing for.")
+    "Path to the compiler for the system we are programing for." FORCE)
 
-set(NATIVE_C_FLAGS " " CACHE STRING "GCC flags for the native compiler.")
+set(NATIVE_C_FLAGS " " CACHE STRING "GCC flags for the native compiler." FORCE)
 set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 
 #

@@ -8,7 +8,8 @@ bbzvm_t vmObj;
 bbzvm_t* vm = &vmObj;
 
 uint8_t buf[4] = {0,0,0,0};
-const uint8_t* bcodefetcher(int16_t offset, uint8_t size) {
+const uint8_t* bcodefetcher(bbzpc_t offset, uint8_t size) {
+    RM_UNUSED_WARN(size);
     return buf + offset;
 }
 

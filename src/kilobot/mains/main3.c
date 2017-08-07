@@ -1,5 +1,3 @@
-#include <avr/pgmspace.h>
-
 #include <bbzkilobot.h>
 #include <bbzkilobot_include.h>
 
@@ -8,9 +6,10 @@ void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
 void err_receiver(bbzvm_error errcode) {
     set_motors(0,0);
     uint8_t i;
-    for (i = 4; i; --i) {
-        ___led(RGB(1,2,0));
-    }
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
     delay(300);
 #if 1
     for (i = 4; i; --i) {
@@ -34,8 +33,6 @@ void err_receiver(bbzvm_error errcode) {
 #endif
     ___led(RGB(2,2,2));
     ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
-//    ___led(RGB(2,2,2));
 }
 
 void bbz_led() {

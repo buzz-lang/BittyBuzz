@@ -1,7 +1,6 @@
 use_host_compiler()
 
 # Add executables
-#file(GLOB BBZ_SOURCES "*.c")
 set(BBZ_SOURCES
         bo2bbo.c
         kilo_bcodegen.c

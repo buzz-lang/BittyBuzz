@@ -41,6 +41,11 @@ typedef uint8_t bbzswarmlist_t;
 typedef uint16_t bbzlamport_t;
 
 /**
+ * @brief Type for the program counter.
+ */
+typedef uint16_t bbzpc_t;
+
+/**
  * @brief NULL pointer.
  */
 #ifndef NULL
@@ -67,10 +72,10 @@ typedef uint16_t bbzlamport_t;
 #define NAKED
 #endif // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 
-#define RM_UNUSED_WARN(var) ((void*)var)
+#define RM_UNUSED_WARN(var) ((void)(var))
 #define RM_UNUSED_RETVAL_WARN(exp) if(exp)do{}while(0)
 
-#define SWAP(a, b) do{a^=b;b^=a;a^=b;}while(0)
+#define SWAP(a, b) {(a)^=(b);(b)^=(a);(a)^=(b);}
 
 #ifdef __cplusplus
 }
