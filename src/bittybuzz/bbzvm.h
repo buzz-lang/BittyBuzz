@@ -600,14 +600,6 @@ extern "C" {
     // ======================================
 
     /**
-     * @brief Fetches the object at the given index in the VM's heap.
-     * @param[in] idx Index of the object on the VM's heap.
-     * @return A pointer to the fetched object.
-     */
-    ALWAYS_INLINE
-    bbzobj_t* bbzvm_obj_at(bbzheap_idx_t idx) { return bbzheap_obj_at(idx); }
-
-    /**
      * Returns the size of the stack.
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
@@ -623,8 +615,7 @@ extern "C" {
      * @param[in] idx The stack index.
      * @return The heap index of the element at given stack index.
      */
-    ALWAYS_INLINE
-    bbzheap_idx_t bbzvm_stack_at(int16_t idx) { return vm->stack[vm->stackptr - idx]; }
+    bbzheap_idx_t bbzvm_stack_at(int16_t idx);
 
     /**
      * @brief Gets the element at given local symbols position,

@@ -61,6 +61,13 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
 /****************************************/
 /****************************************/
 
+bbzobj_t* bbzheap_obj_at(bbzheap_idx_t i) {
+    return (bbzobj_t*)vm->heap.data + i;
+}
+
+/****************************************/
+/****************************************/
+
 static uint8_t bbzheap_tseg_alloc_prepare_seg(bbzheap_tseg_t* x) {
     /* Set valid bit of segment and -1 index for next */
     tseg_makevalid(*x);

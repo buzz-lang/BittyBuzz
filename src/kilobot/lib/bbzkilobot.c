@@ -5,6 +5,7 @@
 #include <avr/pgmspace.h>   // read flash data
 #include <avr/sleep.h>      // enter powersaving sleep mode
 #include <util/delay.h>     // delay macros
+#include <bittybuzz/bbzneighbors.h>
 
 #include "bbzkilobot.h"
 #include "bbzmessage_send.h"
@@ -55,8 +56,8 @@ uint8_t kilo_turn_left;
 uint8_t kilo_turn_right;
 uint8_t kilo_straight_left;
 uint8_t kilo_straight_right;
-//uint16_t kilo_irhigh[14];
-//uint16_t kilo_irlow[14];
+uint16_t kilo_irhigh;
+uint16_t kilo_irlow;
 bbzvm_t kilo_vmObj;
 message_t bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
@@ -114,11 +115,8 @@ void bbzkilo_init() {
     kilo_straight_left = eeprom_read_byte(EEPROM_LEFT_STRAIGHT);
     kilo_straight_right = eeprom_read_byte(EEPROM_RIGHT_STRAIGHT);
 
-//    uint8_t i;
-//    for (i=0; i<14; i++) {
-//        kilo_irlow[i]=(eeprom_read_byte(EEPROM_IRLOW + i*2) <<8) | eeprom_read_byte(EEPROM_IRLOW + i*2+1);
-//        kilo_irhigh[i]=(eeprom_read_byte(EEPROM_IRHIGH + i*2) <<8) | eeprom_read_byte(EEPROM_IRHIGH + i*2+1);
-//    }
+    kilo_irlow  = ((eeprom_read_byte(EEPROM_IRLOW) <<8) | eeprom_read_byte(EEPROM_IRLOW + 1)) >> 2;
+    kilo_irhigh = ((eeprom_read_byte(EEPROM_IRHIGH) <<8) | eeprom_read_byte(EEPROM_IRHIGH + 1)) >> 2;
     vm = &kilo_vmObj;
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 #ifdef DEBUG
@@ -184,7 +182,8 @@ void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
             uint8_t dist = ((uint8_t)(d->high_gain>>2) + (uint8_t)(d->low_gain>>2))>>1;
             bbzneighbors_elem_t elem = {.azimuth=0,.elevation=0};
             elem.robot = *(uint16_t*)(bbzmsg_buf + 1);
-            elem.distance = 0xE7 - (dist>0xE7?0xE7:dist);
+            elem.distance = (kilo_irhigh + kilo_irlow) >> 1;
+            elem.distance -= (dist>elem.distance?elem.distance:dist);
             bbzneighbors_add(&elem);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS

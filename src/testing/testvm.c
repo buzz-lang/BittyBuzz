@@ -106,17 +106,17 @@ void printIntVal() {
     bbzvm_assert_lnum(1);
 #ifdef DEBUG
     bbzheap_idx_t idx = bbzvm_lsym_at(1);
-    printf("#%d taken as integer: %d\n", idx, bbzvm_obj_at(idx)->i.value);
+    printf("#%d taken as integer: %d\n", idx, bbzheap_obj_at(idx)->i.value);
 #endif
     return bbzvm_ret0();
 }
 
 
 void logfunc() {
-    int16_t argn = bbzvm_obj_at(bbzvm_stack_at(0))->i.value;
+    int16_t argn = bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
     bbzvm_pop();
     for (int16_t i = 0; i < argn; ++i) {
-        bbzobj_t* o = bbzvm_obj_at(bbzvm_stack_at(i));
+        bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(i));
         switch(bbztype(*o)) {
             case BBZTYPE_NIL:
                 printf("nil");
@@ -205,11 +205,11 @@ TEST(all) {
     bbzvm_construct(robot);
 
     ASSERT_EQUAL(vm->pc, 0);
-    //ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->lsymts)));
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->flist)));
-    ASSERT(bbztype_istable (*bbzvm_obj_at(vm->gsyms)));
-    ASSERT(bbztype_isnil   (*bbzvm_obj_at(vm->nil)));
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->dflt_actrec)));
+    //ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->lsymts)));
+    ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->flist)));
+    ASSERT(bbztype_istable (*bbzheap_obj_at(vm->gsyms)));
+    ASSERT(bbztype_isnil   (*bbzheap_obj_at(vm->nil)));
+    ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->dflt_actrec)));
     ASSERT_EQUAL(vm->state, BBZVM_STATE_NOCODE);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(vm->robot, robot);
@@ -278,7 +278,7 @@ TEST(all) {
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHNIL);
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 1);
-    ASSERT(bbztype_isnil(*bbzvm_obj_at(bbzvm_stack_at(0))));
+    ASSERT(bbztype_isnil(*bbzheap_obj_at(bbzvm_stack_at(0))));
 
     // 4) Pop
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_POP);
@@ -292,20 +292,20 @@ TEST(all) {
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHI);
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 1);
-    ASSERT(bbztype_isint(*bbzvm_obj_at(bbzvm_stack_at(0))));
-    bbzobj_t* o = bbzvm_obj_at(bbzvm_stack_at(0));
+    ASSERT(bbztype_isint(*bbzheap_obj_at(bbzvm_stack_at(0))));
+    bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(0));
     ASSERT_EQUAL(o->i.value, 0x42);
 
     // 6) Dup
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_DUP);
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 2);
-    bbzobj_t* o1 = bbzvm_obj_at(bbzvm_stack_at(0));
+    bbzobj_t* o1 = bbzheap_obj_at(bbzvm_stack_at(0));
     ASSERT(bbztype_isint(*o1));
 
-    ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 0x42);
-    ASSERT(bbztype_isint(*bbzvm_obj_at(bbzvm_stack_at(1))));
-    ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(1))->i.value, 0x42);
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, 0x42);
+    ASSERT(bbztype_isint(*bbzheap_obj_at(bbzvm_stack_at(1))));
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(1))->i.value, 0x42);
 
     // Save PC
     uint16_t jumpLabel = vm->pc;
@@ -341,7 +341,7 @@ TEST(all) {
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPZ);
     bbzheap_idx_t idx;
     bbzheap_obj_alloc(BBZTYPE_INT, &idx);
-    bbzvm_obj_at(idx)->i.value = 0;
+    bbzheap_obj_at(idx)->i.value = 0;
     bbzvm_push(idx);
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
@@ -354,7 +354,7 @@ TEST(all) {
     // 10) Jumpz when operand is BBZTYPE_INT and its value is not zero. Should not jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPZ);
     bbzheap_obj_alloc(BBZTYPE_INT, &idx);
-    bbzvm_obj_at(idx)->i.value = -1;
+    bbzheap_obj_at(idx)->i.value = -1;
     bbzvm_push(idx);
     bbzvm_step();
     // Nothing should have happened ; we should have gone to the next instruction.
@@ -367,7 +367,7 @@ TEST(all) {
     // 11) Jumpnz when operand is BBZTYPE_INT and its value is not zero. Should jump.
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_JUMPNZ);
     bbzheap_obj_alloc(BBZTYPE_INT, &idx);
-    bbzvm_obj_at(idx)->i.value = -1;
+    bbzheap_obj_at(idx)->i.value = -1;
     bbzvm_push(idx);
     bbzvm_step();
     ASSERT_EQUAL(bbzvm_stack_size(), 4);
@@ -408,8 +408,8 @@ TEST(all) {
         bbzheap_idx_t lhs, rhs;
         bbzheap_obj_alloc(BBZTYPE_INT, &lhs);
         bbzheap_obj_alloc(BBZTYPE_INT, &rhs);
-        bbzvm_obj_at(lhs)->i.value = LHS_INT;
-        bbzvm_obj_at(rhs)->i.value = RHS_INT;
+        bbzheap_obj_at(lhs)->i.value = LHS_INT;
+        bbzheap_obj_at(rhs)->i.value = RHS_INT;
 
         const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
         bbzvm_instr instrs[] = {
@@ -430,7 +430,7 @@ TEST(all) {
             REQUIRE(bbzvm_stack_size() == 2);
             REQUIRE((bbzvm_instr)*testBcode(vm->pc, 1) == curr_instr);
             bbzvm_step();
-            ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, results[i]);
+            ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, results[i]);
             ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
             ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
 
@@ -523,10 +523,10 @@ TEST(vm_construct) {
     bbzvm_construct(robot);
 
     ASSERT_EQUAL(vm->pc, 0);
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->flist)));
-    ASSERT(bbztype_istable (*bbzvm_obj_at(vm->gsyms)));
-    ASSERT(bbztype_isnil   (*bbzvm_obj_at(vm->nil)));
-    ASSERT(bbztype_isdarray(*bbzvm_obj_at(vm->dflt_actrec)));
+    ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->flist)));
+    ASSERT(bbztype_istable (*bbzheap_obj_at(vm->gsyms)));
+    ASSERT(bbztype_isnil   (*bbzheap_obj_at(vm->nil)));
+    ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->dflt_actrec)));
     ASSERT_EQUAL(vm->state, BBZVM_STATE_NOCODE);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
     ASSERT_EQUAL(vm->robot, robot);
@@ -555,8 +555,8 @@ TEST(vm_closures) {
     bbzheap_idx_t c = bbzvm_function_register(BBZVM_SYMID_LOG, printIntVal);
 
     REQUIRE(c > 0);
-    ASSERT_EQUAL(bbztype(*bbzvm_obj_at(c)), BBZTYPE_CLOSURE);
-    ASSERT_EQUAL((intptr_t)bbzvm_obj_at(c)->c.value, (intptr_t)printIntVal);
+    ASSERT_EQUAL(bbztype(*bbzheap_obj_at(c)), BBZTYPE_CLOSURE);
+    ASSERT_EQUAL((intptr_t)bbzheap_obj_at(c)->c.value, (intptr_t)printIntVal);
 
     // C) Call registered C closure
     //REQUIRE(bbztable_size(vm->gsyms) == *(uint16_t*)vm->bcode_fetch_fun(0, 2));
@@ -564,7 +564,7 @@ TEST(vm_closures) {
     bbzvm_gload();
     c = bbzvm_stack_at(0);
     bbzvm_pop();
-    REQUIRE(bbztype_isclosure(*bbzvm_obj_at(c)));
+    REQUIRE(bbztype_isclosure(*bbzheap_obj_at(c)));
     bbzvm_pushi(123);
     bbzvm_function_call(BBZVM_SYMID_LOG, 1);
     ASSERT(vm->state != BBZVM_STATE_ERROR);

@@ -164,7 +164,7 @@ TEST(map) {
 void reduce_fun() {
     bbzvm_assert_lnum(3);
 
-    bbzvm_obj_at(bbzvm_lsym_at(3))->i.value += 1;
+    bbzheap_obj_at(bbzvm_lsym_at(3))->i.value += 1;
 
     bbzvm_lload(3);
     bbzvm_ret1();
@@ -187,7 +187,7 @@ TEST(reduce) {
     bbzheap_idx_t ret = bbzvm_stack_at(0);
     bbzvm_closure_call(2);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    ASSERT_EQUAL(bbzvm_obj_at(ret)->i.value, 2);
+    ASSERT_EQUAL(bbzheap_obj_at(ret)->i.value, 2);
 
     bbzvm_gc();
     bbzvm_destruct();
@@ -197,7 +197,7 @@ void filter_fun() {
     bbzvm_assert_lnum(2);
 
     // ...
-    bbzvm_pushi((int16_t) (bbzvm_obj_at(bbzvm_lsym_at(1))->i.value % 2));
+    bbzvm_pushi((int16_t) (bbzheap_obj_at(bbzvm_lsym_at(1))->i.value % 2));
 
     bbzvm_ret1();
 }
@@ -236,7 +236,7 @@ TEST(count) {
     bbzvm_tget();
     bbzvm_closure_call(0);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    ASSERT_EQUAL(bbzvm_obj_at(bbzvm_stack_at(0))->i.value, 2);
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, 2);
 
     bbzvm_gc();
     bbzvm_destruct();

@@ -333,7 +333,7 @@ void bbzneighbors_map() {
  * @param[in] ret The value returned by the user's closure.
  */
 void filter_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
-    if (bbztype_tobool(bbzvm_obj_at(ret))) {
+    if (bbztype_tobool(bbzheap_obj_at(ret))) {
         // Add data table to the table
         bbzvm_push(value);
         bbzvm_tput();
@@ -539,7 +539,7 @@ typedef struct {
 
 void neighbor_get(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     neighbor_get_t* ng = (neighbor_get_t*)params;
-    if (!ng->found && bbzvm_obj_at(key)->i.value == ng->robot) {
+    if (!ng->found && bbzheap_obj_at(key)->i.value == ng->robot) {
         ng->found = 1;
         bbzvm_push(value);
     }
@@ -554,7 +554,7 @@ void bbzneighbors_get() {
 
     // Perform foreach
     neighbor_get_t ng = {
-        .robot = (const uint16_t) bbzvm_obj_at(robot)->i.value,
+        .robot = (const uint16_t) bbzheap_obj_at(robot)->i.value,
         .found = 0 };
     neighborlike_foreach(neighbor_get, &ng);
 

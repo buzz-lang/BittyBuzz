@@ -137,7 +137,7 @@ void bbzvstig_put() {
     bbzheap_idx_t key   = bbzvm_lsym_at(1);
     bbzheap_idx_t value = bbzvm_lsym_at(2);
     // BittyBuzz's virtual stigmertgie cannot handle composite types.
-    bbzvm_assert_exec(!bbztype_istable(*bbzvm_obj_at(value)), BBZVM_ERROR_TYPE);
+    bbzvm_assert_exec(!bbztype_istable(*bbzheap_obj_at(value)), BBZVM_ERROR_TYPE);
 
     bbzvm_gc();
 

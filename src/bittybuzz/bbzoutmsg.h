@@ -69,7 +69,6 @@ void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms
  * @param[in] key The string ID corresponding to the value to send.
  * @param[in] value The value to send.
  * @param[in] lamport The lamport clock of the value.
- * TODO
  */
 void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   bbzrobot_id_t rid,

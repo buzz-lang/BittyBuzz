@@ -47,7 +47,7 @@ void err_receiver(bbzvm_error errcode) {
 
 void bbz_led() {
     bbzvm_assert_lnum(1);
-    uint8_t color = (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    uint8_t color = (uint8_t)bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
     //set_led(color);
     set_color((uint8_t)(RGB(color&1?3:0, color&2?3:0, color&4?3:0)));
     //bin_count(color, 1);
@@ -56,7 +56,7 @@ void bbz_led() {
 
 void bbz_delay() {
     bbzvm_assert_lnum(1);
-    uint16_t d = (uint16_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value;
+    uint16_t d = (uint16_t)bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
     delay(d);
     return bbzvm_ret0();
 }
@@ -64,7 +64,7 @@ void bbz_delay() {
 void bbz_setmotor() {
     bbzvm_assert_lnum(2);
     spinup_motors();
-    set_motors((uint8_t)bbzvm_obj_at(bbzvm_lsym_at(1))->i.value, (uint8_t)bbzvm_obj_at(bbzvm_lsym_at(2))->i.value);
+    set_motors((uint8_t)bbzheap_obj_at(bbzvm_lsym_at(1))->i.value, (uint8_t)bbzheap_obj_at(bbzvm_lsym_at(2))->i.value);
     return bbzvm_ret0();
 }
 

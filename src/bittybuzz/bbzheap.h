@@ -114,7 +114,7 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
  * @param[in] i The position (a bbzheap_idx_t).
  * @return A pointer to the object.
  */
-#define bbzheap_obj_at(i) ((bbzobj_t*)vm->heap.data + i)
+bbzobj_t* bbzheap_obj_at(bbzheap_idx_t i);
 
 /**
  * @brief Returns non-zero if the given object is valid (i.e., in use).
