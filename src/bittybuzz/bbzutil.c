@@ -1,22 +1,32 @@
 #include "bbzutil.h"
 
 void bbztable_add_function(uint16_t strid, bbzvm_funp fun) {
-    bbzheap_idx_t t = bbzvm_stack_at(0);
-    bbzvm_pushs(strid);
-    bbzvm_pushcc(fun);
-    bbzvm_tput();
-    bbzvm_push(t);
+    bbzvm_dup();        // Duplicate table
+    bbzvm_pushs(strid); // Push string key
+    bbzvm_pushcc(fun);  // Push C closure
+    bbzvm_tput();       // Store in table, popping table, key and data
 }
 
 /****************************************/
 /****************************************/
 
 void bbztable_add_data(uint16_t strid, bbzheap_idx_t data) {
-    bbzheap_idx_t t = bbzvm_stack_at(0);
-    bbzvm_pushs(strid);
-    bbzvm_push(data);
-    bbzvm_tput();
-    bbzvm_push(t);
+    bbzvm_dup();        // Duplicate table
+    bbzvm_pushs(strid); // Push string key
+    bbzvm_push(data);   // Push data
+    bbzvm_tput();       // Store in table, popping table, key and data
+}
+
+/****************************************/
+/****************************************/
+
+bbzheap_idx_t bbztable_get_subfield(uint16_t strid) {
+    bbzvm_dup();        // Duplicate table
+    bbzvm_pushs(strid); // Push string key
+    bbzvm_tget();       // Get subfield of table
+    bbzheap_idx_t ret = bbzvm_stack_at(0);
+    bbzvm_pop();        // Pop subfield
+    return ret;
 }
 
 /****************************************/
