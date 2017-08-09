@@ -6,7 +6,7 @@
 #define TEST_MODULE float
 #include "testingconfig.h"
 
-#define BASE 1.
+#define BASE 1.f
 #define FLOAT_EQUAL_THRESHOLD 0.005
 
 /**
@@ -28,7 +28,7 @@ int8_t float_cmp(float lhs, float rhs) {
 
 TEST(float_equality) {
    for(uint16_t i = 0; i < 10; ++i) {
-      ASSERT(float_cmp(bbzfloat_tofloat(bbzfloat_fromfloat(BASE * i)), BASE * i) == 0);
+      ASSERT_EQUAL(float_cmp(bbzfloat_tofloat(bbzfloat_fromfloat(BASE * i)), BASE * i), 0);
    }
 }
 

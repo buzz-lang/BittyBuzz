@@ -33,7 +33,7 @@ extern "C" {
  * Using these two measurements it is possible to estimate the distance
  * of the sender.
  */
-typedef struct PACKED {
+typedef struct PACKED distance_measurement_t {
     int16_t low_gain;  ///< Low gain 10-bit signal-strength measurement.
     int16_t high_gain; ///< High gain 10-bit signal-strength measurement.
 } distance_measurement_t;

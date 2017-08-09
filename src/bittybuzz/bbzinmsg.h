@@ -20,7 +20,7 @@ extern "C" {
  * @note You should not create an instance of this structure manually ;
  * we assume there is only a single instance: vm->inmsgs.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzinmsg_queue_t {
 #ifndef BBZ_DISABLE_MESSAGES
     bbzringbuf_t queue; /**< @brief Message queue. */
     bbzmsg_t buf[BBZINMSG_QUEUE_CAP+2]; /**< @brief Output message buffer */

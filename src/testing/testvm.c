@@ -2,7 +2,7 @@
 #include <bittybuzz/bbztype.h>
 #include <bittybuzz/bbzvm.h>
 
-#define NUM_TEST_CASES 5
+#define NUM_TEST_CASES 20
 #define TEST_MODULE vm
 #include "testingconfig.h"
 
@@ -11,7 +11,7 @@
     // ======================================
 
 FILE* fbcode;
-uint16_t fsize;
+int16_t fsize;
 uint8_t buf[4];
 bbzvm_error last_error;
 static bbzvm_t vmObj;
@@ -205,7 +205,6 @@ TEST(all) {
     bbzvm_construct(robot);
 
     ASSERT_EQUAL(vm->pc, 0);
-    //ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->lsymts)));
     ASSERT(bbztype_isdarray(*bbzheap_obj_at(vm->flist)));
     ASSERT(bbztype_istable (*bbzheap_obj_at(vm->gsyms)));
     ASSERT(bbztype_isnil   (*bbzheap_obj_at(vm->nil)));
@@ -226,7 +225,8 @@ TEST(all) {
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
-    fseek(fbcode, 0, SEEK_SET);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
 
     // 2) Set the bytecode in the VM.
     bbzvm_set_bcode(&testBcode, fsize);
@@ -247,9 +247,10 @@ TEST(all) {
     fclose(fbcode);
     fbcode = fopen(FILE_TEST1, "rb");
     REQUIRE(fbcode != NULL);
-    fseek(fbcode, 0, SEEK_END);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
-    fseek(fbcode, 0, SEEK_SET);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
 
     vm->bcode_size = fsize;
 
@@ -286,7 +287,7 @@ TEST(all) {
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 
     // Save PC for jump tests.
-    bbzpc_t pushiLabel = vm->pc;
+    bbzpc_t pushiLabel = vm->pc; // = 6
 
     // 5) Pushi
     REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHI);
@@ -534,6 +535,214 @@ TEST(vm_construct) {
     bbzvm_destruct();
 }
 
+TEST(vm_set_bytecode) {
+    vm = &vmObj;
+    bbzvm_construct(0);
+    bbzvm_set_error_receiver(&set_last_error);
+
+    // 1) Open bytecode file.
+    fbcode = fopen(FILE_TEST2, "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
+
+    // 2) Set the bytecode in the VM.
+    bbzvm_set_bcode(&testBcode, fsize);
+
+    ASSERT_EQUAL((uintptr_t)vm->bcode_fetch_fun, (uintptr_t)&testBcode);
+    ASSERT_EQUAL(vm->bcode_size, fsize);
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), 9);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), 3);
+    ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+#define vm_step_instr()                         \
+    vm = &vmObj;                                \
+    bbzvm_construct(0);                         \
+    bbzvm_set_error_receiver(set_last_error);   \
+    fbcode = fopen(FILE_TEST1, "rb");           \
+    REQUIRE(fbcode != NULL);                    \
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);   \
+    fsize = ftell(fbcode);                      \
+    REQUIRE(fsize > 0);                         \
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);   \
+    vm->state = BBZVM_STATE_READY;              \
+    vm->error = BBZVM_ERROR_NONE;               \
+    vm->bcode_fetch_fun = testBcode;            \
+    vm->bcode_size = fsize;
+
+TEST(vm_step_nop) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 2;
+
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_NOP);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(bbzvm_stack_size(), 0);
+    ASSERT_EQUAL(vm->pc, 3);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_step_done) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 3;
+
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_DONE);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_DONE);
+    ASSERT_EQUAL(bbzvm_stack_size(), 0);
+    // Make sure we are looping on DONE.
+    ASSERT_EQUAL(vm->pc, 3);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_step_pushnil) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 4;
+
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHNIL);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(bbzvm_stack_size(), 1);
+    ASSERT(bbztype_isnil(*bbzheap_obj_at(bbzvm_stack_at(0))));
+    ASSERT_EQUAL(vm->pc, 5);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_step_pop) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 5;
+
+    vm->stack[++vm->stackptr] = vm->nil;
+
+    REQUIRE(bbzvm_stack_size() == 1);
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_POP);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(bbzvm_stack_size(), 0);
+    ASSERT_EQUAL(vm->pc, 6);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_step_pushi) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 6;
+
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_PUSHI);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(bbzvm_stack_size(), 1);
+    ASSERT(bbztype_isint(*bbzheap_obj_at(bbzvm_stack_at(0))));
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, 0x42);
+    ASSERT_EQUAL(vm->pc, 9);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_step_dup) {
+    vm_step_instr();
+
+    // 3) Set the program counter
+    vm->pc = 9;
+
+    REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &vm->stack[++vm->stackptr]));
+    bbzheap_obj_at(vm->stack[vm->stackptr])->i.value = 0x42;
+
+    REQUIRE(bbzvm_stack_size() == 1);
+    REQUIRE(*testBcode(vm->pc, 1) == BBZVM_INSTR_DUP);
+    bbzvm_step();
+    ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
+    ASSERT_EQUAL(bbzvm_stack_size(), 2);
+    ASSERT(bbztype_isint(*bbzheap_obj_at(bbzvm_stack_at(1))));
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(1))->i.value, bbzheap_obj_at(bbzvm_stack_at(0))->i.value);
+    ASSERT_EQUAL(vm->pc, 10);
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
+TEST(vm_stack_full) {
+    vm = &vmObj;
+    bbzvm_construct(0);
+    bbzvm_set_error_receiver(set_last_error_no_print);
+
+    fbcode = fopen(FILE_TEST1, "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
+
+    // 1) Reset the VM state
+    vm->state = BBZVM_STATE_READY;
+    vm->error = BBZVM_ERROR_NONE;
+
+    // 2) Set the bytecode
+    vm->bcode_fetch_fun = testBcode;
+    vm->bcode_size = fsize;
+
+    // 3) Set the program counter
+    vm->pc = 56;
+
+    REQUIRE(bbzvm_stack_size() == 0);
+    for (uint16_t i = 0; i < BBZSTACK_SIZE; ++i) {
+        bbzvm_push(vm->nil);
+    }
+
+    {
+        REQUIRE(bbzvm_stack_size() == BBZSTACK_SIZE);
+
+        const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
+        bbzvm_instr failing_instr[] = {
+                BBZVM_INSTR_DUP,    BBZVM_INSTR_PUSHNIL, BBZVM_INSTR_PUSHF, BBZVM_INSTR_PUSHI, BBZVM_INSTR_PUSHS,
+                BBZVM_INSTR_PUSHCN, BBZVM_INSTR_PUSHCC,  BBZVM_INSTR_PUSHL, BBZVM_INSTR_LLOAD, LAST_INSTR
+        };
+
+        uint16_t i = 0;
+        bbzvm_instr curr_instr = failing_instr[i++];
+        while(curr_instr != LAST_INSTR) {
+            REQUIRE(bbzvm_stack_size() == BBZSTACK_SIZE);
+            bbzvm_instr instr = (bbzvm_instr)*testBcode(vm->pc, 1);
+            REQUIRE(instr == curr_instr);
+            bbzvm_step();
+            ASSERT_EQUAL(vm->state, BBZVM_STATE_ERROR);
+            ASSERT_EQUAL(vm->error, BBZVM_ERROR_STACK);
+            bbzvm_skip_instr();
+            bbzvm_reset_state();
+            curr_instr = failing_instr[i++];
+        }
+    }
+
+    bbzvm_destruct();
+    fclose(fbcode);
+}
+
 TEST(vm_closures) {
     vm = &vmObj;
     bbzvm_construct(0);
@@ -543,7 +752,8 @@ TEST(vm_closures) {
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
-    fseek(fbcode, 0, SEEK_SET);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
 
     // A) Set the bytecode in the VM.
     bbzvm_set_bcode(&testBcode, fsize);
@@ -636,7 +846,8 @@ TEST(vm_script_execution) {
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
-    fseek(fbcode, 0, SEEK_SET);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
 
     bbzvm_set_bcode(&testBcode, fsize);
 
@@ -666,6 +877,14 @@ TEST(vm_script_execution) {
 TEST_LIST {
     ADD_TEST(all);
     ADD_TEST(vm_construct);
+    ADD_TEST(vm_set_bytecode);
+    ADD_TEST(vm_step_nop);
+    ADD_TEST(vm_step_done);
+    ADD_TEST(vm_step_pushnil);
+    ADD_TEST(vm_step_pop);
+    ADD_TEST(vm_step_pushi);
+    ADD_TEST(vm_step_dup);
+    ADD_TEST(vm_stack_full);
     ADD_TEST(vm_closures);
     ADD_TEST(vm_message_processing);
     #if BBZHEAP_SIZE < 2048

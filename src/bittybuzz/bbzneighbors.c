@@ -242,7 +242,7 @@ typedef void (*put_elem_funp)(bbzheap_idx_t value, bbzheap_idx_t ret);
  * @brief Parameter struct to pass to the element-wise function of 'map'
  * and 'filter'.
  */
-typedef struct {
+typedef struct PACKED neighbor_map_base_t {
     const bbzheap_idx_t t;  /**< @brief Return table of the map. */
     const bbzheap_idx_t c;  /**< @brief Closure to call. */
     put_elem_funp put_elem; /**< @brief Function that puts a value. */
@@ -532,7 +532,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
  * @brief Parameter struct to pass to the element-wise function of the
  * xtreme 'get' algorithm.
  */
-typedef struct {
+typedef struct PACKED neighbor_get_t {
     const bbzrobot_id_t robot; /**< @brief Sought robot ID. */
     uint8_t found;             /**< @brief Whether we already found the robot ID. */
 } neighbor_get_t;

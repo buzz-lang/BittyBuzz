@@ -9,7 +9,7 @@
 /**
  * @brief VM states
  */
-typedef enum {
+typedef enum bbzvm_state {
     BBZVM_STATE_NOCODE = 0, /**< @brief No code loaded */
     BBZVM_STATE_READY,      /**< @brief Ready to execute next instruction */
     BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) @details May be used for debugging purpose. */
@@ -22,7 +22,7 @@ typedef enum {
 /**
  * @brief VM error codes
  */
-typedef enum {
+typedef enum bbzvm_error {
     BBZVM_ERROR_NONE = 0, /**< @brief No error @note =0 */
     BBZVM_ERROR_INSTR,    /**< @brief Unknown instruction @note =1 */
     BBZVM_ERROR_STACK,    /**< @brief Stack error @note =2 */
@@ -42,7 +42,7 @@ typedef enum {
 /**
  * @brief VM instructions.
  */
-typedef enum {
+typedef enum bbzvm_instr {
     /*
      * Opcodes without argument
      */
@@ -99,7 +99,7 @@ typedef enum {
  * @brief Buzz message type.
  * @details The types are ordered by decreasing priority.
  */
-typedef enum {
+typedef enum bbzmsg_payload_type_t {
     BBZMSG_BROADCAST = 0, /**< @brief Neighbor broadcast */
     BBZMSG_VSTIG_PUT,     /**< @brief Virtual stigmergy PUT */
     BBZMSG_VSTIG_QUERY,   /**< @brief Virtual stigmergy QUERY */

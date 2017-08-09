@@ -62,7 +62,7 @@ extern "C" {
      *
      *  1) Load and run bytecode.
      */
-    typedef struct PACKED {
+    typedef struct PACKED bbzvm_t {
         bbzvm_error_receiver_fun error_receiver_fun; /**< @brief Error receiver. */
         bbzvm_bcode_fetch_fun bcode_fetch_fun; /**< @brief Bytecode fetcher function */
         uint16_t bcode_size;       /**< @brief Size of the loaded bytecode */
@@ -144,7 +144,7 @@ extern "C" {
      * @see bbzvm_error_receiver_fun
      * @param[in] error_receiver_fun Function recieving the error notification.
      */
-     ALWAYS_INLINE
+    ALWAYS_INLINE
     void bbzvm_set_error_receiver(bbzvm_error_receiver_fun error_receiver_fun) { vm->error_receiver_fun = error_receiver_fun; }
 
     /**
@@ -169,10 +169,6 @@ extern "C" {
      */
     void bbzvm_step();
 
-    /**
-     * @brief Executes the script up to completion.
-     */
-    void bbzvm_execute_script();
 
 
     // ======================================
@@ -240,91 +236,91 @@ extern "C" {
     void bbzvm_add();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a subtraction.
      * @see BBZVM_INSTR_SUB
      */
     void bbzvm_sub();
 
     /**
-     * @brief Performs an multiplication.
+     * @brief Performs a multiplication.
      * @see BBZVM_INSTR_MUL
      */
     void bbzvm_mul();
 
     /**
-     * @brief Performs an division.
+     * @brief Performs a division.
      * @see BBZVM_INSTR_DIV
      */
     void bbzvm_div();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a modulo.
      * @see BBZVM_INSTR_MOD
      */
     void bbzvm_mod();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a power.
      * @see BBZVM_INSTR_POW
      */
     void bbzvm_pow();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a unary minus.
      * @see BBZVM_INSTR_UNM
      */
     void bbzvm_unm();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a logical and.
      * @see BBZVM_INSTR_AND
      */
     void bbzvm_and();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a logical or.
      * @see BBZVM_INSTR_OR
      */
     void bbzvm_or();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a logical inversion.
      * @see BBZVM_INSTR_NOT
      */
     void bbzvm_not();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a equality check.
      * @see BBZVM_INSTR_EQ
      */
     void bbzvm_eq();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a difference check.
      * @see BBZVM_INSTR_NEQ
      */
     void bbzvm_neq();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a greater-than comparison.
      * @see BBZVM_INSTR_GT
      */
     void bbzvm_gt();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a greater-than-or-equal comparison.
      * @see BBZVM_INSTR_GTE
      */
     void bbzvm_gte();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a less-than comparison.
      * @see BBZVM_INSTR_LT
      */
     void bbzvm_lt();
 
     /**
-     * @brief Performs an subtraction.
+     * @brief Performs a less-than-or-equal comparison.
      * @see BBZVM_INSTR_LTE
      */
     void bbzvm_lte();
@@ -340,6 +336,19 @@ extern "C" {
      * @brief Stores the object located at the stack top into the a global variable, pops operand.
      * @details Internally checks whether the operation is valid.
      * @see BBZVM_INSTR_GSTORE
+     * @bug Gstore-ing lambda functions will not change its activation record (if we call it as a global object, it will
+     * be executed as if it was still in its former self-table object).<br/>Example:
+     * @code
+     *      t1 = {
+     *          .id = 1,
+     *          .foo = function () {
+     *              log(self.id)
+     *          }
+     *      }
+     *      t1.foo() # Will display "1"
+     *      bar = t1.foo
+     *      bar() # Will also display "1", instead of throwing an error
+     * @endcode
      */
     void bbzvm_gstore();
 
@@ -381,12 +390,13 @@ extern "C" {
 
     /**
      * @brief Calls a Buzz closure.
-     * @details It expects the stack to be as follows:
-     * 0   -> arg1
-     * 1   -> arg2
-     * ...
-     * N-1 -> argN
-     * N   -> closure
+     * @details It expects the stack to be as follows:<br/>
+     * 0   -> argN<br/>
+     * 1   -> argN-1<br/>
+     * ...<br/>
+     * N-2 -> arg2<br/>
+     * N-1 -> arg1<br/>
+     * N   -> closure<br/>
      * This function pops all arguments.
      * @param[in] argc The number of arguments.
      * @return 0 if everything OK, a non-zero value in case of error
@@ -395,15 +405,15 @@ extern "C" {
 
     /**
      * @brief Calls a function defined in Buzz.
-     * @details It expects the stack to be as follows:
-     * 0   -> arg1
-     * 1   -> arg2
-     * ...
-     * N-1 -> argN
+     * @details It expects the stack to be as follows:<br/>
+     * 0   -> argN<br/>
+     * 1   -> argN-1<br/>
+     * ...<br/>
+     * N-2 -> arg2<br/>
+     * N-1 -> arg1<br/>
      * This function pops all arguments.
      * @param[in] fname The function name (bbzheap_idx_t pointing to a bbzstring_t).
      * @param[in] argc The number of arguments.
-     * @return 0 if everything OK, a non-zero value in case of error
      */
     void bbzvm_function_call(uint16_t fname, uint16_t argc);
 
@@ -429,50 +439,11 @@ extern "C" {
      * This function pushes a new stack and a new local variable table filled with the
      * activation record entries and the closure arguments. In addition, it leaves the stack
      * beneath as follows:
-     * 0   -> An integer for the return address
-     * @param[in] isswrm 0 for a normal closure, 1 for a swarm closure
+     * 0   -> The previous value of the block pointer (used when returning from a call)
+     * 1   -> The parent local symbol table
+     * 2   -> An integer for the return address
      */
-    void bbzvm_call(uint8_t isswrm);
-
-    /**
-     * @brief Calls a normal closure.
-     * @details Internally checks whether the operation is valid.
-     *
-     * This function expects the stack to be as follows:<br/>
-     * 0   -> An integer for the number of closure parameters N<br/>
-     * 1   -> Closure argN<br/>
-     * ...<br/>
-     * N   -> Closure arg1<br/>
-     * N+1 -> The closure
-     *
-     * This function pushes a new stack and a new local variable table filled with the
-     * activation record entries and the closure arguments. In addition, it leaves the stack
-     * beneath as follows:
-     * 0   -> An integer for the return address
-     * @see BBZVM_INSTR_CALLC
-     */
-    ALWAYS_INLINE
-    void bbzvm_callc() { return bbzvm_call(0); }
-
-    /**
-     * @brief Calls a swarm closure.
-     * @details Internally checks whether the operation is valid.
-     *
-     * This function expects the stack to be as follows:
-     * 0   -> An integer for the number of closure parameters N<br/>
-     * 1   -> Closure argN<br/>
-     * ...<br/>
-     * N   -> Closure arg1<br/>
-     * N+1 -> The closure
-     *
-     * This function pushes a new stack and a new local variable table filled with the
-     * activation record entries and the closure arguments. In addition, it leaves the stack
-     * beneath as follows:
-     * 0   -> An integer for the return address
-     * @see BBZVM_INSTR_CALLS
-     */
-    ALWAYS_INLINE
-    void bbzvm_calls() { return bbzvm_call(1); }
+    void bbzvm_callc();
 
     /**
      * @brief Pushes a variable on the stack.

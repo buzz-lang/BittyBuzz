@@ -61,7 +61,7 @@ extern "C" {
 /**
  * @brief Type for an entry of the neighbors structure.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzneighbors_elem_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
     bbzrobot_id_t robot; /**< @brief ID of the robot this entry is for. */
     uint8_t distance;    /**< @brief Distance between to the given robot. */
@@ -75,7 +75,7 @@ typedef struct PACKED {
  * @note You should not create a neighbors table manually ; we assume there
  * is only a single instance: <code>vm->neighbors.hpos</code>.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzneighbors_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
     bbzheap_idx_t hpos;      /**< @brief Heap's position of the 'neighbors' table. */
     bbzheap_idx_t listeners; /**< @brief Neighbor value listeners. */

@@ -20,7 +20,7 @@
 extern "C" {
 #endif // __cplusplus
 
-typedef struct PACKED {
+typedef struct PACKED bbzmsg_base_t {
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
 } bbzmsg_base_t;
@@ -28,7 +28,7 @@ typedef struct PACKED {
 /**
  * @brief Broadcast message data
  */
-typedef struct PACKED {
+typedef struct PACKED bbzmsg_broadcast_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
@@ -40,7 +40,7 @@ typedef struct PACKED {
 /**
  * @brief Swarm message data
  */
-typedef struct PACKED {
+typedef struct PACKED bbzmsg_swarm_t {
 #ifndef BBZ_DISABLE_SWARMS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
@@ -52,7 +52,7 @@ typedef struct PACKED {
 /**
  * @brief Virtual stigmergy message data
  */
-typedef struct PACKED {
+typedef struct PACKED bbzmsg_vstig_t {
 #ifndef BBZ_DISABLE_VSTIGS
     bbzmsg_payload_type_t type;
     bbzrobot_id_t rid;
@@ -65,7 +65,7 @@ typedef struct PACKED {
 /**
  * @brief Generic message data
  */
-typedef union {
+typedef union PACKED bbzmsg_t {
 #ifndef BBZ_DISABLE_MESSAGES
     bbzmsg_payload_type_t type;
     bbzmsg_base_t base;

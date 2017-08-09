@@ -3,9 +3,9 @@
 /****************************************/
 /****************************************/
 
-#define gc_hasmark(x) ((x).mdata & 0x08)
-#define gc_mark(x)    (x).mdata |= 0x08
-#define gc_unmark(x)  (x).mdata &= 0xF7
+#define gc_hasmark(x) ((x).mdata & BBZHEAP_MASK_GCMARK)
+#define gc_mark(x)    (x).mdata |= BBZHEAP_MASK_GCMARK
+#define gc_unmark(x)  (x).mdata &= ~BBZHEAP_MASK_GCMARK
 
 /****************************************/
 /****************************************/
@@ -23,7 +23,7 @@ void bbzheap_clear() {
 
 static uint8_t bbzheap_obj_alloc_prepare_obj(uint8_t t, bbzobj_t* x) {
     /* Set valid bit and type */
-    x->mdata = (t << 5) | BBZHEAP_MASK_OBJ_VALID;
+    x->mdata = (t << BBZTYPE_TYPEIDX) | BBZHEAP_MASK_OBJ_VALID;
     /* Take care of special initialisations */
     if (t == BBZTYPE_TABLE) {
         if (!bbzheap_tseg_alloc(&x->t.value)) return 0;
@@ -208,18 +208,16 @@ void bbzheap_gc(bbzheap_idx_t* st,
 
 static const char* bbzvm_types_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata" };
 
-#define obj_isvalid(x) ((x).mdata & 0x10)
-
 void bbzheap_print() {
     /* Object-related stuff */
     uint16_t objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
     printf("Max object index: %d\n", objimax - 1);
     uint16_t objnum = 0;
     for(uint16_t i = 0; i < objimax; ++i)
-        if(obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
+        if(bbzheap_obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
     printf("Valid objects: %d\n", objnum);
     for(uint16_t i = 0; i < objimax; ++i)
-        if(obj_isvalid(*bbzheap_obj_at(i))) {
+        if(bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
             printf("\t#%d: [%s]", i, bbzvm_types_desc[bbztype(*bbzheap_obj_at(i))]);
             if (bbzheap_obj_ispermanent(*bbzheap_obj_at(i))) printf("*");
             switch(bbztype(*bbzheap_obj_at(i))) {

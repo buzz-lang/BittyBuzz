@@ -1,5 +1,9 @@
 #include <bittybuzz/bbzvm.h>
 
+#define NUM_TEST_CASES 5
+#define TEST_MODULE heap
+#include "testingconfig.h"
+
 void foreach_test_fun(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     RM_UNUSED_WARN(key);
     RM_UNUSED_WARN(value);
@@ -7,8 +11,7 @@ void foreach_test_fun(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     ++(*num_calls_foreach);
 }
 
-
-int main() {
+TEST(all) {
     bbzvm_t vmObj;
     vm = &vmObj;
 
@@ -139,6 +142,16 @@ int main() {
         bbzheap_gc(stack3, 2);
         bbzheap_print();
     }
+}
 
-    return 0;
+TEST(clear) {
+    bbzvm_t vmObj;
+    vm = &vmObj;
+
+    bbzheap_clear();
+}
+
+TEST_LIST {
+    ADD_TEST(all);
+    ADD_TEST(clear);
 }

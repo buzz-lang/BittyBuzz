@@ -244,7 +244,8 @@ void bbzkilo_start(void (*setup)(void)) {
         switch(kilo_state) {
             case SLEEPING:
 #ifndef DEBUG
-                do{}while(0);cli();
+                do{}while(0); // This is to avoid errors with clang from having inline assembly at the begenning of a case.
+                cli();
                 acomp_off();
                 adc_off();
                 ports_off();

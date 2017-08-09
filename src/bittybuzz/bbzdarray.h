@@ -11,14 +11,6 @@
 #include "bbzheap.h"
 #include "bbztype.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
-
-#define bbzdarray_mark_swarm(d) {(d)->mdata |= BBZTABLE_DARRAY_SWARM_MASK;}
-#define bbzdarray_unmark_swarm(d) {(d)->mdata &= ~BBZTABLE_DARRAY_SWARM_MASK;}
-#define bbzdarray_isswarm(d) ((d)->mdata & BBZTABLE_DARRAY_SWARM_MASK)
-
 #ifdef __cplusplus
 extern "C" {
 #endif

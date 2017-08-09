@@ -18,7 +18,7 @@ extern "C" {
  * @brief Buffer implemented to seamlessly loop on itself,
  * allowing for O(1) push and pop for queues.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzringbuf_t {
     uint8_t* buffer;    /**< @brief Pointer to linear buffer */
     uint8_t  elsize;    /**< @brief Size of individual element */
     uint8_t  capacity;  /**< @brief Buffer capacity */

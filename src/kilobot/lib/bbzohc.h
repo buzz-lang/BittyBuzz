@@ -24,7 +24,7 @@ enum {
     PACKET_FORWARDMSGSINGLE,
 };
 
-typedef struct PACKED {
+typedef struct PACKED gpsmsg_t {
     uint16_t id;
     int16_t x;
     int16_t y;
@@ -32,7 +32,7 @@ typedef struct PACKED {
     uint16_t unused;
 } gpsmsg_t;
 
-typedef struct PACKED {
+typedef struct PACKED calibmsg_t {
     uint8_t mode;
     uint16_t uid;
     uint8_t turn_left;

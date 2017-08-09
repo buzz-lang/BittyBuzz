@@ -322,11 +322,7 @@ static void bbzvm_exec_instr() {
             }
             break;
         }
-        case BBZVM_INSTR_CALLS: {
-            bbzvm_calls();
-            if (vm->state == BBZVM_STATE_READY) {
-                assert_pc(vm->pc);
-            }
+        case BBZVM_INSTR_CALLS: { // For compatibility only
             break;
         }
         case BBZVM_INSTR_PUSHF: {
@@ -405,12 +401,6 @@ void bbzvm_step() {
 
 /****************************************/
 /****************************************/
-
-void bbzvm_execute_script() {
-    while(vm->state == BBZVM_STATE_READY) {
-        bbzvm_step();
-    }
-}
 
 
 // ======================================
@@ -830,7 +820,7 @@ bbzheap_idx_t bbzvm_function_register(int16_t fnameid, bbzvm_funp funp) {
 /****************************************/
 /****************************************/
 
-void bbzvm_call(uint8_t isswrm) {
+void bbzvm_callc() {
     /* Get argument number and pop it */
     bbzvm_assert_stack(1);
     bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
@@ -855,9 +845,6 @@ void bbzvm_call(uint8_t isswrm) {
         bbzvm_assert_exec(bbzdarray_clone(c->l.value.actrec, &vm->lsyms), BBZVM_ERROR_MEM);
     }
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->lsyms));
-    if (isswrm) {
-        bbzdarray_mark_swarm((bbzdarray_t*)bbzheap_obj_at(vm->lsyms));
-    }
     /* Add function arguments to the local symbols */
     /* and */
     /* Get rid of the function arguments */
@@ -1143,9 +1130,7 @@ void bbzvm_gstore() {
 void bbzvm_ret0() {
 #ifndef BBZ_DISABLE_SWARMS
     /* Pop swarm stack */
-    if (bbzdarray_isswarm(&bbzheap_obj_at(vm->lsyms)->t)) {
-        //TODO pop the swarm stack.
-    }
+    // TODO pop the swarm stack.
 #endif
     /* Make sure there's enough elements on the stack */
     bbzvm_assert_stack(3);
@@ -1174,9 +1159,7 @@ void bbzvm_ret0() {
 void bbzvm_ret1() {
 #ifndef BBZ_DISABLE_SWARMS
     /* Pop swarm stack */
-    if (bbzdarray_isswarm(&bbzheap_obj_at(vm->lsyms)->t)) {
-        //TODO pop the swarm stack.
-    }
+    // TODO pop the swarm stack.
 #endif
     /* Make sure there's enough elements on the stack */
     bbzvm_assert_stack(4);

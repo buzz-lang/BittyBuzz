@@ -11,7 +11,7 @@
  * @details <b>Example</b>: String <code>"stigmergy"</code> is associated with ID
  * <code>__BBZSTRID_STIGMERGY</code>.
  */
-typedef enum {
+typedef enum __bbzstr_id_t {
     __BBZSTRID_id = 0,
     __BBZSTRID_swarm,
     __BBZSTRID_create,

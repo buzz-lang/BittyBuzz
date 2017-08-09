@@ -10,9 +10,10 @@ TEST(da_new) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    ASSERT(bbzdarray_new(&darray));
+    ASSERT(bbztype_isdarray(*bbzheap_obj_at(darray)));
     ASSERT_EQUAL(bbzdarray_size(darray), 0);
-    ASSERT(bbzheap_aseg_hasnext(&bbzheap_obj_at(darray)->t));
+    ASSERT(bbzheap_obj_at(darray)->t.value != NO_NEXT);
 }
 
 TEST(da_push) {
@@ -21,13 +22,13 @@ TEST(da_push) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o;
-    bbzheap_obj_alloc(BBZTYPE_INT, &o);
+    REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o));
     bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
     io->value = 10;
-    bbzdarray_push(darray, o);
+    ASSERT(bbzdarray_push(darray, o));
     ASSERT_EQUAL(bbzdarray_size(darray), 1);
     ASSERT_EQUAL(bbzheap_aseg_elem_get(bbzheap_aseg_at(bbzheap_obj_at(darray)->t.value)->values[0]), o);
 }
@@ -38,15 +39,18 @@ TEST(da_find) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
-    uint16_t o;
-    bbzheap_obj_alloc(BBZTYPE_INT, &o);
-    bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
-    io->value = 10;
-    bbzdarray_push(darray, o);
-    REQUIRE(bbzdarray_size(darray) == 1);
+    REQUIRE(bbzdarray_new(&darray));
 
-    ASSERT_EQUAL(bbzdarray_find(darray, bbztype_cmp, o), 0);
+    uint16_t o;
+    for (uint16_t i = 0; i < 2*BBZHEAP_ELEMS_PER_TSEG + 1; ++i) {
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o));
+        bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
+        io->value = i;
+        REQUIRE(bbzdarray_push(darray, o));
+    }
+    REQUIRE(bbzdarray_size(darray) == 2*BBZHEAP_ELEMS_PER_TSEG + 1);
+
+    ASSERT_EQUAL(bbzdarray_find(darray, bbztype_cmp, o), 2*BBZHEAP_ELEMS_PER_TSEG);
 }
 
 TEST(da_set) {
@@ -55,19 +59,20 @@ TEST(da_set) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
+
     uint16_t o;
-    bbzheap_obj_alloc(BBZTYPE_INT, &o);
+    REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o));
     bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
     io->value = 10;
-    bbzdarray_push(darray, o);
+    REQUIRE(bbzdarray_push(darray, o));
     REQUIRE(bbzdarray_size(darray) == 1);
 
     uint16_t o2;
-    bbzheap_obj_alloc(BBZTYPE_INT, &o2);
+    REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o2));
     bbzint_t* io2 = (bbzint_t*)bbzheap_obj_at(o2);
     io2->value = 255;
-    bbzdarray_set(darray, 0, o2);
+    ASSERT(bbzdarray_set(darray, 0, o2));
     REQUIRE(bbzdarray_size(darray) == 1);
     ASSERT_EQUAL(bbzheap_aseg_elem_get(bbzheap_aseg_at(bbzheap_obj_at(darray)->t.value)->values[0]), o2);
     ASSERT_EQUAL(bbzheap_obj_at(bbzheap_aseg_elem_get(bbzheap_aseg_at(bbzheap_obj_at(darray)->t.value)->values[0]))->i.value, bbzheap_obj_at(o2)->i.value);
@@ -82,15 +87,15 @@ TEST(da_push15x) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 15; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     ASSERT_EQUAL(bbzdarray_size(darray), 15);
 }
@@ -101,20 +106,20 @@ TEST(da_pop7x) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 15; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     REQUIRE(bbzdarray_size(darray) == 15);
 
     for (int i = 0; i < 7; ++i) {
-        bbzdarray_pop(darray);
+        ASSERT(bbzdarray_pop(darray));
     }
     ASSERT_EQUAL(bbzdarray_size(darray), 8);
 
@@ -128,15 +133,15 @@ TEST(da_clear) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 15; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     REQUIRE(bbzdarray_size(darray) == 15);
 
@@ -153,24 +158,24 @@ TEST(da_clone) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 22; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     REQUIRE(bbzdarray_size(darray) == 22);
 
     uint16_t darray2 = darray;
-    bbzdarray_clone(darray, &darray2);
+    ASSERT(bbzdarray_clone(darray, &darray2));
     ASSERT_EQUAL(bbzdarray_size(darray2), 22);
     bbzheap_idx_t o1, o2;
     for (uint16_t i = 0; i < bbzdarray_size(darray); ++i) {
-        bbzdarray_get(darray, i, &o1);
+        REQUIRE(bbzdarray_get(darray, i, &o1));
         REQUIRE(bbzdarray_get(darray2, i, &o2));
         ASSERT_EQUAL(o1, o2);
     }
@@ -188,22 +193,22 @@ TEST(da_foreach) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 22; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     REQUIRE(bbzdarray_size(darray) == 22);
 
     bbzdarray_foreach(darray, foreach, NULL);
     bbzheap_idx_t o1;
     for (uint16_t i = 0; i < bbzdarray_size(darray); ++i) {
-        bbzdarray_get(darray, i, &o1);
+        REQUIRE(bbzdarray_get(darray, i, &o1));
         ASSERT_EQUAL(bbzheap_obj_at(o1)->i.value, i+20);
     }
 }
@@ -214,15 +219,15 @@ TEST(da_destroy) {
     bbzheap_clear();
 
     uint16_t darray;
-    bbzdarray_new(&darray);
+    REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o3;
     bbzint_t* io3;
     for (uint16_t i = 0; i < 22; ++i) {
-        bbzheap_obj_alloc(BBZTYPE_INT, &o3);
+        REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o3));
         io3 = (bbzint_t*)bbzheap_obj_at(o3);
         io3->value = i;
-        bbzdarray_push(darray, o3);
+        REQUIRE(bbzdarray_push(darray, o3));
     }
     REQUIRE(bbzdarray_size(darray) == 22);
 

@@ -59,7 +59,7 @@ typedef enum {
     INSTR_JUMPNZ
 } instr;
 
-typedef struct {
+typedef struct PACKED darray {
     void* *array;
     size_t used;
     size_t size;
@@ -92,7 +92,7 @@ void freeArray(darray *a) {
  */
 typedef int8_t (*cmp_func)(void* a, void* b);
 
-typedef struct {
+typedef struct PACKED dtable {
     darray keys;
     darray values;
     size_t length;
@@ -152,7 +152,7 @@ int8_t cmpint(void* a, void* b) {
     return 0;
 }
 
-typedef struct {
+typedef struct PACKED foreachint_params {
     FILE* f_out;
     dtable* refs;
 } foreachint_params;
@@ -166,6 +166,8 @@ void foreachint(void* key, void* value, void* params) {
     //printf("%d => %d\n", (int)(intptr_t)value, (int)v);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 int main(int argc, char **argv) {
     if (argc != 3) {
         printf("Reformat buzz object file in a format compatible with BittyBuzz VM.\n");
@@ -291,3 +293,4 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+#pragma GCC diagnostic pop

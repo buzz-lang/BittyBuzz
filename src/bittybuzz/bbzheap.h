@@ -19,7 +19,7 @@ extern "C" {
 /**
  * @brief A table segment.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzheap_tseg_t {
     /**
       * @brief Table keys.
       * @details 16th bit: valid; other bits: obj index
@@ -41,7 +41,7 @@ typedef struct PACKED {
 /**
  * @brief An array segment.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzheap_aseg_t {
     /**
       * @brief Array values.
       * @details 16th bit: valid; other bits: obj index.
@@ -79,7 +79,7 @@ typedef struct PACKED {
  *    2-byte field which contains flags and a pointer to the next
  *    segment, if any.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzheap_t {
     uint8_t* rtobj;             /**< @brief Pointer to after the rightmost object in heap, not necessarly valid */
     uint8_t* ltseg;             /**< @brief Pointer to the leftmost table segment in heap, not necessarly valid */
     uint8_t data[BBZHEAP_SIZE]; /**< @brief Data buffer */
@@ -106,9 +106,6 @@ void bbzheap_clear();
 uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o);
 
-#define BBZHEAP_MASK_OBJ_VALID (uint8_t)0x10
-#define BBZHEAP_MASK_PERMANENT (uint8_t)0x04
-
 /**
  * @brief Returns a pointer located at position i within the heap.
  * @param[in] i The position (a bbzheap_idx_t).
@@ -121,7 +118,7 @@ bbzobj_t* bbzheap_obj_at(bbzheap_idx_t i);
  * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).mdata & (uint8_t)BBZHEAP_MASK_OBJ_VALID)
+#define bbzheap_obj_isvalid(x) ((x).mdata & BBZHEAP_MASK_OBJ_VALID)
 
 /**
  *  @brief Copy the value of an object to an other object.

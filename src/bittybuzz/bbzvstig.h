@@ -19,7 +19,7 @@ extern "C" {
 /**
  * @brief Virtual stigmergy element.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzvstig_elem_t {
 #ifndef BBZ_DISABLE_VSTIGS
     uint16_t key;   /**< @brief Element's key. */
     bbzheap_idx_t value; /**< @brief Element's current value. */
@@ -33,7 +33,7 @@ typedef struct PACKED {
  * @note You should not create a stigmergy manually ; we assume there
  * is only a single instance: <code>vm->vstig.hpos</code>.
  */
-typedef struct PACKED {
+typedef struct PACKED bbzvstig_t {
 #ifndef BBZ_DISABLE_VSTIGS
     bbzvstig_elem_t data[BBZVSTIG_CAP]; /**< @brief Data of the stigmergy. */
     uint8_t size;       /**< @brief Number of stigmergy elements. */
