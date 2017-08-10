@@ -20,9 +20,12 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief Stucture constaining fields common to all messages.
+ */
 typedef struct PACKED bbzmsg_base_t {
-    bbzmsg_payload_type_t type;
-    bbzrobot_id_t rid;
+    bbzmsg_payload_type_t type; /**< @brief The message type */
+    bbzrobot_id_t rid; /**< @brief A robot id */
 } bbzmsg_base_t;
 
 /**
@@ -30,8 +33,8 @@ typedef struct PACKED bbzmsg_base_t {
  */
 typedef struct PACKED bbzmsg_broadcast_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
-    bbzmsg_payload_type_t type;
-    bbzrobot_id_t rid;
+    bbzmsg_payload_type_t type; /**< @brief The message type */
+    bbzrobot_id_t rid; /**< @brief A robot id */
     uint16_t topic; /**< @brief The topic of the broadcast. @note A string ID */
     bbzobj_t value; /**< @brief The broadcasted value. */
 #endif
@@ -42,10 +45,10 @@ typedef struct PACKED bbzmsg_broadcast_t {
  */
 typedef struct PACKED bbzmsg_swarm_t {
 #ifndef BBZ_DISABLE_SWARMS
-    bbzmsg_payload_type_t type;
-    bbzrobot_id_t rid;
-    bbzlamport_t lamport;
-    bbzswarmlist_t swarms;
+    bbzmsg_payload_type_t type; /**< @brief The message type */
+    bbzrobot_id_t rid; /**< @brief A robot id */
+    bbzlamport_t lamport; /**< @brief TODO */
+    bbzswarmlist_t swarms; /**< @brief TODO */
 #endif
 } bbzmsg_swarm_t;
 
@@ -54,11 +57,11 @@ typedef struct PACKED bbzmsg_swarm_t {
  */
 typedef struct PACKED bbzmsg_vstig_t {
 #ifndef BBZ_DISABLE_VSTIGS
-    bbzmsg_payload_type_t type;
-    bbzrobot_id_t rid;
-    uint8_t lamport;
-    uint16_t key;
-    bbzobj_t data;
+    bbzmsg_payload_type_t type; /**< @brief The message type */
+    bbzrobot_id_t rid; /**< @brief A robot id */
+    uint8_t lamport; /**< @brief A lamport clock to keep track if a message is old */
+    uint16_t key; /**< @brief The string id of the key */
+    bbzobj_t data; /**< @brief The buzz object assigned to the key */
 #endif
 } bbzmsg_vstig_t;
 
@@ -67,11 +70,11 @@ typedef struct PACKED bbzmsg_vstig_t {
  */
 typedef union PACKED bbzmsg_t {
 #ifndef BBZ_DISABLE_MESSAGES
-    bbzmsg_payload_type_t type;
-    bbzmsg_base_t base;
-    bbzmsg_broadcast_t bc;
-    bbzmsg_swarm_t sw;
-    bbzmsg_vstig_t vs;
+    bbzmsg_payload_type_t type; /**< @brief The message type */
+    bbzmsg_base_t base; /**< @brief Constains generic message fields */
+    bbzmsg_broadcast_t bc; /**< @brief Broadcast message data */
+    bbzmsg_swarm_t sw; /**< @brief Swarm message data */
+    bbzmsg_vstig_t vs; /**< @brief Vistual Stigmergy messages data */
 #endif
 } bbzmsg_t;
 
@@ -142,14 +145,26 @@ void bbzmsg_serialize_obj(bbzringbuf_t *rb, bbzobj_t *obj);
 void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos);
 
 #ifndef BBZ_DISABLE_NEIGHBORS
+/**
+ * Processes a broadcast message.
+ * @param msg The message to process.
+ */
 void bbzmsg_process_broadcast(bbzmsg_t* msg);
 #endif
 
 #ifndef BBZ_DISABLE_VSTIGS
+/**
+ * Processes a vurtual stigmergy's message.
+ * @param msg The message to process.
+ */
 void bbzmsg_process_vstig(bbzmsg_t* msg);
 #endif
 
 #ifndef BBZ_DISABLE_SWARMS
+/**
+ * Processes a swarm message.
+ * @param msg The message to process.
+ */
 void bbzmsg_process_swarm(bbzmsg_t* msg);
 #endif
 
@@ -165,23 +180,23 @@ void bbzmsg_process_swarm(bbzmsg_t* msg);
  */
 void bbzmsg_sort_priority(bbzringbuf_t* rb);
 #else // !BBZ_DISABLE_MESSAGES
-#define bbzmsg_serialize_u8(...)
-#define bbzmsg_deserialize_u8(...)
-#define bbzmsg_serialize_u16(...)
-#define bbzmsg_deserialize_u16(...)
-#define bbzmsg_serialize_obj(...)
-#define bbzmsg_deserialize_obj(...)
-#define bbzmsg_sort_priority(...)
+#define bbzmsg_serialize_u8(...) /**< @brief */
+#define bbzmsg_deserialize_u8(...) /**< @brief */
+#define bbzmsg_serialize_u16(...) /**< @brief */
+#define bbzmsg_deserialize_u16(...) /**< @brief */
+#define bbzmsg_serialize_obj(...) /**< @brief */
+#define bbzmsg_deserialize_obj(...) /**< @brief */
+#define bbzmsg_sort_priority(...) /**< @brief */
 #endif // !BBZ_DISABLE_MESSAGES
 
 #if defined(BBZ_DISABLE_NEIGHBORS) || defined(BBZ_DISABLE_MESSAGES)
-#define bbzmsg_process_broadcast(...)
+#define bbzmsg_process_broadcast(...) /**< @brief */
 #endif
 #if defined(BBZ_DISABLE_VSTIGS) || defined(BBZ_DISABLE_MESSAGES)
-#define bbzmsg_process_vstig(...)
+#define bbzmsg_process_vstig(...) /**< @brief */
 #endif
 #if defined(BBZ_DISABLE_SWARMS) || defined(BBZ_DISABLE_MESSAGES)
-#define bbzmsg_process_swarm(...)
+#define bbzmsg_process_swarm(...) /**< @brief */
 #endif
 
 /*

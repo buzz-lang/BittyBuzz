@@ -77,19 +77,32 @@ typedef uint16_t bbzpc_t;
  */
 #define PACKED __attribute__((packed))
 
-#if defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 /**
  * @brief Specifies that a function should not perform extra
  * computation before and after the call.
  */
+#if defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 #define NAKED __attribute__((naked))
 #else // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 #define NAKED
 #endif // defined(BBZCROSSCOMPILING) || defined(DOXYGEN)
 
+/**
+ * @brief Removes warnings about unused variables/parameters.
+ * @param[in] var The unused variable.
+ */
 #define RM_UNUSED_WARN(var) ((void)(var))
+/**
+ * @brief Removes warnings about unused return values.
+ * @param[in] exp The expression returning a useless value.
+ */
 #define RM_UNUSED_RETVAL_WARN(exp) if(exp)do{}while(0)
 
+/**
+ * @brief Swaps the value of two (2) integers-like variables.
+ * @param[in,out] a the first variable to swap.
+ * @param[in,out] b the second variable to swap.
+ */
 #define SWAP(a, b) {(a)^=(b);(b)^=(a);(a)^=(b);}
 
 #ifdef __cplusplus

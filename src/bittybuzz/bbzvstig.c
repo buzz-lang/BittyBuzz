@@ -151,7 +151,7 @@ void bbzvstig_put() {
                 bbzheap_obj_at(key)) == 0) {
             // Entry found. Set it and exit.
             vm->vstig.data[i].robot = vm->robot;
-            bbzheap_obj_remove_permanence(*bbzheap_obj_at(vm->vstig.data[i].value));
+            bbzheap_obj_unmake_permanent(*bbzheap_obj_at(vm->vstig.data[i].value));
             vm->vstig.data[i].value = value;
             bbzheap_obj_make_permanent(*bbzheap_obj_at(value));
             bbzvm_gc();

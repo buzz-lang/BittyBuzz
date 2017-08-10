@@ -573,6 +573,63 @@ extern "C" {
     // ======================================
 
     /**
+     * @brief Returns the vm's nil instance.
+     * @return The index of the object.
+     */
+    bbzheap_idx_t bbznil_get();
+
+    /**
+     * @brief Allocates a Buzz integer and returns its index on the heap.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @param[in] val The value to assign to the object.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbzint_new(int16_t val);
+
+    /**
+     * @brief Allocates a Buzz float and returns its index on the heap.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @param[in] val The value to assign to the object.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbzfloat_new(bbzfloat val);
+
+    /**
+     * @brief Fetches an instance of the requested Buzz string and returns its index on the heap.
+     * Allocates it if it does not already exist.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @warning You shouldn't change the string id of the returned object.
+     * @param[in] val The string ID to assign to the object.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbzstring_get(uint16_t val);
+
+    /**
+     * @brief Allocates a Buzz table and returns its index on the heap.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbztable_new();
+
+    /**
+     * @brief Allocates a Buzz closure and returns its index on the heap.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @warning You shouldn't change the string id of the returned object.
+     * @param[in] val The value to assign to the object.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbzclosure_new(intptr_t val);
+
+    /**
+     * @brief Allocates a Buzz userdata and returns its index on the heap.
+     * @warning This function may throw a #BBZVM_ERROR_MEM error.
+     * @warning You shouldn't change the string id of the returned object.
+     * @param[in] val The value to assign to the object.
+     * @return The index of the allocated object. UINT16_MAX in case of error.
+     */
+    bbzheap_idx_t bbzuserdata_new(void* val);
+
+    /**
      * Returns the size of the stack.
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
@@ -611,79 +668,59 @@ extern "C" {
      * or bbzdarray_lambda_alloc().
      * @param[in] expr The expression (function call) to assert.
      * @param[in] ERR_TYPE The kind of error to "throw" if the assertion fails.
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_exec(expr, ERR_TYPE)                           \
+    #define bbzvm_assert_exec(expr, ERR_TYPE, RET...)                   \
         if(!(expr)) {                                                   \
             bbzvm_seterror(ERR_TYPE);                                   \
-            return;                                                     \
+            return RET;                                                 \
         }
 
     /**
      * @brief Checks whether the given stack's size is >= to the passed size.
      * If the size is not valid, it updates the VM state.
      * @param[in] size The stack index, where 0 is the stack top and >0 goes down the stack.
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_stack(size)                                    \
-        bbzvm_assert_exec(bbzvm_stack_size() >= (size), BBZVM_ERROR_STACK)
+    #define bbzvm_assert_stack(size, RET...)                            \
+        bbzvm_assert_exec(bbzvm_stack_size() >= (size), BBZVM_ERROR_STACK, RET)
 
     /**
      * @brief Checks whether the type at the given stack position is correct.
      * If the type is wrong, it updates the VM state and exits the current function.
      * @param[in] idx The heap index of the object whose type to assert.
      * @param[in] tpe The type to check.
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_type(idx, tpe)                                 \
-        bbzvm_assert_exec(bbztype_is(*bbzheap_obj_at(idx), tpe), BBZVM_ERROR_TYPE)
+    #define bbzvm_assert_type(idx, tpe, RET...)                         \
+        bbzvm_assert_exec(bbztype_is(*bbzheap_obj_at(idx), tpe), BBZVM_ERROR_TYPE, RET)
 
     /**
      * @brief Allocate memory on the heap. If the heap is out of memory,
      * it updates the VM state and exits the current function.
      * @param[in] type The type to allocate.
      * @param[out] idx A buffer for the index of the allocated object.
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_mem_alloc(type, idx)                           \
-        bbzvm_assert_exec(bbzheap_obj_alloc(type, idx), BBZVM_ERROR_MEM)
+    #define bbzvm_assert_mem_alloc(type, idx, RET...)                   \
+        bbzvm_assert_exec(bbzheap_obj_alloc(type, idx), BBZVM_ERROR_MEM, RET)
 
     /**
      * @brief Checks whether the current closure was passed exactly
      * certain number of parameters.
      * @param[in] num The number of parameters expected.
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_lnum(num)                                      \
-        bbzvm_assert_exec(bbzvm_lsym_size() == (num), BBZVM_ERROR_LNUM)
+    #define bbzvm_assert_lnum(num, RET...)                              \
+        bbzvm_assert_exec(bbzvm_lsym_size() == (num), BBZVM_ERROR_LNUM, RET)
 
     /**
      * @brief Assert the state of the VM. To be used after explicit usage of
      * instructions such as bbzvm_pop() or bbzvm_gload();
+     * @param[in] RET (optional) The value returned if the assertion fails.
      */
-    #define bbzvm_assert_state(...)                                     \
-        if(vm->state == BBZVM_STATE_ERROR) return __VA_ARGS__
-
-    ///////////////////////////////////////////////////////////////////////////
-    // NOTE I don't really like this macro for the following reasons:
-    //
-    // 1) The name is not well chosen. It doesn't convey the idea that we
-    // create a value on the heap ; the name gives the idea that we are
-    // getting a value that already existed.
-    // 2) It requires the user to know about the functions bbzvm_push*
-    // functions anyway if you want to know what TYPE to use.
-    // 3) It makes every programmer have their own habit -- most programmers
-    // will write the code expicitly, but some will use this macro. Others will
-    // do use a bit of both. Yet others will think BittyBuzz is too
-    // complicated to use.
-    // 4) It's a macro. I'm macro-racist :). Seriously though, since it's
-    // already a macro, using it doesn't save code size so this has no
-    // real advantage over just writing things plainly.
-    // 5) Searches for bbzvm_pushi (and related) will not match places where we
-    // use this macro.
-    ///////////////////////////////////////////////////////////////////////////
-    #define bbzvm_get(arg, TYPE) ({                                     \
-        bbzvm_push ## TYPE(arg);                                        \
-        bbzheap_idx_t __tmp = bbzvm_stack_at(0);                        \
-        bbzvm_pop();                                                    \
-        (bbzheap_idx_t)__tmp;                                           \
-    })
-
+    #define bbzvm_assert_state(RET...)                                  \
+        if(vm->state == BBZVM_STATE_ERROR) return RET
 
 #ifdef __cplusplus
 }

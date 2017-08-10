@@ -14,6 +14,9 @@
 extern "C" {
 #endif // __cplusplus
 
+/**
+ * @brief The value set in the #bbzlclosure_value_t::actrec field when it uses the default activation record of the vm.
+ */
 #define BBZ_DFLT_ACTREC ((uint8_t)0xFF)
 
 /**
@@ -97,10 +100,12 @@ void bbzheap_clear();
 
 /**
  * @brief Allocates space for an object on the heap.
- * Sets as output the value of o, a buffer for the index of the allocated object.
- * The value of o is not checked for NULL, so make sure it's a valid pointer.
+ * In the general case, sets as output the value of <code>o</code>, a buffer for the index of the allocated object.
+ * The value of <code>o</code> is not checked for <code>NULL</code>, so make sure it's a valid pointer.
+ * @details In the case of a string allocation, the parameter <code>o</code> must be set to the string ID beforehand.
  * @param[in] t The type of the object.
- * @param[out] o A buffer for the index of the allocated object.
+ * @param[in,out] o A buffer for the index of the allocated object. In the case of a string allocation,
+ * this must be set to the string ID beforehand.
  * @return 1 for success, 0 for failure (out of memory)
  */
 uint8_t bbzheap_obj_alloc(uint8_t t,
@@ -139,8 +144,11 @@ bbzobj_t* bbzheap_obj_at(bbzheap_idx_t i);
  * @param[in,out] x The object to make permanent.
  */
 #define bbzheap_obj_make_permanent(x) do{(x).mdata|=BBZHEAP_MASK_PERMANENT;}while(0)
-
-#define bbzheap_obj_remove_permanence(x) do{(x).mdata&=~BBZHEAP_MASK_PERMANENT;}while(0)
+/**
+ * @brief Unmake an object permanent.
+ * @param[in,out] x The object to unmake permanent.
+ */
+#define bbzheap_obj_unmake_permanent(x) do{(x).mdata&=~BBZHEAP_MASK_PERMANENT;}while(0)
 
 /**
  * @brief Allocates space for a table segment on the heap.
@@ -337,16 +345,15 @@ void bbzheap_gc(bbzheap_idx_t* st,
  */
 #define tseg_makeinvalid(s) (s).mdata &= ~MASK_VALID_SEG
 
-
-#ifndef BBZCROSSCOMPILING
-#include <stdio.h>
 /**
  * @brief Prints the heap's contents for debugging.
  */
-void bbzheap_print();
-#else // !BBZCROSSCOMPILING
+#ifdef BBZCROSSCOMPILING
 #define bbzheap_print()
-#endif // !BBZCROSSCOMPILING
+#else // BBZCROSSCOMPILING
+void bbzheap_print();
+#include <stdio.h>
+#endif // BBZCROSSCOMPILING
 
 
 /**

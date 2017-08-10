@@ -55,6 +55,7 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
 #ifndef BBZ_DISABLE_SWARMS
 /**
  * @brief Appends a new SWARM_CHUNK message to the output queue.
+ * @param[in] rid The robot which owns the swarm data.
  * @param[in] swarms The swarmlist to append.
  * @param[in] lamport The swarmlist's lamport clock.
  * TODO
@@ -66,6 +67,7 @@ void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms
 /**
  * @brief Appends a new VSTIG_PUT/VSTIG_QUERY message to the output queue.
  * @param[in] type The type of the message to append.
+ * @param[in] rid The robot to whom the data belongs.
  * @param[in] key The string ID corresponding to the value to send.
  * @param[in] value The value to send.
  * @param[in] lamport The lamport clock of the value.
@@ -88,6 +90,11 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t *buf);
  */
 void bbzoutmsg_queue_next();
 
+/**
+ * @brief Returns the message at the given position in the buffer.
+ * @param[in] pos The position of the rquested message.
+ * @return The requested message.
+ */
 #define bbzoutmsg_queue_get(pos) ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, pos))
 #else // !BBZ_DISABLE_MESSAGES
 #define bbzoutmsg_queue_construct(...)

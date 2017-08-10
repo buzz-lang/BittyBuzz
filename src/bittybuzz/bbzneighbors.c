@@ -411,7 +411,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     ++vm->neighbors.count;
 //    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
     bbzheap_idx_t o;
-    bbztable_get(bbzvm_stack_at(0), bbzvm_get(INTERNAL_STRID_COUNT, s), &o);
+    bbztable_get(bbzvm_stack_at(0), bbzstring_get(INTERNAL_STRID_COUNT), &o);
     bbzheap_obj_at(o)->i.value = vm->neighbors.count;
 
     // Set data to the sub-table.

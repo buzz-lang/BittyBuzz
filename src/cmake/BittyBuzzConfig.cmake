@@ -27,5 +27,5 @@ option(BBZ_USE_PRIORITY_SORT "Whether to use priority sort on out-messages queue
 option(BBZ_USE_FLOAT "Whether to use float type." OFF)
 option(BBZ_DISABLE_NEIGHBORS "Whether to disable usage of neighbors' data structure and messages." OFF)
 option(BBZ_DISABLE_VSTIGS "Whether to disable usage of virtual stigmergies' data structure and messages." OFF)
-option(BBZ_DISABLE_SWARMS "Whether to disable usage of swarms' data structure and messages." OFF)
+option(BBZ_DISABLE_SWARMS "Whether to disable usage of swarms' data structure and messages." ON) # TODO Swarms take too much RAM
 option(BBZ_DISABLE_MESSAGES "Whether to disable usage and transfer of any kind of Buzz message." OFF)

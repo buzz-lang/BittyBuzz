@@ -37,7 +37,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload);
 /**
  * @brief Extracts a message from the queue.
  * @note You are in charge of allocating and freeing the payload buffer.
- * @param[out] buf A buffer where to put the deserialized payload of the received message.
+ * @return The deserialized payload of the received message.
  */
 bbzmsg_t * bbzinmsg_queue_extract();
 
@@ -59,14 +59,12 @@ bbzmsg_t * bbzinmsg_queue_extract();
 
 /**
  * Returns <tt>true</tt> if the message queue is empty.
- * @param msgq The message queue.
  * @return <tt>true</tt> if the message queue is empty.
  */
 #define bbzinmsg_queue_isempty() bbzringbuf_empty(&vm->inmsgs.queue)
 
 /**
  * Returns the message at the given position in the queue.
- * @param msg The message queue.
  * @param pos The position.
  * @return The message at the given position.
  */

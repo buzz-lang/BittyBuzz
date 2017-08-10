@@ -79,7 +79,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.swarms, 0x42);
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.lamport, 2);
 
-    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_id,s), val);
+    bbzoutmsg_queue_append_broadcast(bbzstring_get(__BBZSTRID_id), val);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 2);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
@@ -99,7 +99,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data.u.value, bbzheap_obj_at(val)->u.value);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.lamport, 1);
 
-    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_count,s), val2);
+    bbzoutmsg_queue_append_broadcast(bbzstring_get(__BBZSTRID_count), val2);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 4);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_BROADCAST);
@@ -122,7 +122,7 @@ TEST(m_out_queue_first) {
     bbzheap_idx_t val;
     REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &val));
     bbzheap_obj_at(val)->i.value = 0x6789; // Value not necessary, but useful for debugging
-    bbzoutmsg_queue_append_broadcast(bbzvm_get(__BBZSTRID_count,s), val);
+    bbzoutmsg_queue_append_broadcast(bbzstring_get(__BBZSTRID_count), val);
 
     bbzoutmsg_queue_first(&rb);
     ASSERT_EQUAL(*buf, BBZMSG_BROADCAST);

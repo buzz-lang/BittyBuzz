@@ -48,6 +48,14 @@ uint8_t bbzheap_obj_alloc(uint8_t t,
             *o = i;
             return bbzheap_obj_alloc_prepare_obj(t, bbzheap_obj_at(i));
         }
+        else {
+            if (t == BBZTYPE_STRING &&
+                bbztype_isstring(*bbzheap_obj_at(i)) &&
+                *o == bbzheap_obj_at(i)->s.value) {
+                *o = i;
+                return 1;
+            }
+        }
     }
     /* No empty slot found, must create a new one */
     /* ...but first, make sure there is room */

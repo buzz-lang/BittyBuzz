@@ -93,7 +93,7 @@ void bbzmsg_process_broadcast(bbzmsg_t* msg) {
     bbzvm_pushu(0);
     bbzobj_t* x = bbzheap_obj_at(bbzvm_stack_at(0));
     bbztype_copy(msg->bc.value, *x);
-    bbzheap_obj_remove_permanence(*x);
+    bbzheap_obj_unmake_permanent(*x);
     x->biggest.value = msg->bc.value.biggest.value;
     bbzvm_pushi(msg->bc.rid);
     bbzvm_closure_call(3);
@@ -128,7 +128,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                 bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                 *bbzheap_obj_at(o) = msg->vs.data;
                 obj_makevalid(*bbzheap_obj_at(o));
-                bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
+                bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
                 data->value = o;
                 bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
                 data->timestamp = msg->vs.lamport;
@@ -149,38 +149,38 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                 // Conflict! Call the onconflict callback closure.
                 bbzheap_idx_t tmp = vm->nil;
                 // Check if there is a callback closure.
-                if (bbztable_get(vm->vstig.hpos, bbzvm_get(__BBZSTRID___INTERNAL_1_DO_NOT_USE__, s),
+                if (bbztable_get(vm->vstig.hpos, bbzstring_get(__BBZSTRID___INTERNAL_1_DO_NOT_USE__),
                                  &tmp)) {
                     bbzvm_push(tmp);
                     bbzvm_pushs(msg->vs.key);
                     // push the local data
                     bbzvm_pusht();
-                    bbztable_add_data(__BBZSTRID_robot, bbzvm_get(data->robot, i));
+                    bbztable_add_data(__BBZSTRID_robot, bbzint_new(data->robot));
                     bbztable_add_data(__BBZSTRID_data, data->value);
-                    bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(data->timestamp, i));
+                    bbztable_add_data(__BBZSTRID_timestamp, bbzint_new(data->timestamp));
                     // push the remote data
                     bbzvm_pusht();
                     bbzheap_idx_t rd = bbzvm_stack_at(0);
-                    bbztable_add_data(__BBZSTRID_robot, bbzvm_get(msg->vs.rid, i));
+                    bbztable_add_data(__BBZSTRID_robot, bbzint_new(msg->vs.rid));
                     bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                     *bbzheap_obj_at(o) = msg->vs.data;
                     obj_makevalid(*bbzheap_obj_at(o));
                     bbztable_add_data(__BBZSTRID_data, o);
-                    bbztable_add_data(__BBZSTRID_timestamp, bbzvm_get(msg->vs.lamport, i));
+                    bbztable_add_data(__BBZSTRID_timestamp, bbzint_new(msg->vs.lamport));
                     bbzvm_closure_call(3);
                     // Update the value with the table returned by the closure.
                     // If error, either no value was returned, or the returned value is of the wrong type.
                     bbzvm_assert_exec(bbztype_istable(*bbzheap_obj_at(bbzvm_stack_at(0))), BBZVM_ERROR_RET);
                     tmp = 0;
-                    bbztable_get(bbzvm_stack_at(0), bbzvm_get(__BBZSTRID_robot, s), &tmp);
+                    bbztable_get(bbzvm_stack_at(0), bbzstring_get(__BBZSTRID_robot), &tmp);
                     bbzrobot_id_t oldRID = data->robot;
                     data->robot = tmp ?
                                   (bbzrobot_id_t) bbzheap_obj_at(tmp)->i.value :
                                   data->robot;
                     tmp = vm->nil;
                     obj_makeinvalid(*bbzheap_obj_at(data->value));
-                    bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
-                    bbztable_get(bbzvm_stack_at(0), bbzvm_get(__BBZSTRID_data, s), &tmp);
+                    bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
+                    bbztable_get(bbzvm_stack_at(0), bbzstring_get(__BBZSTRID_data), &tmp);
                     data->value = tmp;
                     bbzheap_obj_make_permanent(*bbzheap_obj_at(tmp));
                     data->timestamp = msg->vs.lamport;
@@ -190,7 +190,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                         // Check if there is an onconflictlost callback closure.
                         tmp = vm->nil;
                         if (bbztable_get(vm->vstig.hpos,
-                                         bbzvm_get(__BBZSTRID___INTERNAL_2_DO_NOT_USE__, s), &tmp)) {
+                                         bbzstring_get(__BBZSTRID___INTERNAL_2_DO_NOT_USE__), &tmp)) {
                             bbzvm_push(tmp);
                             bbzvm_pushs(msg->vs.key);
                             bbzvm_push(rd);
@@ -211,7 +211,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                         bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                         *bbzheap_obj_at(o) = msg->vs.data;
                         obj_makevalid(*bbzheap_obj_at(o));
-                        bbzheap_obj_remove_permanence(*bbzheap_obj_at(data->value));
+                        bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
                         data->value = o;
                         bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
                         data->timestamp = msg->vs.lamport;

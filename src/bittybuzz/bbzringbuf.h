@@ -59,12 +59,7 @@ uint8_t bbzringbuf_capacity(const bbzringbuf_t* rb) { return rb->capacity; }
  * @return The number of elements inside the ring buffer.
  */
 //ALWAYS_INLINE
-uint8_t bbzringbuf_size(const bbzringbuf_t* rb)/**/;/*/ {
-    return ((rb->dataend >=  rb->datastart) ?
-           (rb->dataend  -  rb->datastart) :
-           (rb->capacity - (rb->datastart - rb->dataend))); // (rb->capacity - (rb->datastart - rb->dataend - (uint8_t)1)));
-}/**/
-
+uint8_t bbzringbuf_size(const bbzringbuf_t* rb);
 
 /**
  * @brief Checks whether the ring buffer is full.
@@ -72,7 +67,7 @@ uint8_t bbzringbuf_size(const bbzringbuf_t* rb)/**/;/*/ {
  * @return 1 if the buffer is full, 0 otherwise
  */
 //ALWAYS_INLINE
-uint8_t bbzringbuf_full(const bbzringbuf_t* rb)/**/;/*/ { return (uint8_t) (((rb->dataend + 1) % rb->capacity) == rb->datastart); }/**/
+uint8_t bbzringbuf_full(const bbzringbuf_t* rb);
 
 /**
  * @brief Returns the object at the given index in the ring buffer.
@@ -83,7 +78,7 @@ uint8_t bbzringbuf_full(const bbzringbuf_t* rb)/**/;/*/ { return (uint8_t) (((rb
  * @return A pointer to the object starting at given index.
  */
 //ALWAYS_INLINE
-uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx)/**/;/*/ { return rb->buffer + ((rb->datastart + idx) % rb->capacity) * rb->elsize; }/**/
+uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx);
 
 /**
  * @brief Returns the object at the given internal index in the ring buffer.
@@ -93,7 +88,7 @@ uint8_t* bbzringbuf_at(const bbzringbuf_t* rb, uint8_t idx)/**/;/*/ { return rb-
  * @return A pointer to the object starting at given internal index.
  */
 //ALWAYS_INLINE
-uint8_t* bbzringbuf_rawat(const bbzringbuf_t* rb, uint8_t idx)/**/;/*/ { return (rb->buffer + (idx % rb->capacity) * rb->elsize); }/**/
+uint8_t* bbzringbuf_rawat(const bbzringbuf_t* rb, uint8_t idx);
 
 /**
  * @brief Returns whether the buffer is empty or not.
@@ -101,7 +96,7 @@ uint8_t* bbzringbuf_rawat(const bbzringbuf_t* rb, uint8_t idx)/**/;/*/ { return 
  * @return Whether the buffer is empty or not.
  */
 //ALWAYS_INLINE
-uint8_t bbzringbuf_empty(bbzringbuf_t *rb)/**/;/*/ { return (uint8_t)(rb->datastart == rb->dataend); }/**/
+uint8_t bbzringbuf_empty(bbzringbuf_t *rb);
 
 /**
  * @brief Pops the first element in the list, if any.
@@ -109,7 +104,7 @@ uint8_t bbzringbuf_empty(bbzringbuf_t *rb)/**/;/*/ { return (uint8_t)(rb->datast
  * @return 1 if the pop was sucessful, 0 if the buffer was already empty
  */
 //ALWAYS_INLINE
-uint8_t bbzringbuf_pop(bbzringbuf_t* rb)/**/;/*/ { if (bbzringbuf_empty(rb)) return 0; rb->datastart = (rb->datastart + (uint8_t)1) % rb->capacity; return 1; }/**/
+uint8_t bbzringbuf_pop(bbzringbuf_t* rb);
 
 /**
  * @brief Returns the internal index of a newly created slot in the ring buffer.

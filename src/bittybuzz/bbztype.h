@@ -147,13 +147,16 @@ typedef struct PACKED bbzdarray_t {
 typedef struct PACKED bbzclosure_t {
     /**
      * @brief Object metadata.
-     * @details 2nd bit: 'native' flag.
+     * @details 2nd bit: 'native' flag.<br/>
      *          1st bit: 'lambda' flag.
      */
     uint8_t mdata;
     void (*value)(); /**< @brief Closure object's value. */
 } bbzclosure_t;
 
+/**
+ * @brief A lambda closure object's value type
+ */
 typedef struct PACKED bbzlclosure_value_t {
     /**
      * @brief Location of the closure.
@@ -173,7 +176,7 @@ typedef struct PACKED bbzlclosure_value_t {
 typedef struct PACKED bbzlclosure_t {
     /**
      * @brief Object metadata.
-     * @details 2nd bit: 'native' flag.
+     * @details 2nd bit: 'native' flag.<br/>
      *          1st bit: 'lambda' flag.
      */
     uint8_t mdata;
@@ -188,14 +191,17 @@ typedef struct PACKED bbzuserdata_t {
     uintptr_t value;   /**< @brief User value. */
 } bbzuserdata_t;
 
+/**
+ * @brief Structure with fields common to all objects.
+ */
 typedef struct PACKED bbzobj_base_t {
     /**
      * @brief Object metadata.
-     * @details 8th bit for type dependent usage ('is_swarm' flag for darrays)
-     * 7th bit for type dependent usage ('is_darray' flag for tables; 'is_lambda' flag for closures)
-     * 6th bit for garbage collection marking
-     * 5th bit for permanence flag (if set, the object will not be garbage collected)
-     * 4th bit for validity in heap
+     * @details 8th bit for type dependent usage ('is_lambda' flag for closures)<br/>
+     * 7th bit for type dependent usage ('is_darray' flag for tables; 'is_native' flag for closures)<br/>
+     * 6th bit for garbage collection marking<br/>
+     * 5th bit for permanence flag (if set, the object will not be garbage collected)<br/>
+     * 4th bit for validity in heap<br/>
      * 3rd,2nd,1st bit for type
      */
     uint8_t mdata;
@@ -205,7 +211,7 @@ typedef struct PACKED bbzobj_base_t {
  * @brief A handle for a object
  */
 typedef union PACKED bbzobj_t {
-    uint8_t       mdata;
+    uint8_t       mdata; /**< @brief Object metadata @see bbzobj_base_t::mdata */
     bbzobj_base_t o; /**< @brief Generic object */
     bbznil_t      n; /**< @brief Nil object */
     bbzint_t      i; /**< @brief Integer object */
@@ -323,8 +329,15 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @param[in] obj The object.
  */
 #define bbztype_isclosurenative(obj) ((obj).mdata & BBZCLOSURE_NATIVE_MASK)
-
+/**
+ * @brief Set the "native" flag of a closure.
+ * @param[in,out] obj The closure object to make native.
+ */
 #define bbzclosure_make_native(obj) do{(obj).mdata |= BBZCLOSURE_NATIVE_MASK;}while(0)
+/**
+ * @brief Unset the "native" flag of a closure.
+ * @param[in,out] obj The closure object to unmake native.
+ */
 #define bbzclosure_unmake_native(obj) do{(obj).mdata &= ~BBZCLOSURE_NATIVE_MASK;}while(0)
 
 /**
@@ -332,8 +345,15 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @param[in] obj The object.
  */
 #define bbztype_isclosurelambda(obj) ((obj).mdata & BBZCLOSURE_LAMBDA_MASK)
-
+/**
+ * @brief Set the "lambda" flag of a closure.
+ * @param[in,out] obj The closure object to make lambda.
+ */
 #define bbzclosure_make_lambda(obj) do{(obj).mdata |= BBZCLOSURE_LAMBDA_MASK;}while(0)
+/**
+ * @brief Unset the "lambda" flag of a closure.
+ * @param[in,out] obj The closure object to unmake lambda.
+ */
 #define bbzclosure_unmake_lambda(obj) do{(obj).mdata &= ~BBZCLOSURE_LAMBDA_MASK;}while(0)
 
 #ifdef __cplusplus
