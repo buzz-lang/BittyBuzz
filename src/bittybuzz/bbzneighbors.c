@@ -18,7 +18,7 @@
  * 'distance', 'azimuth' and 'elevation'.
  * @param[in] elem Data of the neighbor structure.
  */
-void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
+static void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
     bbzvm_pusht();
     // Distance
     bbzvm_pushi(elem->distance);
@@ -44,14 +44,14 @@ void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
  * @param[in] elem_fun The function to execute on each neighbor.
  * @param[in,out] params Parameters of the function.
  */
-void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params);
+static void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params);
 
 /**
  * @brief Adds some fields that are common to both the 'neighbors' table and neighbor-like tables gotten from
  * some neighbor operations, such as 'map' or 'filter'.
  * @param[in] count The number of neighbors.
  */
-void add_neighborlike_fields(int16_t count) {
+static void add_neighborlike_fields(int16_t count) {
 
 #ifndef BBZ_XTREME_MEMORY
     // Add a sub-table which will contain the neighbors' data
@@ -84,7 +84,7 @@ void add_neighborlike_fields(int16_t count) {
  * @brief Constructs the VM's neighbor structure.
  * @param[in] n The neighbor structure.
  */
-void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
+static void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
     vm->neighbors.hpos = n;
     vm->neighbors.listeners = l;
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.hpos));
@@ -112,12 +112,12 @@ void bbzneighbors_register() {
     neighbors_construct(n, l);
 
     // Add some fields to the table (most common fields first)
-    add_neighborlike_fields(0);
     bbztable_add_function(__BBZSTRID_broadcast, bbzneighbors_broadcast);
     bbztable_add_function(__BBZSTRID_listen, bbzneighbors_listen);
     bbztable_add_function(__BBZSTRID_ignore, bbzneighbors_ignore);
+    add_neighborlike_fields(0);
 
-    // String 'neighbors' is now stack top, and table is stack #1. Register it.
+    // Table is stack top, and string 'neighbors' is stack #1. Register it.
     bbzvm_gstore();
 }
 
@@ -196,7 +196,7 @@ void bbzneighbors_ignore() {
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in,out] params The closure to call.
  */
-void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
+static void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
     // Push closure and args
     bbzvm_push(*(bbzheap_idx_t*)params);
     bbzvm_push(key);
@@ -255,7 +255,7 @@ typedef struct PACKED neighbor_map_base_t {
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in,out] params Parameters of the function.
  */
-void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+static void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     neighbor_map_base_t* nm = (neighbor_map_base_t*)params;
 
     // Save stack size
@@ -285,7 +285,7 @@ void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
  * @brief Base for 'map' and 'filter'.
  * @param[in] elem_fun Which element-wise function to call.
  */
-void neighbors_map_base(put_elem_funp put_elem) {
+static void neighbors_map_base(put_elem_funp put_elem) {
     bbzvm_assert_lnum(1);
 
     // Get closure
@@ -312,7 +312,7 @@ void neighbors_map_base(put_elem_funp put_elem) {
  * <code>{distance, azimuth, elevation}</code> table.)
  * @param[in] ret The value returned by the user's closure.
  */
-void map_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
+static void map_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
     RM_UNUSED_WARN(value);
     bbzvm_push(ret);
     bbzvm_tput();
@@ -332,7 +332,7 @@ void bbzneighbors_map() {
  * <code>{distance, azimuth, elevation}</code> table.)
  * @param[in] ret The value returned by the user's closure.
  */
-void filter_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
+static void filter_put_elem(bbzheap_idx_t value, bbzheap_idx_t ret) {
     if (bbztype_tobool(bbzheap_obj_at(ret))) {
         // Add data table to the table
         bbzvm_push(value);
@@ -352,7 +352,7 @@ void bbzneighbors_filter() {
 /****************************************/
 /****************************************/
 
-void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+static void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
 
     // Get accumulator
@@ -573,11 +573,11 @@ void bbzneighbors_count() {
     bbzvm_assert_lnum(0);
 
     // Push neighbor count.
-    if (bbzvm_lsym_at(0) == vm->neighbors.hpos) {
+    if (bbztype_cmp(bbzheap_obj_at(bbzvm_lsym_at(0)),
+                    bbzheap_obj_at(vm->neighbors.hpos)) == 0) {
         //
         // 'neighbors' table ; uses optimized C implementation.
         //
-//        bbzvm_pushi(vm->neighbors.count);
         bbzvm_pushi(bbzringbuf_size(&vm->neighbors.rb));
     }
     else {
@@ -597,12 +597,13 @@ void bbzneighbors_count() {
 /****************************************/
 /****************************************/
 
-void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
+static void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
     // Get the table we are using the algorithm on.
     bbzheap_idx_t self = bbzvm_lsym_at(0);
 
     // Perform the right foreach.
-    if (self == vm->neighbors.hpos) {
+    if (bbztype_cmp(bbzheap_obj_at(self),
+                    bbzheap_obj_at(vm->neighbors.hpos)) == 0) {
         //
         // 'neighbors' table ; uses optimized C implementation.
         // Size-optimized loop for AVR MCUs (for kilobots)

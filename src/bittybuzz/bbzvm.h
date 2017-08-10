@@ -15,6 +15,7 @@
 #include "bbztable.h"
 #include "bbzstrids.h"
 #include "bbzneighbors.h"
+#include "bbzswarm.h"
 #include "bbzvstig.h"
 #include "bbzoutmsg.h"
 #include "bbzinmsg.h"
@@ -77,8 +78,7 @@ extern "C" {
         // TODO
         /* List of known swarms */
         // TODO
-        /* Swarm members */
-        // TODO
+        bbzswarm_t swarm;          /**< @brief Swarm data */
         /* Counter for swarm membership broadcasting */
         // TODO
         bbzinmsg_queue_t inmsgs;   /**< @brief Input messages FIFO */
@@ -88,7 +88,7 @@ extern "C" {
         bbzvm_state state;         /**< @brief Current VM state */
         bbzvm_error error;         /**< @brief Current VM error */
         /* Current VM error message */
-        // TODO ... maybe not?
+        // TODO ... or not TODO? That is the question...
         bbzrobot_id_t robot;       /**< @brief This robot's id */
 #ifdef DEBUG
         bbzpc_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
@@ -123,6 +123,8 @@ extern "C" {
 
     /**
      * @brief Sets the error state of the VM.
+     * @note It is possible for a user to create and pass their own error
+     * type to this function.
      * @param[in] errcode The code of the error.
      * @see bbzvm_error
      */
@@ -575,8 +577,6 @@ extern "C" {
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
      */
-//    ALWAYS_INLINE
-//    uint16_t bbzvm_stack_size() { return vm->stackptr + (uint16_t)1; }
     #define bbzvm_stack_size() (vm->stackptr + (int16_t)1)
 
     /**
@@ -598,6 +598,12 @@ extern "C" {
      */
     #define bbzvm_lsym_at(idx) ({ bbzheap_idx_t ret; bbzdarray_get(vm->lsyms, idx, &ret); ret; })
 
+    /**
+     * @brief Determines how many arguments were passed to the closure that
+     * is being executed.
+     * @return The number of arguments.
+     */
+    #define bbzvm_lsym_size() (bbzdarray_size(vm->lsyms) - 1)
 
     /**
      * @brief Assert the correct execution of a boolean returning function.
@@ -644,7 +650,7 @@ extern "C" {
      * @param[in] num The number of parameters expected.
      */
     #define bbzvm_assert_lnum(num)                                      \
-        bbzvm_assert_exec(bbzdarray_size(vm->lsyms) - 1 == (num), BBZVM_ERROR_LNUM)
+        bbzvm_assert_exec(bbzvm_lsym_size() == (num), BBZVM_ERROR_LNUM)
 
     /**
      * @brief Assert the state of the VM. To be used after explicit usage of
@@ -653,6 +659,24 @@ extern "C" {
     #define bbzvm_assert_state(...)                                     \
         if(vm->state == BBZVM_STATE_ERROR) return __VA_ARGS__
 
+    ///////////////////////////////////////////////////////////////////////////
+    // NOTE I don't really like this macro for the following reasons:
+    //
+    // 1) The name is not well chosen. It doesn't convey the idea that we
+    // create a value on the heap ; the name gives the idea that we are
+    // getting a value that already existed.
+    // 2) It requires the user to know about the functions bbzvm_push*
+    // functions anyway if you want to know what TYPE to use.
+    // 3) It makes every programmer have their own habit -- most programmers
+    // will write the code expicitly, but some will use this macro. Others will
+    // do use a bit of both. Yet others will think BittyBuzz is too
+    // complicated to use.
+    // 4) It's a macro. I'm macro-racist :). Seriously though, since it's
+    // already a macro, using it doesn't save code size so this has no
+    // real advantage over just writing things plainly.
+    // 5) Searches for bbzvm_pushi (and related) will not match places where we
+    // use this macro.
+    ///////////////////////////////////////////////////////////////////////////
     #define bbzvm_get(arg, TYPE) ({                                     \
         bbzvm_push ## TYPE(arg);                                        \
         bbzheap_idx_t __tmp = bbzvm_stack_at(0);                        \
@@ -664,5 +688,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#include "bbzutil.h" // Include AFTER bbzvm.h because of circular dependencies.
 
 #endif // !BBZVM_H

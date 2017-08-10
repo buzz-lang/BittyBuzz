@@ -19,11 +19,6 @@ extern "C" {
 //typedef int16_t bbzint_t;
 
 /**
- * @brief Type for the ID of a robot.
- */
-typedef uint16_t bbzrobot_id_t;
-
-/**
  * @brief Type for a heap index.
  * This can be considered to be a custom pointer
  * to a heap-allocated element.
@@ -31,7 +26,27 @@ typedef uint16_t bbzrobot_id_t;
 typedef uint16_t bbzheap_idx_t;
 
 /**
- * @brief Type for the swarms list.
+ * @brief Type for the ID of a robot.
+ */
+typedef uint16_t bbzrobot_id_t;
+
+/**
+ * @brief Type for the ID of a swarm.
+ * @details Valid swarm IDs are within range
+ * [<code>0</code>, <code>8*sizeof(bbzswarmlist_t)</code>[.
+ * Thus, swarm IDs greater than, or equal to,
+ * <code>8*sizeof(bbzswarmlist_t)</code> are invalid and BBZVM_ERROR_SWARM
+ * will be set if such an ID is passed to any swarm function.
+ */
+typedef uint8_t bbzswarm_id_t;
+
+/**
+ * @brief Type for the swarm list of a robot, that is, the list of swarms
+ * that the robot is a member of.
+ * @details This is a bitfield where the i-th bit represents whether
+ * the robot is a member of the i-th swarm.<br/>
+ * Thus, bit 0 -> swarm 0, bit 1 -> swarm 1, ...<br/>
+ * For example, 0b01000001 means that the robot is a member of swarms 6 and 0.
  */
 typedef uint8_t bbzswarmlist_t;
 

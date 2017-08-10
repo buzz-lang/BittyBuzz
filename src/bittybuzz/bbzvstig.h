@@ -21,7 +21,7 @@ extern "C" {
  */
 typedef struct PACKED bbzvstig_elem_t {
 #ifndef BBZ_DISABLE_VSTIGS
-    uint16_t key;   /**< @brief Element's key. */
+    uint16_t key;        /**< @brief Element's key. */
     bbzheap_idx_t value; /**< @brief Element's current value. */
     uint8_t timestamp;   /**< @brief Timestamp (Lamport clock) of last update of the value. */
     bbzrobot_id_t robot; /**< @brief Robot ID. */

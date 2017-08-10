@@ -132,6 +132,41 @@ uint8_t bbzdarray_remove(bbzheap_idx_t d, uint16_t idx) { // FIXME
 /****************************************/
 /****************************************/
 
+uint8_t bbzdarray_push(bbzheap_idx_t d,
+                       bbzheap_idx_t v) {
+    /* Initialisation for the loop */
+    uint16_t si = bbzheap_obj_at(d)->t.value; // Segment index
+    bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
+    /* Loop to fetch the last segment */
+    while (bbzheap_aseg_hasnext(sd)) {
+        si = bbzheap_aseg_next_get(sd);
+        sd = bbzheap_aseg_at(si);
+    }
+    /* We are now at the last segment */
+    /* Find the first free space */
+    for (si = 0; // Reusing 'si' as the position in the segment
+         si < 2 * BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
+         ++si);
+
+    if (si >= 2*BBZHEAP_ELEMS_PER_TSEG) {
+        /* Last segment is full ; add a new segment */
+        uint16_t o;
+        if (!bbzheap_aseg_alloc(&o)) return 0;
+        bbzheap_aseg_next_set(sd, o);
+        si = bbzheap_aseg_next_get(sd);
+        sd = bbzheap_aseg_at(si);
+        si = 0;
+    }
+
+    /* Append value to segment */
+    bbzheap_aseg_elem_set(sd->values[si], v);
+
+    return 1;
+}
+
+/****************************************/
+/****************************************/
+
 uint8_t bbzdarray_pop(bbzheap_idx_t d) {
     bbzheap_idx_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
@@ -167,41 +202,6 @@ uint8_t bbzdarray_pop(bbzheap_idx_t d) {
             return 0; // Should never be reached.
         }
     }
-    return 1;
-}
-
-/****************************************/
-/****************************************/
-
-uint8_t bbzdarray_push(bbzheap_idx_t d,
-                       bbzheap_idx_t v) {
-    /* Initialisation for the loop */
-    uint16_t si = bbzheap_obj_at(d)->t.value; // Segment index
-    bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
-    /* Loop to fetch the last segment */
-    while (bbzheap_aseg_hasnext(sd)) {
-        si = bbzheap_aseg_next_get(sd);
-        sd = bbzheap_aseg_at(si);
-    }
-    /* We are now at the last segment */
-    /* Find the first free space */
-    for (si = 0; // Reusing 'si' as the position in the segment
-         si < 2 * BBZHEAP_ELEMS_PER_TSEG && bbzheap_aseg_elem_isvalid(sd->values[si]);
-         ++si);
-
-    if (si >= 2*BBZHEAP_ELEMS_PER_TSEG) {
-        /* Last segment is full ; add a new segment */
-        uint16_t o;
-        if (!bbzheap_aseg_alloc(&o)) return 0;
-        bbzheap_aseg_next_set(sd, o);
-        si = bbzheap_aseg_next_get(sd);
-        sd = bbzheap_aseg_at(si);
-        si = 0;
-    }
-
-    /* Append value to segment */
-    bbzheap_aseg_elem_set(sd->values[si], v);
-
     return 1;
 }
 

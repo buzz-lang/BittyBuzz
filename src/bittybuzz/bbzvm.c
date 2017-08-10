@@ -63,8 +63,8 @@ extern char* _instr_desc[];
 char* _state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_STOPPED", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR",
                        "BBZVM_STATE_COUNT"};
 char* _error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STACK", "BBZVM_ERROR_LNUM", "BBZVM_ERROR_PC",
-                       "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM",
-                       "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM", "BBZVM_ERROR_MATH"};
+                       "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_OUTOFRANGE", "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING",
+                       "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM", "BBZVM_ERROR_MATH"};
 char* _instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
                        "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
                        "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
@@ -99,7 +99,6 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_clear();
     bbzinmsg_queue_construct();
     bbzoutmsg_queue_construct();
-//    bbzvm_clear_stack();
 
     // Allocate singleton objects
     bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil);
@@ -119,7 +118,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
 
     // Register things
     bbzvstig_register();
-    // bbzswarm_register(); // TODO
+    bbzswarm_register();
     bbzneighbors_register();
 
     bbzvm_register_globals();
@@ -852,7 +851,7 @@ void bbzvm_callc() {
     for (i = argn; i; --i) {
         bbzdarray_push(vm->lsyms, bbzvm_stack_at(i - (uint16_t)1));
     }
-    vm->stackptr -= argn + 1;// Get rid of the closure's reference on the stack.
+    vm->stackptr -= argn + 1; // Get rid of the closure's reference on the stack.
     /* Push return address */
     bbzvm_pushi(vm->pc);
     bbzvm_assert_state();

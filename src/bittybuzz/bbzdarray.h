@@ -8,7 +8,6 @@
 #define BBZDARRAY_H
 
 #include "bbzinclude.h"
-#include "bbzheap.h"
 #include "bbztype.h"
 
 #ifdef __cplusplus
@@ -88,20 +87,20 @@ extern "C" {
                              uint16_t idx);
 
     /**
-     *  @brief Remove the value at the end of the array d.
-     *  @param [in] d The position of the dynamic array's object in the heap.
-     *  @return 1 for success, 0 for failure (empty array)
-     */
-    uint8_t bbzdarray_pop(bbzheap_idx_t d);
-
-    /**
-     *  @brief Insert a value v at the end of the array d.
+     *  @brief Insert a value v at the end of array.
      *  @param [in] d The position of the dynamic array's object in the heap.
      *  @param [in] v The position in the heap of the object to push.
      *  @return 1 for success, 0 for failure (out of memory)
      */
     uint8_t bbzdarray_push(bbzheap_idx_t d,
                            bbzheap_idx_t v);
+
+    /**
+     *  @brief Remove the value at the end of array.
+     *  @param [in] d The position of the dynamic array's object in the heap.
+     *  @return 1 for success, 0 for failure (empty array)
+     */
+    uint8_t bbzdarray_pop(bbzheap_idx_t d);
 
     /**
      *  @brief Return the count of sequential valid values in the table.
@@ -177,5 +176,7 @@ extern "C" {
  *  @return <tt>true</tt> if the dynamic array is empty.
  */
 #define bbzdarray_isempty(d) (bbzdarray_size(d) == 0)
+
+#include "bbzheap.h" // Include AFTER bbzdarray.h because of circular dependencies.
 
 #endif // !BBZDARRAY_H

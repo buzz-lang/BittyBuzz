@@ -74,19 +74,39 @@
  */
 #define BBZHEAP_GCMARK_DEPTH @BBZHEAP_GCMARK_DEPTH@
 
-#define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
-
 /**
- * @brief Features Disabling Macros
+ * @brief The maximum number of messages to process
+ * every instruction.
  */
-#cmakedefine BBZ_DISABLE_NEIGHBORS
-#cmakedefine BBZ_DISABLE_VSTIGS
-#cmakedefine BBZ_DISABLE_SWARMS
-#cmakedefine BBZ_DISABLE_MESSAGES
+#define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
 
 /**
  * @brief Whether to compile in debug mode.
  */
 #cmakedefine DEBUG
+
+// ==============================
+// =  FEATURE-DISABLING MACROS  =
+// ==============================
+
+/**
+ * @brief Whether to disable the neighbor structure.
+ */
+#cmakedefine BBZ_DISABLE_NEIGHBORS
+
+/**
+ * @brief Whether to disable the stigmergy structure.
+ */
+#cmakedefine BBZ_DISABLE_VSTIGS
+
+/**
+ * @brief Whether to disable the swarm structure.
+ */
+#cmakedefine BBZ_DISABLE_SWARMS
+
+/**
+ * @brief Whether to disable the use of messages in BittyBuzz.
+ */
+#cmakedefine BBZ_DISABLE_MESSAGES
 
 #endif // !CONFIG_H

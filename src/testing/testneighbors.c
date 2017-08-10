@@ -78,15 +78,17 @@ TEST(ignore) {
     bbzvm_pushs(0);
     bbzvm_closure_call(1);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    bbzvm_pushs(0);
+    bbzheap_idx_t topic = bbzvm_stack_at(0);
+    bbzvm_pop();
     bbzheap_idx_t dummy;
-    ASSERT(!bbztable_get(vm->neighbors.listeners, 0, &dummy));
+    ASSERT(!bbztable_get(vm->neighbors.listeners, topic, &dummy));
 
     bbzvm_gc();
     bbzvm_destruct();
 }
 
 TEST(get) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
@@ -113,7 +115,6 @@ void foreach_fun() {
 }
 
 TEST(foreach) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
@@ -142,7 +143,6 @@ void map_fun() {
 }
 
 TEST(map) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
@@ -171,7 +171,6 @@ void reduce_fun() {
 }
 
 TEST(reduce) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
@@ -203,7 +202,6 @@ void filter_fun() {
 }
 
 TEST(filter) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
@@ -223,7 +221,6 @@ TEST(filter) {
 }
 
 TEST(count) {
-//    REQUIRE(addWorks);
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};

@@ -83,10 +83,20 @@ static char* __test_case_names__[NUM_TEST_CASES] = {};
 static uint16_t __error_count__ = 0;
 
 /**
+ * Evaluator for the __STRINGIFIER__ macro.
+ */
+#define __STRINGIFIER_EVALUATOR__(x) #x
+
+/**
+ * @brief Macro stringifier.
+ */
+#define __STRINGIFIER__(x) __STRINGIFIER_EVALUATOR__(x)
+
+/**
  * @brief Paster for the TEST_UNIT macro.
  */
-#define __TEST_UNIT_PASTER__(name)                                      \
-    void __test_list__();                                               \
+#define TEST_UNIT(name)                                                 \
+    static void __test_list__();                                        \
                                                                         \
     int main() {                                                        \
         __test_list__();                                                \
@@ -111,7 +121,8 @@ static uint16_t __error_count__ = 0;
                                                                         \
         if (__error_count__ > 0) {                                      \
             fprintf(stderr, "\n*** %" PRIu16 " failures detected in "   \
-                            "test suite \""  #name "\"\n",              \
+                            "test suite \""                             \
+                            __STRINGIFIER__(TEST_MODULE) "\"\n",        \
                             __error_count__);                           \
             return 1;                                                   \
         }                                                               \
@@ -120,11 +131,6 @@ static uint16_t __error_count__ = 0;
             return 0;                                                   \
         }                                                               \
     }
-
-/**
- * @brief Declares a translation unit as a test unit.
- */
-#define TEST_UNIT(name) __TEST_UNIT_PASTER__(name)
 
 TEST_UNIT(TEST_MODULE);
 
@@ -141,7 +147,7 @@ TEST_UNIT(TEST_MODULE);
  * @endcode
  * @see ADD_TEST
  */
-#define TEST_LIST void __test_list__()
+#define TEST_LIST static void __test_list__()
 
 /**
  * @brief Adds a test function.
@@ -157,17 +163,19 @@ TEST_UNIT(TEST_MODULE);
         ++__test_cases_size__;                                          \
     }                                                                   \
     else {                                                              \
-        fprintf(stderr, "\nWARNING: Trying to add more test files "     \
-                        "than NUM_TEST_CASES. Some test cases will"     \
+        fprintf(stderr, "WARNING: Test suite \""                        \
+                        __STRINGIFIER__(TEST_MODULE) "\": "             \
+                        "Trying to add more test files "                \
+                        "than NUM_TEST_CASES. Test case \"%s\" will "   \
                         "not be run. Increase the value of the "        \
-                        "NUM_TEST_CASES macro.\n");                     \
+                        "NUM_TEST_CASES macro.\n", #name);              \
         fflush(stderr);                                                 \
     }
 
 /**
  * @brief Declares a unit test.
  */
-#define TEST(name) void _test_case_ ## name()
+#define TEST(name) static void _test_case_ ## name()
 
 /**
  * @brief Performs a check, printing an error when the check is false.

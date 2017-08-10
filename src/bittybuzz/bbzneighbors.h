@@ -178,14 +178,14 @@ void bbzneighbors_count();
 void bbzneighbors_dummy();
 void bbzneighbors_dummyret();
 #define bbzneighbors_broadcast bbzneighbors_dummy
-#define bbzneighbors_listen bbzneighbors_dummy
-#define bbzneighbors_ignore bbzneighbors_dummy
-#define bbzneighbors_get bbzneighbors_dummy
-#define bbzneighbors_foreach bbzneighbors_dummy
-#define bbzneighbors_map bbzneighbors_dummy
-#define bbzneighbors_reduce bbzneighbors_dummy
-#define bbzneighbors_filter bbzneighbors_dummy
-#define bbzneighbors_count bbzneighbors_dummy
+#define bbzneighbors_listen    bbzneighbors_dummy
+#define bbzneighbors_ignore    bbzneighbors_dummy
+#define bbzneighbors_get       bbzneighbors_dummyret
+#define bbzneighbors_foreach   bbzneighbors_dummy
+#define bbzneighbors_map       bbzneighbors_dummyret
+#define bbzneighbors_reduce    bbzneighbors_dummyret
+#define bbzneighbors_filter    bbzneighbors_dummyret
+#define bbzneighbors_count     bbzneighbors_dummyret
 #endif // !BBZ_DISABLE_NEIGHBORS
 
 #include "bbzvm.h" // Include AFTER bbzneighbors.h because of circular dependencies.

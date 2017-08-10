@@ -23,20 +23,21 @@ typedef enum bbzvm_state {
  * @brief VM error codes
  */
 typedef enum bbzvm_error {
-    BBZVM_ERROR_NONE = 0, /**< @brief No error @note =0 */
-    BBZVM_ERROR_INSTR,    /**< @brief Unknown instruction @note =1 */
-    BBZVM_ERROR_STACK,    /**< @brief Stack error @note =2 */
-    BBZVM_ERROR_LNUM,     /**< @brief Wrong number of local variables @note =3 */
-    BBZVM_ERROR_PC,       /**< @brief Program counter out of range @note =4 */
-    BBZVM_ERROR_FLIST,    /**< @brief Function call id out of range @note =5 */
-    BBZVM_ERROR_TYPE,     /**< @brief Type mismatch @note =6 */
-    BBZVM_ERROR_RET,      /**< @brief Non-returning function when returning was expected, or vice versa. @note =7 */
-    BBZVM_ERROR_STRING,   /**< @brief Unknown string id @note =8 */
-    BBZVM_ERROR_SWARM,    /**< @brief Unknown swarm id @note =9 */
-    BBZVM_ERROR_VSTIG,    /**< @brief Too many vstig entries. @note =10 */
-    BBZVM_ERROR_MEM,      /**< @brief Out of memory @note =11 */
-    BBZVM_ERROR_MATH,     /**< @brief Math error @note = 12*/
-    BBZVM_ERROR_COUNT     /**< @brief Number of errors defined by BittyBuzz. */
+    BBZVM_ERROR_NONE = 0,   /**< @brief No error @note =0 */
+    BBZVM_ERROR_INSTR,      /**< @brief Unknown instruction @note =1 */
+    BBZVM_ERROR_STACK,      /**< @brief Stack error @note =2 */
+    BBZVM_ERROR_LNUM,       /**< @brief Wrong number of local variables @note =3 */
+    BBZVM_ERROR_PC,         /**< @brief Program counter out of range @note =4 */
+    BBZVM_ERROR_FLIST,      /**< @brief Function call id out of range @note =5 */
+    BBZVM_ERROR_TYPE,       /**< @brief Type mismatch @note =6 */
+    BBZVM_ERROR_OUTOFRANGE, /**< @brief Out-of-bounds argument (e.g. Trying <code>swarm.id()</code> while the swarmstack is empty) @note =7 */
+    BBZVM_ERROR_RET,        /**< @brief Non-returning function when returning was expected, or vice versa. @note =8 */
+    BBZVM_ERROR_STRING,     /**< @brief Unknown string id @note =9 */
+    BBZVM_ERROR_SWARM,      /**< @brief Unknown swarm id @note =10 */
+    BBZVM_ERROR_VSTIG,      /**< @brief Too many vstig entries. @note =11 */
+    BBZVM_ERROR_MEM,        /**< @brief Out of memory @note =12 */
+    BBZVM_ERROR_MATH,       /**< @brief Math error @note =13 */
+    BBZVM_ERROR_COUNT       /**< @brief Number of errors defined by BittyBuzz. */
 } bbzvm_error;
 
 /**

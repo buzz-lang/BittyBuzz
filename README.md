@@ -43,7 +43,7 @@ to those of the PC compilation.
 Options
 -------
 
-It is possible to specify a custom value for these configuration values.
+It is possible to specify a custom value for a range of configuration values, as behaviors on low-resource robots often require parameter-tweaking. We recommend not to change these values unless it is necessary however.
 
 - `BBZHEAP_SIZE` : Size of the heap (in bytes) [Default: 1088].
 - `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].

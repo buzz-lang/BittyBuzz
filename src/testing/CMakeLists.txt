@@ -6,22 +6,25 @@
 # test executables.
 function(add_tests)
     set(test_sources
-            testdarray.c
-            testfloat.c
-            testheap.c
-            testmsgs.c
-            testringbuf.c
-            testvm.c
+        testdarray.c
+        testfloat.c
+        testheap.c
+        testmsgs.c
+        testringbuf.c
+        testvm.c
     )
 
     if (NOT BBZ_DISABLE_MESSAGES)
         if (NOT BBZ_DISABLE_NEIGHBORS)
-            set(test_sources ${test_sources} testneighbors.c)
-        endif (NOT BBZ_DISABLE_NEIGHBORS)
+            list(APPEND test_sources testneighbors.c)
+        endif ()
         if (NOT BBZ_DISABLE_VSTIGS)
-            set(test_sources ${test_sources} testvstig.c)
-        endif (NOT BBZ_DISABLE_VSTIGS)
-    endif (NOT BBZ_DISABLE_MESSAGES)
+            list(APPEND test_sources testvstig.c)
+        endif ()
+        if (NOT BBZ_DISABLE_SWARMS)
+            list(APPEND test_sources testswarm.c)
+        endif ()
+    endif ()
 
     foreach(test_source ${test_sources})
         get_filename_component(test_executable ${test_source} NAME_WE)

@@ -1,4 +1,4 @@
-// TODO Remove this file and use a custom kilolib.
+// TODO Remove this file, which is only used for LED-debugging on the kilobots.
 
 #ifndef BBZTEMP_H
 #define BBZTEMP_H

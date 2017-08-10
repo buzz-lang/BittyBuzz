@@ -65,7 +65,7 @@ void bbzmsg_deserialize_obj(bbzobj_t *data, bbzringbuf_t *rb, int16_t *pos) {
 /****************************************/
 
 void bbzmsg_sort_priority(bbzringbuf_t* rb) {
-    // +=-=-=-= QuickSort=-=-=-=+
+    // +=-=-=-= QuickSort =-=-=-=+
     for(uint16_t i = 1; i < bbzringbuf_size(rb); ++i) {
         uint16_t j = i;
         while(j > 0 && ((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j)))->type < ((bbzmsg_t*)bbzringbuf_at(rb,(uint8_t)(j-1)))->type) {

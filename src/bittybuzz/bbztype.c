@@ -55,6 +55,13 @@ int8_t bbztype_cmp(const bbzobj_t* a,
         if(x > y) return  1;
         return 0;
     }
+    if (bbztype_istable(*a) && bbztype_istable(*b)) {
+        uint16_t x = a->t.value;
+        uint16_t y = b->t.value;
+        if(x < y) return -1;
+        if(x > y) return  1;
+        return 0;
+    }
     if(bbztype_isuserdata(*a) && bbztype_isuserdata(*b)) {
         uintptr_t x = a->u.value;
         uintptr_t y = b->u.value;
