@@ -13,10 +13,11 @@ uint8_t bbztable_get(bbzheap_idx_t t,
     /* Get segment data */
     bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
     /* Go through segments */
-    while(1) {
+    while (1) {
         /* Go through valid keys in the segment */
-        for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-            if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
+        for (uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+            if (bbzheap_tseg_elem_isvalid(sd->keys[i]) &&
+                bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
                             bbzheap_obj_at(k)) == 0) {
                 /* Key found */
                 *v = bbzheap_tseg_elem_get(sd->values[i]);
@@ -24,7 +25,7 @@ uint8_t bbztable_get(bbzheap_idx_t t,
             }
         }
         /* Are we done? */
-        if(!bbzheap_tseg_hasnext(sd)) return 0;
+        if (!bbzheap_tseg_hasnext(sd)) return 0;
         /* Get next segment */
         si = bbzheap_tseg_next_get(sd);
         sd = bbzheap_tseg_at(si);
@@ -47,17 +48,17 @@ uint8_t bbztable_set(bbzheap_idx_t t,
     /* Target segment and slot */
     int16_t seg = -1, slot = -1;
     /* Go through segments */
-    while(1) {
+    while (1) {
         /* Go through valid keys in the segment */
-        for(uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-            if(!bbzheap_tseg_elem_isvalid(sd->keys[i])) {
-                if(fseg < 0) {
+        for (uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
+            if (!bbzheap_tseg_elem_isvalid(sd->keys[i])) {
+                if (fseg < 0) {
                     /* First free slot found */
                     fseg = si;
                     fslot = i;
                 }
             }
-            else if(bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
+            else if (bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
                                 bbzheap_obj_at(k)) == 0) {
                 /* Key found */
                 seg = si;
@@ -65,9 +66,9 @@ uint8_t bbztable_set(bbzheap_idx_t t,
             }
         }
         /* Did we find the key? */
-        if(seg >= 0) break;
+        if (seg >= 0) break;
         /* Are we done? */
-        if(!bbzheap_tseg_hasnext(sd)) break;
+        if (!bbzheap_tseg_hasnext(sd)) break;
         /* Get next segment */
         si = bbzheap_tseg_next_get(sd);
         sd = bbzheap_tseg_at(si);
