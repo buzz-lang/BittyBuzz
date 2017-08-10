@@ -79,14 +79,17 @@ bbzheap_idx_t create_subswarm_structure(bbzswarm_id_t swarm) {
     return subswarm;
 }
 
+void init_test(bbzvm_t* vm_ptr) {
+    vm = vm_ptr;
+    bbzvm_construct(0);
+}
+
 /****************************************/
 /****************************************/
 
 TEST(addrmmember) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Keep track of initial size.
     const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
@@ -148,9 +151,7 @@ TEST(addrmmember) {
 
 TEST(refresh) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
 
@@ -185,9 +186,7 @@ TEST(refresh) {
 
 TEST(isrobotin) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Add some subswarm memberships.
     bbzswarm_addmember(1, 1);
@@ -219,8 +218,7 @@ TEST(isrobotin) {
 TEST(update) {
     bbzvm_t vmObj;
     vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Add some subswarm memberships.
     bbzswarm_addmember(0, 1);
@@ -246,9 +244,7 @@ TEST(update) {
 
 TEST(create) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     const uint16_t INITIAL_STACK_SZ = bbzvm_stack_size();
 
@@ -282,10 +278,7 @@ TEST(create) {
 TEST(intersection_union_difference) {
 #if 0 // TODO The functions are not implemented.
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
-    
+    init_test(&vmObj);
 
     // Get some closures.
     const bbzheap_idx_t
@@ -370,9 +363,7 @@ TEST(intersection_union_difference) {
 
 TEST(id) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Get closure
     const bbzheap_idx_t ID = get_swarm_subfield(__BBZSTRID_id);
@@ -437,9 +428,7 @@ TEST(id) {
 TEST(others) {
 #if 0 // TODO The function is not implemented.
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Create subswarm structures
     bbzheap_idx_t s0 = create_subswarm_structure(0);
@@ -508,9 +497,7 @@ TEST(others) {
 
 TEST(join_leave) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Create subswarm structures
     bbzheap_idx_t
@@ -582,9 +569,7 @@ TEST(join_leave) {
 
 TEST(in) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Create some subswarm structures.
     bbzheap_idx_t s0 = create_subswarm_structure(0); // 's0 = swarm.create(0)'
@@ -637,9 +622,7 @@ TEST(in) {
 
 TEST(select) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Create subswarm structures
     bbzheap_idx_t s0 = create_subswarm_structure(0);
@@ -738,9 +721,7 @@ void exec_function() {
 
 TEST(exec) {
     bbzvm_t vmObj;
-    vm = &vmObj;
-
-    bbzvm_construct(0);
+    init_test(&vmObj);
 
     // Create subswarm structure
     bbzheap_idx_t s0 = create_subswarm_structure(0);

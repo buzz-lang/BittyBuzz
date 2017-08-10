@@ -209,6 +209,9 @@ void bbzheap_gc(bbzheap_idx_t* st,
 static const char* bbzvm_types_desc[] = { "nil", "integer", "float", "string", "table", "closure", "userdata" };
 
 void bbzheap_print() {
+    printf("---------------\n");
+    printf("- HEAP STATUS -\n");
+    printf("---------------\n\n");
     /* Object-related stuff */
     uint16_t objimax = (vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
     printf("Max object index: %d\n", objimax - 1);
@@ -216,6 +219,7 @@ void bbzheap_print() {
     for(uint16_t i = 0; i < objimax; ++i)
         if(bbzheap_obj_isvalid(*bbzheap_obj_at(i))) ++objnum;
     printf("Valid objects: %d\n", objnum);
+    printf("Size per object: %zu\n", sizeof(bbzobj_t));
     for(uint16_t i = 0; i < objimax; ++i)
         if(bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
             printf("\t#%d: [%s]", i, bbzvm_types_desc[bbztype(*bbzheap_obj_at(i))]);
@@ -254,6 +258,7 @@ void bbzheap_print() {
     for(int i = 0; i < tsegimax; ++i)
         if(bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) ++tsegnum;
     printf("Valid table segments: %d\n", tsegnum);
+    printf("Size per table segment: %zu\n", sizeof(bbzheap_tseg_t));
     bbzheap_tseg_t* seg;
     for(int i = 0; i < tsegimax; ++i) {
         seg = bbzheap_tseg_at(i);
@@ -267,6 +272,13 @@ void bbzheap_print() {
             printf(" /next=(%x|%d) }\n", bbzheap_tseg_next_get(seg), bbzheap_tseg_next_get(seg));
         }
     }
+    int usage = (objnum * sizeof(bbzobj_t)) + (tsegnum * sizeof(bbzheap_tseg_t));
+    printf("Heap usage (B): %04d/%04d (%.1f%%)\n", usage, BBZHEAP_SIZE, ((double)usage/BBZHEAP_SIZE)*100.0);
+    int uspace = ((vm->heap.ltseg)-(vm->heap.rtobj));
+    printf("Unclaimed space (B): %d (=%d object(s) or %d segment(s))\n",
+           uspace,
+           (int)(uspace/sizeof(bbzobj_t)),
+           (int)(uspace/sizeof(bbzheap_tseg_t)));
     printf("\n");
 }
 #endif // !BBZCROSSCOMPILING
