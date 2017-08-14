@@ -21,7 +21,7 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * @brief Stucture constaining fields common to all messages.
+ * @brief Stucture containing fields common to all messages.
  */
 typedef struct PACKED bbzmsg_base_t {
     bbzmsg_payload_type_t type; /**< @brief The message type */

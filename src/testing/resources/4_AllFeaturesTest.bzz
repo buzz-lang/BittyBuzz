@@ -10,11 +10,11 @@ function add(a, b) {
 }
 # Test native closure call
 y = add(42, 21)
-log("y = ", y)
+print("y = ", y)
 
 # Test lambda closure
 lambda = function(a, b, c) {
-    log(a, "; ", b, "; ", c)
+    print(a, "; ", b, "; ", c)
 }
 # Test lambda closure call
 lambda(-12, 2.91, nil)
@@ -22,7 +22,7 @@ lambda = nil
 
 lambdaGen = function(c) {
     return function(a, b) {
-        log(a, "; ", b, "; ", c)
+        print(a, "; ", b, "; ", c)
     }
 }
 lambdaGen("c")("a", "b")
@@ -30,29 +30,29 @@ lambdaGen("c")("a", "b")
 # Test string
 textToLog = "Hello, world!"
 # Test C closure call
-log('Logging "', textToLog, '"')
+print('Logging "', textToLog, '"')
 textToLog = nil
 
 # Test Comparisons
 if (x > 3)
-    log("x is too big")
+    print("x is too big")
 
 if (x > 3)
-    log("x is too big")
+    print("x is too big")
 else if (x < 3)
-    log("x is too small")
+    print("x is too small")
 else
-    log("maybe I just don't like x")
+    print("maybe I just don't like x")
 
 if ((x < 3) or (x > 3))
-    log("x is not 3")
+    print("x is not 3")
 x = nil
 
 # Test loop
 z = 0
 loc = function() {
   z = z + 1
-  log(z)
+  print(z)
 }
 while (z < 5)
    loc()
@@ -62,15 +62,15 @@ z = nil
 
 # Test table
 t = { .x=3 }
-log("t = ", t)
-log("t.x = ", t.x)       # dot syntax
-log("t['x'] = ", t["x"]) # string syntax
+print("t = ", t)
+print("t.x = ", t.x)       # dot syntax
+print("t['x'] = ", t["x"]) # string syntax
 t = nil
 
 # Test : tables are always passed by reference
 t1 = { .x=3 }
 t2 = t1      # now t2 points to the contents of t1 -> no deep copy
 t2.x = 5
-log(t1.x)    # prints 5, not 3!
+print(t1.x)    # prints 5, not 3!
 t1 = nil
 t2 = nil

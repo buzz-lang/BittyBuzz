@@ -187,5 +187,5 @@ void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
             }
         }
         si = bbzheap_tseg_next_get(tseg);
-    } while (si != NO_NEXT);
+    } while (si != BBZHEAP_SEG_NO_NEXT);
 }

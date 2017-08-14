@@ -10,6 +10,32 @@
     // =                MISC                =
     // ======================================
 
+#define FLIST_COUNT_DEFAULT 0
+#define GSYMS_COUNT_DEFAULT 1
+#ifndef BBZ_DISABLE_SWARMS
+#define FLIST_COUNT_SWARMS 5
+#define GSYMS_COUNT_SWARMS 1
+#else // !BBZ_DISABLE_SWARMS
+#define FLIST_COUNT_SWARMS 0
+#define GSYMS_COUNT_SWARMS 0
+#endif // !BBZ_DISABLE_SWARMS
+#ifndef BBZ_DISABLE_NEIGHBORS
+#define FLIST_COUNT_NEIGHBORS 8
+#define GSYMS_COUNT_NEIGHBORS 1
+#else // !BBZ_DISABLE_NEIGHBORS
+#define FLIST_COUNT_NEIGHBORS 0
+#define GSYMS_COUNT_NEIGHBORS 0
+#endif // !BBZ_DISABLE_NEIGHBORS
+#ifndef BBZ_DISABLE_VSTIGS
+#define FLIST_COUNT_VSTIGS 1
+#define GSYMS_COUNT_VSTIGS 1
+#else // !BBZ_DISABLE_VSTIGS
+#define FLIST_COUNT_VSTIGS 0
+#define GSYMS_COUNT_VSTIGS 0
+#endif // !BBZ_DISABLE_VSTIGS
+#define FLIST_COUNT ((FLIST_COUNT_DEFAULT)+(FLIST_COUNT_SWARMS)+(FLIST_COUNT_NEIGHBORS)+(FLIST_COUNT_VSTIGS))
+#define GSYMS_COUNT ((GSYMS_COUNT_DEFAULT)+(GSYMS_COUNT_SWARMS)+(GSYMS_COUNT_NEIGHBORS)+(GSYMS_COUNT_VSTIGS))
+
 FILE* fbcode;
 int16_t fsize;
 uint8_t buf[4];
@@ -163,7 +189,7 @@ void bbzvm_log() {
 }
 
 typedef enum {
-    BBZVM_SYMID_LOG = _BBZSTRID_COUNT_,
+    BBZVM_SYMID_PRINT = _BBZSTRID_COUNT_,
     BBZVM_SYMID_FORWARD,
     BBZVM_SYMID_STOP,
     BBZVM_SYMID_TURN,
@@ -177,7 +203,7 @@ void bbzvm_dummy() {
 }
 
 int8_t bbzvm_register_functions() {
-    if (bbzvm_function_register(BBZVM_SYMID_LOG, bbzvm_log) == 0) return -1;
+    if (bbzvm_function_register(BBZVM_SYMID_PRINT, bbzvm_log) == 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_FORWARD, bbzvm_dummy) == 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_STOP, bbzvm_dummy) == 0) return -1;
     if (bbzvm_function_register(BBZVM_SYMID_TURN, bbzvm_dummy) == 0) return -1;
@@ -235,8 +261,8 @@ TEST(all) {
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-    ASSERT_EQUAL(bbzdarray_size(vm->flist), 14);
-    ASSERT_EQUAL(bbztable_size(vm->gsyms), 4); // 'id', 'neighbors', 'stigmergy', 'swarm'
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), FLIST_COUNT);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), GSYMS_COUNT); // 'id', 'neighbors', 'stigmergy', 'swarm'
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     // -------------------
@@ -476,6 +502,7 @@ TEST(all) {
     }
 
     // Fill the stack
+    REQUIRE(vm->error != BBZVM_STATE_ERROR);
     REQUIRE(bbzvm_stack_size() == 0);
     for (uint16_t i = 0; i < BBZSTACK_SIZE; ++i) {
         bbzvm_push(vm->nil);
@@ -555,8 +582,8 @@ TEST(vm_set_bytecode) {
     ASSERT_EQUAL(vm->bcode_size, fsize);
     ASSERT_EQUAL(vm->state, BBZVM_STATE_READY);
     ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
-    ASSERT_EQUAL(bbzdarray_size(vm->flist), 14);
-    ASSERT_EQUAL(bbztable_size(vm->gsyms), 4); // 'id', 'neighbors', 'stigmergy', 'swarm'
+    ASSERT_EQUAL(bbzdarray_size(vm->flist), FLIST_COUNT);
+    ASSERT_EQUAL(bbztable_size(vm->gsyms), GSYMS_COUNT); // 'id', 'neighbors', 'stigmergy', 'swarm'
     ASSERT_EQUAL(*testBcode(vm->pc-1, 1), BBZVM_INSTR_NOP);
 
     bbzvm_destruct();
@@ -762,7 +789,7 @@ TEST(vm_closures) {
 
     // B) Register C closure
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    bbzheap_idx_t c = bbzvm_function_register(BBZVM_SYMID_LOG, printIntVal);
+    bbzheap_idx_t c = bbzvm_function_register(BBZVM_SYMID_PRINT, printIntVal);
 
     REQUIRE(c > 0);
     ASSERT_EQUAL(bbztype(*bbzheap_obj_at(c)), BBZTYPE_CLOSURE);
@@ -770,13 +797,13 @@ TEST(vm_closures) {
 
     // C) Call registered C closure
     //REQUIRE(bbztable_size(vm->gsyms) == *(uint16_t*)vm->bcode_fetch_fun(0, 2));
-    bbzvm_pushs(BBZVM_SYMID_LOG);
+    bbzvm_pushs(BBZVM_SYMID_PRINT);
     bbzvm_gload();
     c = bbzvm_stack_at(0);
     bbzvm_pop();
     REQUIRE(bbztype_isclosure(*bbzheap_obj_at(c)));
     bbzvm_pushi(123);
-    bbzvm_function_call(BBZVM_SYMID_LOG, 1);
+    bbzvm_function_call(BBZVM_SYMID_PRINT, 1);
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
 

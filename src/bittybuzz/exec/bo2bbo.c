@@ -5,8 +5,8 @@
 #include "bittybuzz/bbzfloat.h"
 
 #define read_write(buf) {\
-    (void)fread(&buf,sizeof(buf),1,f_in);\
-    (void)fwrite(&buf,sizeof(buf),1,f_out);\
+    (void)fread(&(buf),sizeof(buf),1,f_in);\
+    (void)fwrite(&(buf),sizeof(buf),1,f_out);\
 }
 
 typedef enum {

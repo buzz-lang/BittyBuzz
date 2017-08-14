@@ -1,5 +1,4 @@
 #include "bbzneighbors.h"
-#include "bbzutil.h"
 
 #ifndef BBZ_DISABLE_NEIGHBORS
 /**
@@ -47,8 +46,9 @@ static void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
 static void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params);
 
 /**
- * @brief Adds some fields that are common to both the 'neighbors' table and neighbor-like tables gotten from
- * some neighbor operations, such as 'map' or 'filter'.
+ * @brief Adds some fields that are common to both the 'neighbors' table
+ * and neighbor-like tables gotten from some neighbor operations, such
+ * as 'map' or 'filter'.
  * @param[in] count The number of neighbors.
  */
 static void add_neighborlike_fields(int16_t count) {
@@ -89,8 +89,10 @@ static void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
     vm->neighbors.listeners = l;
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.hpos));
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.listeners));
+    vm->neighbors.clear_counter = BBZNEIGHBORS_CLEAR_PERIOD;
 #ifdef BBZ_XTREME_MEMORY
-    bbzringbuf_construct(&vm->neighbors.rb, (uint8_t *) vm->neighbors.data, sizeof(bbzneighbors_elem_t),
+    bbzringbuf_construct(&vm->neighbors.rb, (uint8_t *) vm->neighbors.data,
+                         sizeof(bbzneighbors_elem_t),
                          BBZNEIGHBORS_CAP + 1);
 #endif // BBZ_XTREME_MEMORY
     bbzneighbors_reset();
@@ -196,7 +198,9 @@ void bbzneighbors_ignore() {
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in,out] params The closure to call.
  */
-static void neighbor_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void *params) {
+static void neighbor_foreach_fun(bbzheap_idx_t key,
+                                 bbzheap_idx_t value,
+                                 void *params) {
     // Push closure and args
     bbzvm_push(*(bbzheap_idx_t*)params);
     bbzvm_push(key);
@@ -255,7 +259,9 @@ typedef struct PACKED neighbor_map_base_t {
  * <code>{distance, azimuth, elevation}</code> table).
  * @param[in,out] params Parameters of the function.
  */
-static void neighbor_map_base(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+static void neighbor_map_base(bbzheap_idx_t key,
+                              bbzheap_idx_t value,
+                              void* params) {
     neighbor_map_base_t* nm = (neighbor_map_base_t*)params;
 
     // Save stack size
@@ -352,7 +358,9 @@ void bbzneighbors_filter() {
 /****************************************/
 /****************************************/
 
-static void neighbor_reduce(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+static void neighbor_reduce(bbzheap_idx_t key,
+                            bbzheap_idx_t value,
+                            void* params) {
     bbzheap_idx_t c = *(bbzheap_idx_t*)params;
 
     // Get accumulator
@@ -398,27 +406,95 @@ void bbzneighbors_reduce() {
 /****************************************/
 /****************************************/
 
+/**
+ * @brief Brings the element in the ringbuffer #rb at the given position to
+ * the beginning.
+ * @param[in,out] rb The ringbuffer contaning the element to bring to the
+ * beginning.
+ * @param[in] pos The position in the ringbuffer of the element to bring to
+ * the beginning.
+ */
+static void bringToTop(bbzringbuf_t *rb, uint8_t pos) {
+    while (pos > 0) {
+        bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos - 1)),
+                           bbzringbuf_at(rb, (uint8_t) (pos)),
+                           sizeof(bbzneighbors_elem_t));
+        ++pos;
+    }
+}
+
+/**
+ * @brief Brings the element in the ringbuffer #rb at the given position to
+ * the end.
+ * @param[in,out] rb The ringbuffer contaning the element to bring to the end.
+ * @param[in] pos The position in the ringbuffer of the element to bring to
+ * the end.
+ */
+static void bringToBottom(bbzringbuf_t *rb, uint8_t pos) {
+    int16_t size = bbzringbuf_size(rb);
+    while (pos < size-1) {
+        bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos)), bbzringbuf_at
+                                   (rb, (uint8_t) (pos + 1)),
+                           sizeof(bbzneighbors_elem_t));
+        ++pos;
+    }
+}
+
+/****************************************/
+/****************************************/
+
+#ifndef BBZ_XTREME_MEMORY
 // -------------------------------------
 // -      REGULAR IMPLEMENTATIONS      -
 // -------------------------------------
 
-#ifndef BBZ_XTREME_MEMORY
+/**
+ * @brief Function called by the foreach algorithm used to garbage-collect unused neighbors' data.
+ * @param key The robot id associated with the current value.
+ * @param value A table containing the data of one (1) neighbor.
+ * @param params Contains a pointer to a #bbzheap_idx_t referencing the table that we're currently passing through.
+ */
+static void neighborsdata_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+    bbzheap_idx_t o;
+    // If it has no mark, remove it
+    if (!bbztable_get(value, bbzint_new(0), &o)) {
+        --vm->neighbors.count;
+        bbztable_set(*(bbzheap_idx_t*)params, key, vm->nil);
+    }
+    else {
+        bbztable_set(value, bbzint_new(0), vm->nil);
+    }
+}
+
+void bbzneighbors_data_gc() {
+    bbzheap_idx_t tbl;
+    bbzvm_assert_exec(bbztable_get(vm->neighbors.hpos, bbzstring_get(INTERNAL_STRID_SUB_TBL), &tbl), BBZVM_ERROR_MEM);
+    // Loop through neighbors' data
+    bbztable_foreach(tbl, neighborsdata_foreach_fun, &tbl);
+
+    // Update the neighbors count
+    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
+}
+
+/****************************************/
+/****************************************/
+
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     // Get 'neighbors''s sub-table
     bbzvm_push(vm->neighbors.hpos);
 
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
-//    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
-    bbzheap_idx_t o;
-    bbztable_get(bbzvm_stack_at(0), bbzstring_get(INTERNAL_STRID_COUNT), &o);
-    bbzheap_obj_at(o)->i.value = vm->neighbors.count;
+    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
 
     // Set data to the sub-table.
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
     bbzvm_pushi(data->robot);
     push_neighbor_data_table(data);
+    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+        bbzvm_assert_exec(bbztable_set(bbzvm_stack_at(0), bbzint_new(0), bbzint_new(0)), BBZVM_ERROR_MEM);
+    }
     bbzvm_tput();
 }
 
@@ -436,18 +512,6 @@ void bbzneighbors_get() {
     bbzvm_lload(0); // Self table
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
-//    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
-//
-//    // Entry found?
-//    bbzheap_idx_t data;
-//    if (bbztable_get(sub_tbl, robot, &data)) {
-//        // Found. Push corresponding data table.
-//        bbzvm_push(data);
-//    }
-//    else {
-//        // Not found. Push nil instead.
-//        bbzvm_pushnil();
-//    }
     bbzvm_lload(1);
     bbzvm_tget();
 
@@ -462,12 +526,10 @@ void bbzneighbors_count() {
 
     // Get neighbors' sub-table
     bbzvm_lload(0);
-    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
-    bbzvm_tget();
+    bbzheap_idx_t neighbor_data = bbztable_get_subfield(INTERNAL_STRID_SUB_TBL);
+    bbzvm_pop();
 
     // Push count and return.
-    bbzheap_idx_t neighbor_data = bbzvm_stack_at(0);
-    bbzvm_pop();
     bbzvm_pushi(bbztable_size(neighbor_data));
     bbzvm_ret1();
 }
@@ -478,10 +540,7 @@ void bbzneighbors_count() {
 void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
     // Get the sub-table we are using the algorithm on.
     bbzvm_lload(0); // Self table
-    bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
-    bbzvm_tget();
-
-    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
+    bbzheap_idx_t sub_tbl = bbztable_get_subfield(INTERNAL_STRID_SUB_TBL);
     bbzvm_pop();
 
     bbztable_foreach(sub_tbl, elem_fun, params);
@@ -491,15 +550,29 @@ void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
 // - BBZ_XTREME_MEMORY IMPLEMENTATIONS -
 // -------------------------------------
 #else // !BBZ_XTREME_MEMORY
-
-static void bringToBottom(bbzringbuf_t *rb, uint8_t pos) {
-    int16_t size = bbzringbuf_size(rb);
-    while (pos < size-1) {
-        bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos)), bbzringbuf_at(rb, (uint8_t) (pos + 1)),
-                           sizeof(bbzneighbors_elem_t));
-        ++pos;
+void bbzneighbors_data_gc() {
+    uint8_t unmarked_count = 0;
+    // Loop through neighbors' data
+    for (uint8_t i = 0; i < bbzringbuf_size(&vm->neighbors.rb); ++i) {
+        bbzneighbors_elem_t* entry = (bbzneighbors_elem_t*)bbzringbuf_at
+                (&vm->neighbors.rb, i);
+        // If it has not a mark, remove it
+        if (!bbzneighbors_data_hasmark(*entry)) {
+            bringToTop(&vm->neighbors.rb, i);
+            ++unmarked_count;
+        }
+        else {
+            bbzneighbors_data_unmark(*entry);
+        }
+    }
+    // Delete all removed element
+    for (uint8_t i = 0; i < unmarked_count; ++i) {
+        bbzringbuf_pop(&vm->neighbors.rb);
     }
 }
+
+/****************************************/
+/****************************************/
 
 void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     // Check if the neighbor is already in the table.
@@ -513,16 +586,24 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
             entry->distance  = data->distance;
             entry->azimuth   = data->azimuth;
             entry->elevation = data->elevation;
-            // Put the message at the end of the LIFO buffer, which makes it the newest.
+            if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+                bbzneighbors_data_mark(*entry);
+            }
+            // Put the message at the end of the LIFO buffer, which makes it
+            // the newest.
             bringToBottom(&vm->neighbors.rb, i);
             return;
         }
     }
-    entry = (bbzneighbors_elem_t*) bbzringbuf_rawat(&vm->neighbors.rb, bbzringbuf_makeslot(&vm->neighbors.rb));
+    entry = (bbzneighbors_elem_t*)bbzringbuf_rawat(&vm->neighbors.rb,
+                                                   bbzringbuf_makeslot(&vm->neighbors.rb));
     entry->robot     = data->robot;
     entry->distance  = data->distance;
     entry->azimuth   = data->azimuth;
     entry->elevation = data->elevation;
+    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+        bbzneighbors_data_mark(*entry);
+    }
 }
 
 /****************************************/
@@ -534,9 +615,18 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
  */
 typedef struct PACKED neighbor_get_t {
     const bbzrobot_id_t robot; /**< @brief Sought robot ID. */
-    uint8_t found;             /**< @brief Whether we already found the robot ID. */
+    uint8_t found;             /**< @brief Whether we already found the robot
+                                 *  ID. */
 } neighbor_get_t;
 
+/**
+ * @brief Function passed to the foreach algorithm which
+ * push on the stack the requested element, if found.
+ * @param[in] key The robot id assigned to the current data.
+ * @param[in] value The table containing the data of a neighbor.
+ * @param[in,out] params A structure instance's pointer containing
+ * the requested robot id and a flag that tell if the data was found or not.
+ */
 void neighbor_get(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     neighbor_get_t* ng = (neighbor_get_t*)params;
     if (!ng->found && bbzheap_obj_at(key)->i.value == ng->robot) {
@@ -611,15 +701,13 @@ static void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
         uint8_t i = bbzringbuf_size(&vm->neighbors.rb);
         while (i) {
             --i;
-            bbzneighbors_elem_t* elem = (bbzneighbors_elem_t*)bbzringbuf_at(&vm->neighbors.rb,i);
+            bbzneighbors_elem_t* elem;
+            elem = (bbzneighbors_elem_t*)bbzringbuf_at(&vm->neighbors.rb, i);
             push_neighbor_data_table(elem);
-            bbzvm_pushi(elem->robot);
-            bbzheap_idx_t data = bbzvm_stack_at(1);
-            bbzheap_idx_t key  = bbzvm_stack_at(0);
+            bbzheap_idx_t data = bbzvm_stack_at(0);
             bbzvm_pop();
-            bbzvm_pop();
-            elem_fun(key, data, params);
-            bbzvm_gc(); // Collect the created data table
+            elem_fun(bbzint_new(elem->robot), data, params);
+            bbzvm_gc(); // Garbage-Collect the created data table
         }
     }
     else {

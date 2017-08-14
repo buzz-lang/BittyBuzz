@@ -18,7 +18,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             bbzmsg_deserialize_u16(&m->bc.topic, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->bc.value, payload, &pos);
-            obj_makevalid(m->bc.value);
+            bbzheap_obj_makevalid(m->bc.value);
             if (pos < 0) return;
             break;
 #else
@@ -30,7 +30,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             bbzmsg_deserialize_u16(&m->vs.key, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_obj(&m->vs.data, payload, &pos);
-            obj_makevalid(m->vs.data);
+            bbzheap_obj_makevalid(m->vs.data);
             if (pos < 0) return;
             bbzmsg_deserialize_u8(&m->vs.lamport, payload, &pos);
             if (pos < 0) return;

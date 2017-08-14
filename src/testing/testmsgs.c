@@ -194,7 +194,7 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.topic, __BBZSTRID_id);
-    ASSERT_EQUAL((uint8_t)((vm->inmsgs.buf)->bc.value.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((uint8_t)((vm->inmsgs.buf)->bc.value.mdata & ~BBZHEAP_OBJ_MASK_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_OBJ_MASK_VALID));
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.value.i.value, obj1.i.value);
 
     bbzinmsg_queue_append(&payload3);
@@ -204,7 +204,7 @@ TEST(m_in_append) {
     ASSERT_EQUAL((&vm->inmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.key, __BBZSTRID_put);
-    ASSERT_EQUAL((uint8_t)((&vm->inmsgs.buf[1])->vs.data.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj2.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((uint8_t)((&vm->inmsgs.buf[1])->vs.data.mdata & ~BBZHEAP_OBJ_MASK_VALID), (uint8_t)(obj2.mdata & ~BBZHEAP_OBJ_MASK_VALID));
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.data.i.value, obj2.i.value);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.lamport, 1);
 }
@@ -234,7 +234,7 @@ TEST(m_in_queue_first) {
     ASSERT_EQUAL(msg->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL(msg->bc.rid, 42);
     ASSERT_EQUAL(msg->bc.topic, __BBZSTRID_count);
-    ASSERT_EQUAL((uint8_t)(msg->bc.value.mdata & ~BBZHEAP_MASK_OBJ_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_MASK_OBJ_VALID));
+    ASSERT_EQUAL((uint8_t)(msg->bc.value.mdata & ~BBZHEAP_OBJ_MASK_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_OBJ_MASK_VALID));
     ASSERT_EQUAL((uint16_t)msg->bc.value.u.value, (uint16_t)obj1.u.value);
 }
 #endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_NEIGHBORS && !BBZ_DISABLE_VSTIGS && !BBZ_DISABLE_MESSAGES

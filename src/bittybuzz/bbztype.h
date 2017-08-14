@@ -14,12 +14,18 @@
 extern "C" {
 #endif // __cplusplus
 
+// ---------------------------------
+// - Metadata field-related macros -
+// ---------------------------------
+
+// Index of flags and values in the metadata field of an object.
+
 /**
  * @brief Index of the object's type
  */
 #define BBZTYPE_TYPEIDX 0
 /**
- * @brief Base mask of the object's type. Used in combinasion with <code>BBZTYPE_TYPEIDX</code>
+ * @brief Base mask of the object's type. Used in combinasion with #BBZTYPE_TYPEIDX
  */
 #define BBZTYPE_BASEMASK 0x07
 /**
@@ -64,7 +70,7 @@ extern "C" {
 /**
  * @brief Mask for the object's heap "validity" flag (if it is used or not)
  */
-#define BBZHEAP_MASK_OBJ_VALID ((uint8_t)(1 << BBZTYPE_OBJ_VALID_FLAG_IDX))
+#define BBZHEAP_OBJ_MASK_VALID ((uint8_t)(1 << BBZTYPE_OBJ_VALID_FLAG_IDX))
 /**
  * @brief Mask for the object's permanence flag (if it is always in use or not)
  */

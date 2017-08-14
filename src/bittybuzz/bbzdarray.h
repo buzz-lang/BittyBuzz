@@ -23,7 +23,9 @@ extern "C" {
      *  bbzdarray_destroy() and in methods such as
      *  bbzdarray_foreach().
      */
-    typedef void (*bbzdarray_elem_funp)(bbzheap_idx_t darray, bbzheap_idx_t pos, void* params);
+    typedef void (*bbzdarray_elem_funp)(bbzheap_idx_t darray,
+                                        bbzheap_idx_t pos,
+                                        void* params);
 
     /**
      *  @brief Function pointer to compare bbzdarray elements.
@@ -35,7 +37,8 @@ extern "C" {
      *   0 if *a == *b
      *  >0 if *a >  *b
      */
-    typedef int8_t (*bbzdarray_elem_cmpp)(const bbzobj_t* a, const bbzobj_t* b);
+    typedef int8_t (*bbzdarray_elem_cmpp)(const bbzobj_t* a,
+                                          const bbzobj_t* b);
 
     /**
      *  @brief Allocate a dynamic array.
@@ -77,11 +80,12 @@ extern "C" {
                           uint16_t idx,
                           bbzheap_idx_t v);
 
-    /** FIXME
+    /**
      * @brief Remove an element from the array. Do not keep the order
      * @param[in] d The position of the dynamic array's object in the heap.
      * @param[in] idx The index of the element to get.
      * @return 1 for success, 0 for failure (index out of range OR empty array)
+     * @todo FIXME
      */
     uint8_t bbzdarray_remove(bbzheap_idx_t d,
                              uint16_t idx);
@@ -150,8 +154,9 @@ extern "C" {
 
     /**
      * @brief Allocates space for a lambda closure on the heap.
-     * Sets as output the value of l, a buffer for the index of the allocated closure.
-     * The value of l is not checked for NULL, so make sure it's a valid pointer.
+     * Sets as output the value of l, a buffer for the index of
+     * the allocated closure. The value of l is not checked for NULL, so
+     * make sure it's a valid pointer.
      * @param[in] d Dynamic array from which we will copy data.
      * @param[out] l A buffer for the index of the allocated closure.
      * @return 1 for success, 0 for failure (out of memory)
@@ -177,6 +182,7 @@ extern "C" {
  */
 #define bbzdarray_isempty(d) (bbzdarray_size(d) == 0)
 
-#include "bbzheap.h" // Include AFTER bbzdarray.h because of circular dependencies.
+#include "bbzheap.h" // Include AFTER bbzdarray.h because of
+                     // circular dependencies.
 
 #endif // !BBZDARRAY_H

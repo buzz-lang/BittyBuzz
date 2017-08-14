@@ -59,14 +59,44 @@ extern "C" {
 #endif // __cplusplus
 
 /**
+ * @brief Index in a #bbzneighbors_elem_t metadata field of the GC marking flag
+ */
+#define BBZNEIGHBORS_MARK_IDX 0
+
+/**
+ * @brief Mask for neighbors' data GC marking
+ */
+#define BBZNEIGHBORS_MARK_MASK ((uint8_t)(1<<BBZNEIGHBORS_MARK_IDX))
+
+/**
+ * @brief Returns non-0 if an element is marked for the neighbors' data GC.
+ * @param[in] elem The neighbors data to check.
+ * @return Non-0 if an element is marked for the neighbors' data GC.
+ */
+#define bbzneighbors_data_hasmark(elem) ((elem).mdata & BBZNEIGHBORS_MARK_MASK)
+
+/**
+ * @brief Mark an element for the neighbors' data GC.
+ * @param[in,out] elem The neighbors data to mark.
+ */
+#define bbzneighbors_data_mark(elem) do{(elem).mdata |= BBZNEIGHBORS_MARK_MASK;}while(0)
+
+/**
+ * @brief Unmark an element for the neighbors' data GC.
+ * @param[in,out] elem The neighbors data to unmark.
+ */
+#define bbzneighbors_data_unmark(elem) do{(elem).mdata &= ~BBZNEIGHBORS_MARK_MASK;}while(0)
+
+/**
  * @brief Type for an entry of the neighbors structure.
  */
 typedef struct PACKED bbzneighbors_elem_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
-    bbzrobot_id_t robot; /**< @brief ID of the robot this entry is for. */
-    uint8_t distance;    /**< @brief Distance between to the given robot. */
-    uint8_t azimuth;     /**< @brief Angle (in rad) on the XY plane. */
-    uint8_t elevation;   /**< @brief Angle (in rad) between the XY plane and the robot. */
+    bbzrobot_id_t robot;    /**< @brief ID of the robot this entry is for. */
+    uint8_t distance;       /**< @brief Distance between to the given robot. */
+    uint8_t azimuth;        /**< @brief Angle (in rad) on the XY plane. */
+    uint8_t elevation;      /**< @brief Angle (in rad) between the XY plane and the robot. */
+    uint8_t mdata;          /**< @brief Neighbor element metadata @details 7th bit: neighbors data GC marking flag */
 #endif // !BBZ_DISABLE_NEIGHBORS
 } bbzneighbors_elem_t;
 
@@ -79,6 +109,7 @@ typedef struct PACKED bbzneighbors_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
     bbzheap_idx_t hpos;      /**< @brief Heap's position of the 'neighbors' table. */
     bbzheap_idx_t listeners; /**< @brief Neighbor value listeners. */
+    uint8_t clear_counter;   /**< @brief Counter to clear neighbors' data */
 #ifdef BBZ_XTREME_MEMORY
     bbzringbuf_t rb;         /**< @brief Data buffer. */
     bbzneighbors_elem_t data[BBZNEIGHBORS_CAP+1]; /**< @brief Neighbor data. */
@@ -171,6 +202,11 @@ void bbzneighbors_filter();
  * @brief Buzz C closure which pushes the number of neighbors on the stack.
  */
 void bbzneighbors_count();
+
+/**
+ * @brief Neighbors data Garbage-Collector.
+ */
+void bbzneighbors_data_gc();
 #else
 #define bbzneighbors_register(...)
 #define bbzneighbors_reset(...)

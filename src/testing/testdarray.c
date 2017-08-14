@@ -13,7 +13,7 @@ TEST(da_new) {
     ASSERT(bbzdarray_new(&darray));
     ASSERT(bbztype_isdarray(*bbzheap_obj_at(darray)));
     ASSERT_EQUAL(bbzdarray_size(darray), 0);
-    ASSERT(bbzheap_obj_at(darray)->t.value != NO_NEXT);
+    ASSERT(bbzheap_obj_at(darray)->t.value != BBZHEAP_SEG_NO_NEXT);
 }
 
 TEST(da_push) {
@@ -42,15 +42,15 @@ TEST(da_find) {
     REQUIRE(bbzdarray_new(&darray));
 
     uint16_t o;
-    for (uint16_t i = 0; i < 2*BBZHEAP_ELEMS_PER_TSEG + 1; ++i) {
+    for (uint16_t i = 0; i < BBZHEAP_ELEMS_PER_ASEG + 1; ++i) {
         REQUIRE(bbzheap_obj_alloc(BBZTYPE_INT, &o));
         bbzint_t* io = (bbzint_t*)bbzheap_obj_at(o);
         io->value = i;
         REQUIRE(bbzdarray_push(darray, o));
     }
-    REQUIRE(bbzdarray_size(darray) == 2*BBZHEAP_ELEMS_PER_TSEG + 1);
+    REQUIRE(bbzdarray_size(darray) == BBZHEAP_ELEMS_PER_ASEG + 1);
 
-    ASSERT_EQUAL(bbzdarray_find(darray, bbztype_cmp, o), 2*BBZHEAP_ELEMS_PER_TSEG);
+    ASSERT_EQUAL(bbzdarray_find(darray, bbztype_cmp, o), BBZHEAP_ELEMS_PER_ASEG);
 }
 
 TEST(da_set) {

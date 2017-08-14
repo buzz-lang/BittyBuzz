@@ -36,7 +36,12 @@ void bbzvm_process_inmsgs() {
 /****************************************/
 
 void bbzvm_process_outmsgs() {
-    // TODO
+    if (!(vm->neighbors.clear_counter--)) {
+        vm->neighbors.clear_counter = BBZNEIGHBORS_CLEAR_PERIOD;
+        // Execute the neighbors' data garbage-collector.
+        bbzneighbors_data_gc();
+    }
+    //TODO Send swarm' message
 }
 
 /****************************************/
@@ -679,9 +684,7 @@ void bbzvm_pusht() {
 
 void bbzvm_lload(uint16_t idx) {
     bbzheap_idx_t id = vm->nil;
-    if (!bbzdarray_get(vm->lsyms, idx, &id)) {
-        bbzvm_seterror(BBZVM_ERROR_LNUM);
-    }
+    bbzvm_assert_exec(bbzdarray_get(vm->lsyms, idx, &id), BBZVM_ERROR_LNUM);
     return bbzvm_push(id);
 }
 
@@ -893,7 +896,7 @@ void bbzvm_callc() {
     bbzheap_idx_t oldLsyms = vm->lsyms;
     /* Create a new local symbol list copying the parent's */
     if (!bbztype_isclosurelambda(*c) ||
-        (c->l.value.actrec) == BBZ_DFLT_ACTREC) {
+        (c->l.value.actrec) == BBZHEAP_CLOSURE_DFLT_ACTREC) {
         bbzvm_assert_exec(bbzdarray_clone(vm->dflt_actrec, &vm->lsyms), BBZVM_ERROR_MEM);
     }
     else {
@@ -1026,7 +1029,7 @@ void bbzvm_pushl(uint16_t addr) {
     }
     else {
         /* ... else, Free the memory used by the buffer */
-        obj_makeinvalid(*bbzheap_obj_at(idx));
+        bbzheap_obj_makeinvalid(*bbzheap_obj_at(idx));
     }
     bbzheap_obj_at(o)->l.value.ref = (uint8_t)addr;
     if (vm->lsyms) {
@@ -1076,7 +1079,7 @@ void bbzvm_tput() {
             bbzvm_assert_exec(bbzdarray_push(vm->flist, v), BBZVM_ERROR_MEM);
         }
         else {
-            obj_makeinvalid(*bbzheap_obj_at(v));
+            bbzheap_obj_makeinvalid(*bbzheap_obj_at(v));
         }
 
         bbzvm_assert_exec(

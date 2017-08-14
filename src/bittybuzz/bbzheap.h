@@ -17,7 +17,12 @@ extern "C" {
 /**
  * @brief The value set in the #bbzlclosure_value_t::actrec field when it uses the default activation record of the vm.
  */
-#define BBZ_DFLT_ACTREC ((uint8_t)0xFF)
+#define BBZHEAP_CLOSURE_DFLT_ACTREC ((uint8_t)0xFF)
+
+/**
+ * @brief Elements per dynamic array's segment.
+ */
+#define BBZHEAP_ELEMS_PER_ASEG (2*(BBZHEAP_ELEMS_PER_TSEG))
 
 /**
  * @brief A table segment.
@@ -49,7 +54,7 @@ typedef struct PACKED bbzheap_aseg_t {
       * @brief Array values.
       * @details 16th bit: valid; other bits: obj index.
       */
-    bbzheap_idx_t values[2*BBZHEAP_ELEMS_PER_TSEG];
+    bbzheap_idx_t values[BBZHEAP_ELEMS_PER_ASEG];
     /**
       * @brief Segment metadata.
       * @details 16th bit : valid
@@ -123,7 +128,7 @@ bbzobj_t* bbzheap_obj_at(bbzheap_idx_t i);
  * @param[in] x The object.
  * @return non-zero if the given object is valid (i.e., in use).
  */
-#define bbzheap_obj_isvalid(x) ((x).mdata & BBZHEAP_MASK_OBJ_VALID)
+#define bbzheap_obj_isvalid(x) ((x).mdata & BBZHEAP_OBJ_MASK_VALID)
 
 /**
  *  @brief Copy the value of an object to an other object.
@@ -161,31 +166,31 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
 /**
  * Next segment index when the segment doesn't have any next.
  */
-#define NO_NEXT (uint16_t)0x3FFF
+#define BBZHEAP_SEG_NO_NEXT (uint16_t)0x3FFF
 
 /**
  * Mask for the next segment index.
  * @details This mask applies to the segment's metadata.
  */
-#define MASK_NEXT (uint16_t)0x3FFF
+#define BBZHEAP_SEG_MASK_NEXT (uint16_t)0x3FFF
 
 /**
  * Mask for whether a segment is valid.
  * @details This mask applies to the segment's metadata.
  */
-#define MASK_VALID_SEG (uint16_t)0x8000
+#define BBZHEAP_SEG_MASK_VALID (uint16_t)0x8000
 
 /**
  * Mask for whether a segment is garbage-collection exempt.
  * @details This mask applies to the segment's metadata.
  */
-#define TSEG_MASK_GCMARK (uint16_t)0x4000
+#define BBZHEAP_TSEG_MASK_GCMARK (uint16_t)0x4000
 
 /**
  * Mask for whether a segment element is valid.
  * @details This mask applies to the element itself.
  */
-#define MASK_VALID_SEG_ELEM (uint16_t)0x8000
+#define BBZHEAP_MASK_VALID_SEG_ELEM (uint16_t)0x8000
 
 /**
  * @brief Returns a table segment located at position i within the heap.
@@ -199,48 +204,48 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s);
  * @param[in] s The table segment.
  * @return The index of the next segment.
  */
-#define bbzheap_tseg_next_get(s) ((s)->mdata & MASK_NEXT)
+#define bbzheap_tseg_next_get(s) ((s)->mdata & BBZHEAP_SEG_MASK_NEXT)
 
 /**
  * @brief Sets the next table segment linked to the given one.
  * @param[in,out] s The table segment.
  * @param[in] n The index of the next segment.
  */
-#define bbzheap_tseg_next_set(s, n) (s)->mdata = ((s)->mdata & ~MASK_NEXT) | ((n) & MASK_NEXT)
+#define bbzheap_tseg_next_set(s, n) (s)->mdata = ((s)->mdata & ~BBZHEAP_SEG_MASK_NEXT) | ((n) & BBZHEAP_SEG_MASK_NEXT)
 
 /**
  * @brief Returns 1 if the given table segment has a valid next, 0 otherwise.
  * @param[in] s The table segment.
  * @return 1 if the given table segment has a valid next, 0 otherwise.
  */
-#define bbzheap_tseg_hasnext(s) (((s)->mdata & MASK_NEXT) != NO_NEXT)
+#define bbzheap_tseg_hasnext(s) (((s)->mdata & BBZHEAP_SEG_MASK_NEXT) != BBZHEAP_SEG_NO_NEXT)
 
 /**
  * @brief Returns non-zero if the given segment is valid (in use).
  * @param[in] s The table segment.
  * @return non-zero if the given segment is valid (in use).
  */
-#define bbzheap_tseg_isvalid(s) ((s).mdata & MASK_VALID_SEG)
+#define bbzheap_tseg_isvalid(s) ((s).mdata & BBZHEAP_SEG_MASK_VALID)
 
 /**
  * @brief Returns non-zero if the given segment element (key or value) is valid (in use).
  * @param[in] e The table segment element.
  * @return non-zero if the given segment element (key or value) is valid (in use).
  */
-#define bbzheap_tseg_elem_isvalid(e) ((e) & MASK_VALID_SEG_ELEM)
+#define bbzheap_tseg_elem_isvalid(e) ((e) & BBZHEAP_MASK_VALID_SEG_ELEM)
 
 /**
  * @brief Returns the value of the given table segment element.
  * @param[in] e The table segment element.
  */
-#define bbzheap_tseg_elem_get(e) ((e) & ~MASK_VALID_SEG_ELEM)
+#define bbzheap_tseg_elem_get(e) ((e) & ~BBZHEAP_MASK_VALID_SEG_ELEM)
 
 /**
  * @brief Sets the value of the given table segment element, and validates the element.
  * @param[in,out] e The table segment element.
  * @param[in] x The value.
  */
-#define bbzheap_tseg_elem_set(e, x) (e) = ((x) & ~MASK_VALID_SEG_ELEM) | MASK_VALID_SEG_ELEM
+#define bbzheap_tseg_elem_set(e, x) (e) = ((x) & ~BBZHEAP_MASK_VALID_SEG_ELEM) | BBZHEAP_MASK_VALID_SEG_ELEM
 
 /**
  * @brief Allocates space for an array segment on the heap.
@@ -319,7 +324,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as currently in use, i.e., "allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makevalid(obj)   (obj).mdata |= BBZHEAP_MASK_OBJ_VALID
+#define bbzheap_obj_makevalid(obj)   (obj).mdata |= BBZHEAP_OBJ_MASK_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -327,7 +332,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks an object as no longer in use, i.e., "not allocated".
  * @param[in,out] obj The object to mark.
  */
-#define obj_makeinvalid(obj) (obj).mdata &= ~BBZHEAP_MASK_OBJ_VALID
+#define bbzheap_obj_makeinvalid(obj) (obj).mdata &= ~BBZHEAP_OBJ_MASK_VALID
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -335,7 +340,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as currently in use, i.e., "allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND reset next to -1
+#define bbzheap_tseg_makevalid(s) (s).mdata = (uint16_t)0xFFFF // Make the segment valid AND reset next to -1
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -343,7 +348,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
  * Marks a segment as no longer in use, i.e., "not allocated".
  * @param[in,out] s The segment to mark.
  */
-#define tseg_makeinvalid(s) (s).mdata &= ~MASK_VALID_SEG
+#define bbzheap_tseg_makeinvalid(s) (s).mdata &= ~BBZHEAP_SEG_MASK_VALID
 
 /**
  * @brief Prints the heap's contents for debugging.
@@ -362,7 +367,7 @@ void bbzheap_print();
  * Marks a segment as not garbage-collectable.
  * @param[in,out] s The segment to mark.
  */
-#define gc_tseg_mark(s) (s).mdata |= TSEG_MASK_GCMARK
+#define bbzheap_gc_tseg_mark(s) (s).mdata |= BBZHEAP_TSEG_MASK_GCMARK
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -370,7 +375,7 @@ void bbzheap_print();
  * Marks a segment as not garbage-collectable.
  * @param[in,out] s The segment to mark.
  */
-#define gc_tseg_unmark(s) (s).mdata &= ~TSEG_MASK_GCMARK
+#define bbzheap_gc_tseg_unmark(s) (s).mdata &= ~BBZHEAP_TSEG_MASK_GCMARK
 
 /**
  * @brief <b>For the VM's internal use only</b>.
@@ -379,7 +384,7 @@ void bbzheap_print();
  * @param[in,out] s The segment to check.
  * @return non-zero if given segment has a GC mark.
  */
-#define gc_tseg_hasmark(s) ((s).mdata & TSEG_MASK_GCMARK)
+#define bbzheap_gc_tseg_hasmark(s) ((s).mdata & BBZHEAP_TSEG_MASK_GCMARK)
 
 #ifdef __cplusplus
 }

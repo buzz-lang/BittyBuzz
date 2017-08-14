@@ -124,10 +124,10 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                 // Update the value
                 data->robot = msg->vs.rid;
                 data->key = msg->vs.key;
-                obj_makeinvalid(*bbzheap_obj_at(data->value));
+                bbzheap_obj_makeinvalid(*bbzheap_obj_at(data->value));
                 bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                 *bbzheap_obj_at(o) = msg->vs.data;
-                obj_makevalid(*bbzheap_obj_at(o));
+                bbzheap_obj_makevalid(*bbzheap_obj_at(o));
                 bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
                 data->value = o;
                 bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
@@ -164,7 +164,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                     bbztable_add_data(__BBZSTRID_robot, bbzint_new(msg->vs.rid));
                     bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                     *bbzheap_obj_at(o) = msg->vs.data;
-                    obj_makevalid(*bbzheap_obj_at(o));
+                    bbzheap_obj_makevalid(*bbzheap_obj_at(o));
                     bbztable_add_data(__BBZSTRID_data, o);
                     bbztable_add_data(__BBZSTRID_timestamp, bbzint_new(msg->vs.lamport));
                     bbzvm_closure_call(3);
@@ -178,7 +178,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                                   (bbzrobot_id_t) bbzheap_obj_at(tmp)->i.value :
                                   data->robot;
                     tmp = vm->nil;
-                    obj_makeinvalid(*bbzheap_obj_at(data->value));
+                    bbzheap_obj_makeinvalid(*bbzheap_obj_at(data->value));
                     bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
                     bbztable_get(bbzvm_stack_at(0), bbzstring_get(__BBZSTRID_data), &tmp);
                     data->value = tmp;
@@ -207,10 +207,10 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                     if (msg->vs.rid >= data->robot) {
                         data->robot = msg->vs.rid;
                         data->key = msg->vs.key;
-                        obj_makeinvalid(*bbzheap_obj_at(data->value));
+                        bbzheap_obj_makeinvalid(*bbzheap_obj_at(data->value));
                         bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
                         *bbzheap_obj_at(o) = msg->vs.data;
-                        obj_makevalid(*bbzheap_obj_at(o));
+                        bbzheap_obj_makevalid(*bbzheap_obj_at(o));
                         bbzheap_obj_unmake_permanent(*bbzheap_obj_at(data->value));
                         data->value = o;
                         bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
@@ -231,7 +231,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
         data->key = msg->vs.key;
         bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
         *bbzheap_obj_at(o) = msg->vs.data;
-        obj_makevalid(*bbzheap_obj_at(o));
+        bbzheap_obj_makevalid(*bbzheap_obj_at(o));
         data->value = o;
         bbzheap_obj_make_permanent(*bbzheap_obj_at(o));
         data->timestamp = msg->vs.lamport;

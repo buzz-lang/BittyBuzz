@@ -1,6 +1,6 @@
 #include <bittybuzz/bbzneighbors.h>
 
-#define NUM_TEST_CASES 10
+#define NUM_TEST_CASES 11
 #define TEST_MODULE neighbors
 #include "testingconfig.h"
 
@@ -239,6 +239,33 @@ TEST(count) {
     bbzvm_destruct();
 }
 
+#ifndef BBZ_XTREME_MEMORY
+#define data_gc_count vm->neighbors.count
+#else // !BBZ_XTREME_MEMORY
+#define data_gc_count bbzringbuf_size(&vm->neighbors.rb)
+#endif // !BBZ_XTREME_MEMORY
+
+TEST(data_gc) {
+    bbzvm_construct(0);
+
+    bbzneighbors_elem_t elem2 = {.robot=2,.distance=64,.azimuth=0,.elevation=0};
+    bbzneighbors_add(&elem2);
+    REQUIRE(data_gc_count == 1);
+
+    vm->neighbors.clear_counter = BBZNEIGHBORS_MARK_THRESHOLD-1;
+
+    bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
+    bbzneighbors_add(&elem);
+    bbzneighbors_elem_t elem3 = {.robot=3,.distance=100,.azimuth=0,.elevation=0};
+    bbzneighbors_add(&elem3);
+    REQUIRE(data_gc_count == 3);
+
+    bbzneighbors_data_gc();
+    ASSERT_EQUAL(data_gc_count, 2);
+}
+
+#undef data_gc_count
+
 //------------------------
 //------------------------
 
@@ -253,4 +280,5 @@ TEST_LIST {
     ADD_TEST(reduce);
     ADD_TEST(filter);
     ADD_TEST(count);
+    ADD_TEST(data_gc);
 }

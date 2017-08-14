@@ -634,7 +634,7 @@ extern "C" {
      * The most recently pushed element in the stack is at size - 1.
      * @return The size of the VM's current stack.
      */
-    #define bbzvm_stack_size() (vm->stackptr + (int16_t)1)
+    #define bbzvm_stack_size() (uint16_t)(vm->stackptr + (int16_t)1)
 
     /**
      * @brief Gets the element at given stack position,

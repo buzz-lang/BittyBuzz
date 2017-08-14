@@ -81,6 +81,16 @@
 #define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
 
 /**
+ * @brief The period between two (2) neighbors' data garbage-collection.
+ */
+#define BBZNEIGHBORS_CLEAR_PERIOD @BBZNEIGHBORS_CLEAR_PERIOD@
+
+/**
+ * @brief The number of timestep before the neighbors' GC that we start to mark neighbors data.
+ */
+#define BBZNEIGHBORS_MARK_THRESHOLD @BBZNEIGHBORS_MARK_THRESHOLD@
+
+/**
  * @brief Whether to compile in debug mode.
  */
 #cmakedefine DEBUG

@@ -20,6 +20,8 @@ config_value(RESERVED_ACTREC_MAX 28)
 config_value(BBZLAMPORT_THRESHOLD 50)
 config_value(BBZHEAP_GCMARK_DEPTH 8)
 config_value(BBZMSG_IN_PROC_MAX 10)
+config_value(BBZNEIGHBORS_CLEAR_PERIOD 50)
+config_value(BBZNEIGHBORS_MARK_THRESHOLD 10)
 
 # Set the XTREME memory optimization to false if it hasn't been set yet.
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)

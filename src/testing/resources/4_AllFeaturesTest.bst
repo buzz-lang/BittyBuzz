@@ -1,4 +1,4 @@
-log
+print
 forward
 stop
 turn
