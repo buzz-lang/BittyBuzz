@@ -20,6 +20,8 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             bbzmsg_deserialize_obj(&m->bc.value, payload, &pos);
             bbzheap_obj_makevalid(m->bc.value);
             if (pos < 0) return;
+            bbzmsg_deserialize_u8(&m->bc.dist, payload, &pos);
+            if (pos < 0) return;
             break;
 #else
             return;

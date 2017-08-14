@@ -75,6 +75,7 @@ bbzheap_idx_t create_subswarm_structure(bbzswarm_id_t swarm) {
     bbzvm_pushi(swarm);
     bbzvm_closure_call(1); // 'swarm.create(<id>)'
     bbzheap_idx_t subswarm = bbzvm_stack_at(0); // 'subswarm = swarm.create(<id>)'
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(subswarm));
     bbzvm_pop();
     return subswarm;
 }
@@ -215,7 +216,7 @@ TEST(isrobotin) {
 /****************************************/
 /****************************************/
 
-TEST(update) {
+TEST(rmentry) {
     bbzvm_t vmObj;
     vm = &vmObj;
     init_test(&vmObj);
@@ -227,14 +228,9 @@ TEST(update) {
 
     const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
     {
-        for (uint16_t i = 0; i < MEMBERSHIP_AGE_MAX; ++i) {
-            bbzvm_gc();
-            ASSERT(vm->state != BBZVM_STATE_ERROR);
-            ASSERT_EQUAL(bbztable_size(vm->swarm.hpos), INITIAL_SIZE);
-            bbzswarm_update();
-        }
-        ASSERT(vm->state != BBZVM_STATE_ERROR);
-        ASSERT_EQUAL(bbztable_size(vm->swarm.hpos), INITIAL_SIZE - 1);
+        bbzswarm_rmentry(1);
+        REQUIRE(vm->state != BBZVM_STATE_ERROR);
+        ASSERT_EQUAL(bbztable_size(vm->swarm.hpos), INITIAL_SIZE-1);
     }
 
 }
@@ -765,7 +761,7 @@ TEST_LIST {
     ADD_TEST(addrmmember);
     ADD_TEST(refresh);
     ADD_TEST(isrobotin);
-    ADD_TEST(update);
+    ADD_TEST(rmentry);
     ADD_TEST(create);
     ADD_TEST(intersection_union_difference);
     ADD_TEST(id);

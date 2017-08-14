@@ -179,12 +179,10 @@ void bbzprocess_msg_rx(message_t* msg_rx, distance_measurement_t* d) {
         // Add the neighbor data.
 #ifndef BBZ_DISABLE_NEIGHBORS
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
+            uint8_t* msg_dist = &((bbzmsg_broadcast_t*)(bbzmsg_buf))->dist;
             uint8_t dist = ((uint8_t)(d->high_gain>>2) + (uint8_t)(d->low_gain>>2))>>1;
-            bbzneighbors_elem_t elem = {.azimuth=0,.elevation=0};
-            elem.robot = *(uint16_t*)(bbzmsg_buf + 1);
-            elem.distance = (kilo_irhigh + kilo_irlow) >> 1;
-            elem.distance -= (dist>elem.distance?elem.distance:dist);
-            bbzneighbors_add(&elem);
+            *msg_dist = (kilo_irhigh + kilo_irlow) >> 1;
+            *msg_dist -= (dist>*msg_dist?*msg_dist:dist);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS
         bbzinmsg_queue_append(&bbz_payload_buf);

@@ -460,6 +460,7 @@ static void neighborsdata_foreach_fun(bbzheap_idx_t key, bbzheap_idx_t value, vo
     if (!bbztable_get(value, bbzint_new(0), &o)) {
         --vm->neighbors.count;
         bbztable_set(*(bbzheap_idx_t*)params, key, vm->nil);
+        bbzswarm_rmentry((bbzrobot_id_t)bbzheap_obj_at(key)->i.value);
     }
     else {
         bbztable_set(value, bbzint_new(0), vm->nil);
@@ -560,6 +561,7 @@ void bbzneighbors_data_gc() {
         if (!bbzneighbors_data_hasmark(*entry)) {
             bringToTop(&vm->neighbors.rb, i);
             ++unmarked_count;
+            bbzswarm_rmentry(entry->robot);
         }
         else {
             bbzneighbors_data_unmark(*entry);

@@ -253,16 +253,15 @@ BOOTLOADER_ADDR=28672
 BCODE_SIZE_ADDR=$((BOOTLOADER_ADDR - 2))
 BCODE_ADDR=$((BOOTLOADER_ADDR - BBO_SIZE_PLUS_2))
 LOG "[$bbz_name] Compiling and Linking c functions..."
-${AVR_CC} ${AVR_CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${AVR_CC} ${AVR_CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating hex file..."
 ${AVR_OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_name}.elf ${GEN_DIR}/${bbz_name}.hex >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating debug files... "
-${AVR_CC} ${AVR_CFLAGS/-Wl,-s/} -Wno-deprecated -g -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${AVR_CC} ${AVR_CFLAGS/-Wl,-s/} -Wno-deprecated -g -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${AVR_OC} --only-keep-debug ${GEN_DIR}/${bbz_name}.elfdbg ${GEN_DIR}/${bbz_name}.dbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${AVR_OC} --strip-debug ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${AVR_OC} --add-gnu-debuglink ${GEN_DIR}/${bbz_name}.dbg ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${AVR_OD} -xDSgetl ${GEN_DIR}/${bbz_name}.elfdbg > ${GEN_DIR}/${bbz_name}.lst 2>> ${LOG_FILE}
-#${AVR_CC} ${AVR_CFLAGS/-Wl,-s/} -g -Wa,-a,-ad -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${AVR_LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-T,${SRC_DIR}/kilobot/mains/link.ld -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${GEN_DIR}/${bbz_name}.lst || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Done"
 LOG ""
 LOG "[$bbz_name] Thank you."

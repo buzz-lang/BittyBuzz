@@ -80,6 +80,11 @@ void bbzmsg_sort_priority(bbzringbuf_t* rb) {
 
 #ifndef BBZ_DISABLE_NEIGHBORS
 void bbzmsg_process_broadcast(bbzmsg_t* msg) {
+    // Add robot data
+    bbzneighbors_elem_t elem;
+    elem.robot = msg->bc.rid;
+    elem.distance = msg->bc.dist;
+    bbzneighbors_add(&elem);
     // Get the topic
     bbzvm_pushs(msg->bc.topic);
     bbzheap_idx_t topic = bbzvm_stack_at(0);

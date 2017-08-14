@@ -73,9 +73,9 @@ uint8_t bbzswarm_isrobotin(bbzrobot_id_t robot,
                            bbzswarm_id_t swarm);
 
 /**
- * @brief Updates the information in the swarm membership structure.
+ * @brief Completly forgets a robot's swarmlist.
  */
-void bbzswarm_update();
+void bbzswarm_rmentry(bbzrobot_id_t robot);
 
 // ======================================
 // =        BUZZ SWARM CLOSURES         =
@@ -155,12 +155,12 @@ void bbzswarm_select();
 void bbzswarm_exec();
 
 #else // !BBZ_DISABLE_SWARMS
-#define bbzswarm_register()
+#define bbzswarm_register(...)
 #define bbzswarm_addmember(...)
 #define bbzswarm_rmmember(...)
 #define bbzswarm_refresh(...)
 #define bbzswarm_isrobotin(...)
-#define bbzswarm_update()
+#define bbzswarm_rmentry(...)
 void bbzswarm_dummy();
 void bbzswarm_dummyret();
 #define bbzswarm_create()       bbzswarm_dummyret()

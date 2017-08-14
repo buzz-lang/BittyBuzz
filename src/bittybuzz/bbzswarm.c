@@ -218,27 +218,8 @@ uint8_t bbzswarm_isrobotin(bbzrobot_id_t robot,
 /****************************************/
 /****************************************/
 
-/**
- * Element-wise function for bbzswarm_update(). Removes entries (other
- * than our own) for which nothing has happened for a while.
- * @param[in] key Robot's ID.
- * @param[in] value Entry:
- * - bits 15-8: swarm list bitfield ;
- * - bits 7-0: age of entry.
- * @param[in,out] params Unused.
- */
-void swarm_update(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
-    if (bbztype_isint(*bbzheap_obj_at(value))) {
-        ++bbzheap_obj_at(value)->i.value; // Increment age
-        if ((bbzheap_obj_at(value)->i.value & AGE_MASK) >= MEMBERSHIP_AGE_MAX &&
-                bbzheap_obj_at(key)->i.value != vm->robot) {
-            bbztable_set(vm->swarm.hpos, key, vm->nil);
-        }
-    }
-}
-
-void bbzswarm_update() {
-    bbztable_foreach(vm->swarm.hpos, swarm_update, NULL);
+void bbzswarm_rmentry(bbzrobot_id_t robot) {
+    bbztable_set(vm->swarm.hpos, bbzint_new(robot), vm->nil);
 }
 
 // ======================================
