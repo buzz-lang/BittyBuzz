@@ -31,7 +31,7 @@ typedef enum bbzvm_error {
     BBZVM_ERROR_PC,         /**< @brief Program counter out of range */ // =4
     BBZVM_ERROR_FLIST,      /**< @brief Function call id out of range */ // =5
     BBZVM_ERROR_TYPE,       /**< @brief Type mismatch */ // =6
-    BBZVM_ERROR_OUTOFRANGE, /**< @brief Out-of-bounds argument (e.g. Trying <code>swarm.id()</code> while the swarmstack is empty) */ // =7
+    BBZVM_ERROR_OUTOFRANGE, /**< @brief Out-of-bounds argument (e.g., trying <code>swarm.id()</code> while the swarmstack is empty) */ // =7
     BBZVM_ERROR_NOTIMPL,    /**< @brief Feature not yet implemented */ // =8
     BBZVM_ERROR_RET,        /**< @brief Non-returning function when returning was expected, or vice versa. */ // =9
     BBZVM_ERROR_STRING,     /**< @brief Unknown string id */ // =10

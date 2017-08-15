@@ -31,3 +31,8 @@ option(BBZ_DISABLE_NEIGHBORS "Whether to disable usage of neighbors' data struct
 option(BBZ_DISABLE_VSTIGS "Whether to disable usage of virtual stigmergies' data structure and messages." OFF)
 option(BBZ_DISABLE_SWARMS "Whether to disable usage of swarms' data structure and messages." ON) # TODO Swarms take too much RAM
 option(BBZ_DISABLE_MESSAGES "Whether to disable usage and transfer of any kind of Buzz message." OFF)
+
+# TODO Currently, there is no implementation of swarmlist broadcasts because
+# neighbors.kin and neighbors.nonkin, which are the only closures that would
+# make use of it, are not implemented.
+option(BBZ_DISABLE_SWARMLIST_BROADCASTS "Whether we disable the broadcasting of our swarmlist to neighboring robots." ON)

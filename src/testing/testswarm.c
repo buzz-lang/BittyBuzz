@@ -4,7 +4,14 @@
 
 #include <bittybuzz/bbzswarm.h>
 
-#define TEST_END ((uint16_t)-1)
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+#define SUBSWARM_TBL_SIZE 7 // 6 closures + 'id'
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+#define SUBSWARM_TBL_SIZE 6 // 5 closures + 'id'
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+#define TEST_END ((uint16_t)~0)
+#define RBT 0 /**< @brief Current robot */
 
 /**
  * @brief Resets the VM's state and error.
@@ -75,46 +82,62 @@ bbzheap_idx_t create_subswarm_structure(bbzswarm_id_t swarm) {
     bbzvm_pushi(swarm);
     bbzvm_closure_call(1); // 'swarm.create(<id>)'
     bbzheap_idx_t subswarm = bbzvm_stack_at(0); // 'subswarm = swarm.create(<id>)'
-    bbzheap_obj_make_permanent(*bbzheap_obj_at(subswarm));
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(subswarm)); // Do not garbage-collect the table ;
+                                                           // we are using it for our unit tests!
     bbzvm_pop();
     return subswarm;
 }
 
+/**
+ * Gets the swarmlist of a robot.
+ * @note This function relies on 'bbzswarm_isrobotin'.
+ */
+bbzswarmlist_t get_swarmlist(bbzrobot_id_t robot) {
+    bbzswarmlist_t swarmlist = 0;
+    for (uint8_t i = 0; i < 8*sizeof(bbzswarmlist_t); ++i) {
+        swarmlist |= bbzswarm_isrobotin(robot, i) << i;
+    }
+    return swarmlist;
+}
+
+/**
+ * Initializes a unit test.
+ */
 void init_test(bbzvm_t* vm_ptr) {
     vm = vm_ptr;
-    bbzvm_construct(0);
+    bbzvm_construct(RBT);
 }
 
 /****************************************/
 /****************************************/
+
+// ========================================
+// =              UNIT TESTS              =
+// ========================================
 
 TEST(addrmmember) {
     bbzvm_t vmObj;
     init_test(&vmObj);
 
-    // Keep track of initial size.
-    const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
-
     // Add robots and memberships
     {
-        bbzrobot_id_t new_robots[]  = {     0,      1,      1,      1, TEST_END};
-        bbzswarm_id_t new_swarms[]  = {     5,      0,      1,      1};
-        uint16_t expected_entries[] = {0x2000, 0x0100, 0x0300, 0x0300};
-        uint16_t expected_sizes[]   = {     0,      1,      1,      1};
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[]    = { RBT,  RBT,  RBT,    1,    1,    1, TEST_END};
+        bbzswarm_id_t new_swarms[]    = {   5,    0,    0,    0,    1,    1};
+        bbzswarmlist_t expected_swl[] = {0x20, 0x21, 0x21, 0x01, 0x03, 0x03};
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[]    = { RBT,  RBT,  RBT, TEST_END};
+        bbzswarm_id_t new_swarms[]    = {   5,    0,    0};
+        bbzswarmlist_t expected_swl[] = {0x20, 0x21, 0x21};
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
         uint16_t i = 0;
         while(new_robots[i] != TEST_END) {
             bbzvm_gc(); // Call garbage-collector
             bbzswarm_addmember(new_robots[i], new_swarms[i]);
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
-            ASSERT(bbztable_size(vm->swarm.hpos) == INITIAL_SIZE + expected_sizes[i]);
             uint16_t entry;
-
-            bbzheap_idx_t robot;
-            bbzheap_obj_alloc(BBZTYPE_INT, &robot);
-            bbzheap_obj_at(robot)->i.value = new_robots[i];
-            ASSERT(bbztable_get(vm->swarm.hpos, robot, &entry));
-            ASSERT_EQUAL((uint16_t)bbzheap_obj_at(entry)->i.value, expected_entries[i]);
+            ASSERT_EQUAL(get_swarmlist(new_robots[i]), expected_swl[i]);
 
             ++i;
         }
@@ -122,25 +145,22 @@ TEST(addrmmember) {
 
     // Remove memberships
     {
-        bbzrobot_id_t new_robots[]  = {     1,      1,      0,      0, TEST_END};
-        bbzswarm_id_t new_swarms[]  = {     1,      0,      5,      5};
-        uint16_t expected_entries[] = {0x0100, 0x0000, 0x0000, 0x0000};
-        uint16_t expected_sizes[]   = {     1,      1,      1,      1};
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[]    = { RBT,  RBT,  RBT,    1,    1, TEST_END};
+        bbzswarm_id_t new_swarms[]    = {   5,    0,    0,    1,    0};
+        bbzswarmlist_t expected_swl[] = {0x01, 0x00, 0x00, 0x01, 0x00};
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[]    = { RBT,  RBT,  RBT, TEST_END};
+        bbzswarm_id_t new_swarms[]    = {   5,    0,    0};
+        bbzswarmlist_t expected_swl[] = {0x01, 0x00, 0x00};
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
         uint16_t i = 0;
         while(new_robots[i] != TEST_END) {
             bbzvm_gc(); // Call garbage-collector
             bbzswarm_rmmember(new_robots[i], new_swarms[i]);
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
-            ASSERT(bbztable_size(vm->swarm.hpos) == INITIAL_SIZE + expected_sizes[i]);
-
-            bbzheap_idx_t robot;
-            bbzheap_obj_alloc(BBZTYPE_INT, &robot);
-            bbzheap_obj_at(robot)->i.value = new_robots[i];
-
-            uint16_t entry;
-            ASSERT(bbztable_get(vm->swarm.hpos, robot, &entry));
-            ASSERT_EQUAL((uint16_t)bbzheap_obj_at(entry)->i.value, expected_entries[i]);
+            ASSERT_EQUAL(get_swarmlist(new_robots[i]), expected_swl[i]);
 
             ++i;
         }
@@ -154,27 +174,21 @@ TEST(refresh) {
     bbzvm_t vmObj;
     init_test(&vmObj);
 
-    const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
-
     {
-        bbzrobot_id_t new_robots[] = {   1,    0, TEST_END};
-        uint16_t new_entries[]     = {0xAA, 0x99};
-        uint16_t expected_sizes[]  = {   1,    1};
-        
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[] = { RBT,  RBT,    1, TEST_END};
+        bbzswarmlist_t new_swl[]   = {0xAA, 0x99, 0xF0};
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t new_robots[] = { RBT,  RBT, TEST_END};
+        bbzswarmlist_t new_swl[]   = {0xAA, 0x99};
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+
         uint16_t i = 0;
         while (new_robots[i] != TEST_END) {
             bbzvm_gc(); // Call garbage-collector
-            bbzswarm_refresh(new_robots[i], new_entries[i]);
+            bbzswarm_refresh(new_robots[i], new_swl[i]);
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
-            ASSERT(bbztable_size(vm->swarm.hpos) == INITIAL_SIZE + expected_sizes[i]);
-
-            bbzheap_idx_t robot;
-            bbzheap_obj_alloc(BBZTYPE_INT, &robot);
-            bbzheap_obj_at(robot)->i.value = new_robots[i];
-
-            uint16_t entry;
-            ASSERT(bbztable_get(vm->swarm.hpos, robot, &entry));
-            ASSERT_EQUAL((uint16_t)bbzheap_obj_at(entry)->i.value, new_entries[i] << 8);
+            ASSERT_EQUAL(get_swarmlist(new_robots[i]), new_swl[i]);
 
             ++i;
         }
@@ -190,22 +204,29 @@ TEST(isrobotin) {
     init_test(&vmObj);
 
     // Add some subswarm memberships.
+    bbzswarm_addmember(0, 0);
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbzswarm_addmember(1, 1);
     bbzswarm_addmember(2, 1);
     bbzswarm_addmember(2, 2);
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
-    const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
     {
-        bbzrobot_id_t robots[]  = {0, 0, 1, 1, 1, 2, 2, 2, 2, TEST_END};
-        bbzswarm_id_t swarms[]  = {0, 1, 0, 1, 2, 0, 1, 2, 3};
-        uint8_t expected_ret[]  = {0, 0, 0, 1, 0, 0, 1, 1, 0};
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t robots[]  = {RBT, RBT, 1, 1, 1, 2, 2, 2, 2, TEST_END};
+        bbzswarm_id_t swarms[]  = {  0,   1, 0, 1, 2, 0, 1, 2, 3};
+        uint8_t expected_ret[]  = {  1,   0, 0, 1, 0, 0, 1, 1, 0};
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        bbzrobot_id_t robots[]  = {RBT, RBT, TEST_END};
+        bbzswarm_id_t swarms[]  = {  0,   1};
+        uint8_t expected_ret[]  = {  1,   0};
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
         uint16_t i = 0;
-        while(robots[i] != TEST_END) {
+        while(robots[i] != (TEST_END)) {
             bbzvm_gc(); // Call garbage-collector
             uint8_t ret = bbzswarm_isrobotin(robots[i], swarms[i]) != 0;
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
-            ASSERT_EQUAL(bbztable_size(vm->swarm.hpos), INITIAL_SIZE);
             ASSERT_EQUAL(ret, expected_ret[i]);
 
             ++i;
@@ -216,6 +237,7 @@ TEST(isrobotin) {
 /****************************************/
 /****************************************/
 
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
 TEST(rmentry) {
     bbzvm_t vmObj;
     vm = &vmObj;
@@ -226,7 +248,6 @@ TEST(rmentry) {
     bbzswarm_addmember(1, 1);
     bbzswarm_addmember(1, 2);
 
-    const uint16_t INITIAL_SIZE = bbztable_size(vm->swarm.hpos);
     {
         bbzswarm_rmentry(1);
         REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -234,6 +255,7 @@ TEST(rmentry) {
     }
 
 }
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 /****************************************/
 /****************************************/
@@ -242,24 +264,25 @@ TEST(create) {
     bbzvm_t vmObj;
     init_test(&vmObj);
 
-    const uint16_t INITIAL_STACK_SZ = bbzvm_stack_size();
-
     // Create a swarm.
     const bbzheap_idx_t CREATE = get_swarm_subfield(__BBZSTRID_create);
     bbzvm_push(CREATE);
     bbzvm_pushi(0); // Swarm ID
-    bbzvm_closure_call(1);
+    bbzvm_closure_call(1); // swarm.create(0)
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(bbzvm_stack_at(0))); // Do not garbage-collect the subswarm table ;
+                                                                    // We use it for our unit tests!
     bbzvm_gc(); // Call garbage-collector
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    ASSERT_EQUAL(bbzvm_stack_size(), INITIAL_STACK_SZ + 1);
 
     // Check if memberships haven't changed
     bbzheap_idx_t subswarm = bbzvm_stack_at(0);
     bbzvm_pop();
     for (uint8_t i = 0; i < 8 * sizeof(bbzswarmlist_t); ++i) {
-        ASSERT(!bbzswarm_isrobotin(0, i));
+        if (bbzswarm_isrobotin(0, i)) {
+            ASSERT(0);
+        }
     }
-    ASSERT_EQUAL(bbztable_size(subswarm), 7); // 6 closures + the 'id' field
+    ASSERT_EQUAL(bbztable_size(subswarm), SUBSWARM_TBL_SIZE);
 
     // Check if <0 and >7 swarm IDs fail.
     test_wrong_swarm_ids(CREATE);
@@ -270,6 +293,8 @@ TEST(create) {
 
 /****************************************/
 /****************************************/
+
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 TEST(intersection_union_difference) {
 #if 0 // TODO The functions are not implemented.
@@ -282,7 +307,7 @@ TEST(intersection_union_difference) {
         UNION = get_swarm_subfield(__BBZSTRID_union),
         DIFFERENCE = get_swarm_subfield(__BBZSTRID_difference);
     bbzvm_gc(); // Call garbage-collector
-    
+
     // Create some subswarm structures
     bbzheap_idx_t s0, s1, s2;
     s0 = create_subswarm_structure(0);
@@ -295,22 +320,16 @@ TEST(intersection_union_difference) {
     // Add some subswarm memberships.
     bbzswarm_addmember(0, 1);
     bbzswarm_addmember(0, 2);
-    bbzswarm_addmember(1, 0);
-    bbzswarm_addmember(1, 1);
-    bbzswarm_addmember(1, 2);
-    bbzswarm_addmember(2, 1);
-    bbzswarm_addmember(3, 2);
-    bbzswarm_addmember(4, 0);
     bbzvm_gc(); // Call garbage-collector
 
     // Do the checks.
     bbzheap_idx_t closures[3] = {INTERSECTION, UNION, DIFFERENCE};
     {
         bbzswarm_id_t swarms[3] = {3, 4, 5};
-        bbzrobot_id_t robots[7] =      {0, 1, 2, 3, 4, 5, TEST_END};
-        uint8_t expected_rets[3][6] = {{1, 1, 0, 0, 0, 0},  // intersection
-                                       {1, 1, 1, 1, 0, 0},  // union
-                                       {0, 0, 1, 0, 0, 0}}; // difference
+        bbzrobot_id_t robots[7] =        {RBT, 1, 2, 3, 4, 5, TEST_END};
+        uint8_t expected_rets[3][7-1] = {{  1, 1, 0, 0, 0, 0},  // intersection
+                                         {  1, 1, 1, 1, 0, 0},  // union
+                                         {  0, 0, 1, 0, 0, 0}}; // difference
         for (uint8_t i = 0; i < 3; ++i) {
             bbzvm_push(closures[i]);
             bbzvm_pushi(swarms[i]);
@@ -320,10 +339,10 @@ TEST(intersection_union_difference) {
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
             bbzheap_idx_t sX = bbzvm_stack_at(0); // 'sX = swarm.<closure>(<swarm ID>, s1, s2)'
             bbzvm_pop();
-            bbzvm_gc(); // Call garbage-collector
+            bbzvm_gc(); // Call garbage-collector ; this also removes the subswarm structure
 
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
-            
+
             uint16_t j = 0;
             while (robots[j] != TEST_END) {
                 uint8_t ret = bbzswarm_isrobotin(robots[j], swarms[i]) != 0;
@@ -344,7 +363,6 @@ TEST(intersection_union_difference) {
                 bbzvm_push(s1);
                 bbzvm_push(s2);
                 bbzvm_closure_call(3);
-                REQUIRE(vm->state != BBZVM_STATE_ERROR);
                 ASSERT_EQUAL(vm->error, BBZVM_ERROR_SWARM);
                 bbzvm_reset_state();
                 bbzvm_pop();
@@ -353,6 +371,8 @@ TEST(intersection_union_difference) {
     }
 #endif // 0
 }
+
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 /****************************************/
 /****************************************/
@@ -421,6 +441,8 @@ TEST(id) {
 /****************************************/
 /****************************************/
 
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+
 TEST(others) {
 #if 0 // TODO The function is not implemented.
     bbzvm_t vmObj;
@@ -461,9 +483,9 @@ TEST(others) {
     // Check memberships
     {
         bbzswarm_id_t swarms[] = {2, 3, TEST_END};
-        bbzrobot_id_t robots[4]    =  {0, 1, 2, TEST_END};
-        uint8_t expected_ret[2][3] = {{0, 1, 0},  // swarms[0]
-                                      {1, 1, 0}}; // swarms[1]
+        bbzrobot_id_t robots[4]    =  {RBT, 1, 2, TEST_END};
+        uint8_t expected_ret[2][3] = {{  0, 1, 0},  // swarms[0]
+                                      {  1, 1, 0}}; // swarms[1]
         uint16_t i = 0;
         while (swarms[i] != (bbzswarm_id_t)TEST_END) {
             uint16_t j = 0;
@@ -487,6 +509,8 @@ TEST(others) {
     }
 #endif // 0
 }
+
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 /****************************************/
 /****************************************/
@@ -585,7 +609,9 @@ TEST(in) {
 
     // Add some subswarm memberships.
     bbzswarm_addmember(0, 0);
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbzswarm_addmember(1, 0);
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
@@ -758,14 +784,16 @@ TEST(exec) {
 /****************************************/
 
 TEST_LIST {
+    ADD_TEST(isrobotin);
     ADD_TEST(addrmmember);
     ADD_TEST(refresh);
-    ADD_TEST(isrobotin);
-    ADD_TEST(rmentry);
     ADD_TEST(create);
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+    ADD_TEST(rmentry);
     ADD_TEST(intersection_union_difference);
-    ADD_TEST(id);
     ADD_TEST(others);
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+    ADD_TEST(id);
     ADD_TEST(join_leave);
     ADD_TEST(in);
     ADD_TEST(select);

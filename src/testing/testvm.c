@@ -13,8 +13,13 @@
 #define FLIST_COUNT_DEFAULT 0
 #define GSYMS_COUNT_DEFAULT 1
 #ifndef BBZ_DISABLE_SWARMS
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
 #define FLIST_COUNT_SWARMS 5
 #define GSYMS_COUNT_SWARMS 1
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+#define FLIST_COUNT_SWARMS 2
+#define GSYMS_COUNT_SWARMS 1
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 #else // !BBZ_DISABLE_SWARMS
 #define FLIST_COUNT_SWARMS 0
 #define GSYMS_COUNT_SWARMS 0
@@ -212,7 +217,7 @@ int8_t bbzvm_register_functions() {
 }
 
     // ======================================
-    // =             UNIT TEST              =
+    // =             UNIT TESTS             =
     // ======================================
 
 #define FILE_TEST1 "resources/1_InstrTest.bbo"

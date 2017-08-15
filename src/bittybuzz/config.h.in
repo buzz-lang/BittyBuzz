@@ -119,4 +119,11 @@
  */
 #cmakedefine BBZ_DISABLE_MESSAGES
 
+/**
+ * @brief Whether we disable the broadcasting of our swarmlist to
+ * neighboring robots.
+ * @todo Currently, BittyBuzz requires this feature to be disabled.
+ */
+#cmakedefine BBZ_DISABLE_SWARMLIST_BROADCASTS
+
 #endif // !CONFIG_H

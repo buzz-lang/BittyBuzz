@@ -3,8 +3,81 @@
 
 #ifndef BBZ_DISABLE_SWARMS
 
-#define SWARM_MASK 0xFF00     /**< @brief Mask for the swarm bitfield of an entry. */
-#define AGE_MASK   0x00FF     /**< @brief Mask for the age of an entry. */
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+/**
+ * @brief Type for the entry of the set of known swarmlists.
+ */
+typedef struct PACKED swarmlist_entry_t {
+    bbzswarmlist_t swarmlist; /**< @brief Robot's swarmlist. */
+    bbzlamport_t lamport;     /**< @brief Entry's Lamport clock. */
+} swarmlist_entry_t;
+
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+typedef struct PACKED swarmlist_entry_t {
+    bbzswarmlist_t swarmlist; /**< @brief Robot's swarmlist. */
+} swarmlist_entry_t;
+
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+/**
+ * @brief Constructs a swarmlist entry and sets the swarmlist according
+ * to the passed swarm ID. Leaves the Lamport clock unassigned
+ * (if applicable).
+ * @note Sets BBZVM_ERROR_SWARM if swarm ID >= 8.
+ * @param[in] swarm The swarm's ID.
+ * @return The created entry.
+ */
+static swarmlist_entry_t swarmlist_entry_fromswarm(bbzswarm_id_t swarm) {
+    if (swarm < 8 * sizeof(bbzswarmlist_t)) {
+        swarmlist_entry_t ret = {.swarmlist = 1};
+        uint8_t i = swarm;
+        while(i > 0) {
+            // Assembler dump shows that left-shifting is done by 1 bit at
+            // a time on AVR processors. Doing the left shift directly
+            // increases code size.
+            ret.swarmlist <<= 1;
+            --i;
+        }
+        return ret;
+    }
+    else {
+        bbzvm_seterror(BBZVM_ERROR_SWARM);
+        return (swarmlist_entry_t){};
+    }
+}
+
+/**
+ * Determines if we already have the swarm list of a certain robot, and
+ * if so, pushes it on the stack.
+ * @param[in] robot The ID of the robot we wand to find the swarmlist of.
+ * @return The existing swarmlist entry, or a null structure otherwise.
+ */
+static swarmlist_entry_t swarmlist_get(bbzrobot_id_t robot);
+
+/**
+ * Sets a robot's entry.
+ * @param[in] robot The robot whose swarm list to set.
+ * @param[in] entry The entry to set inside the 'swarm' structure.
+ */
+static void swarmlist_set(bbzrobot_id_t robot, swarmlist_entry_t entry);
+
+/**
+ * @brief Gets the ID of a subswarm table.
+ * @details The table is expected to be at stack top, and will be popped.
+ * @return The ID of the subswarm table.
+ */
+static bbzswarm_id_t get_id() {
+    // Push swarm ID (which pops the table)
+    bbzvm_pushs(__BBZSTRID_id);
+    bbzvm_tget();
+
+    // Fetch and pop swarm ID
+    bbzswarm_id_t swarm = bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
+    bbzvm_pop();
+    return swarm;
+}
 
 /**
  * Pushes a table containing all the fields that a subswarm table has.
@@ -26,75 +99,9 @@ static void make_table(bbzswarm_id_t swarm) {
     bbztable_add_function(__BBZSTRID_in,     bbzswarm_in);
     bbztable_add_function(__BBZSTRID_select, bbzswarm_select);
     bbztable_add_function(__BBZSTRID_exec,   bbzswarm_exec);
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbztable_add_function(__BBZSTRID_others, bbzswarm_others);
-}
-
-/**
- * @brief Constructs a 16-bit bitfield where the #SWARM_MASK bits
- * are the swarm bitfield corresponding to the given swarm ID, and the
- * #AGE_MASK bits are set to zero and correspond to the age of the entry.
- * @details <code>swarm_bitfield = 1 << swarm_id</code>.
- * @note Sets BBZVM_ERROR_SWARM if swarm ID >= 8.
- * @param[in] swarm The swarm's ID.
- * @return The 16-bit bitfield to store in the 'swarm' structure.
- */
-static uint16_t swarmtoi(bbzswarm_id_t swarm) {
-    if (swarm < 8 * sizeof(bbzswarmlist_t)) {
-        uint8_t i = swarm;
-        uint16_t ret = 0x0100;
-        while(i > 0) {
-            ret <<= 1; // Assembler dump shows that left-shifting is done by 1 bit at a time on AVR processors.
-                       // Doing the left shift directly increases code size.
-            --i;
-        }
-        return ret;
-    }
-    else {
-        bbzvm_seterror(BBZVM_ERROR_SWARM);
-        return 0;
-    }
-}
-
-
-/**
- * Determines if we already have the swarm list of a certain robot, and
- * if so, pushes it on the stack.
- * @param[in] robot The ID of the robot we wand to find the swarmlist of.
- * @return The heap position of the existing swarm list, or nil of none.
- */
-static void swarmlist_get(bbzrobot_id_t robot) {
-    bbzvm_push(vm->swarm.hpos);
-    bbzvm_pushi(robot);
-    bbzvm_tget();
-}
-
-/**
- * Sets a robot's entry.
- * @param[in] robot The robot whose swarm list to set.
- * @param[in] entry The entry to set inside the 'swarm' structure.
- */
-static void swarmlist_set(bbzrobot_id_t robot, uint16_t entry) {
-    bbzvm_push(vm->swarm.hpos);
-    bbzvm_pushi(robot);
-    bbzvm_pushi(entry);
-    bbzvm_tput();
-}
-
-/**
- * @brief Gets the ID of a subswarm table.
- * @details The table is expected to be at stack top, and will be popped.
- * @return The ID of the subswarm table.
- */
-static bbzswarm_id_t get_id() {
-    // Push swarm ID (which pops the table)
-    bbzvm_pushs(__BBZSTRID_id);
-    bbzvm_tget();
-
-    // Fetch and pop swarm ID
-    bbzswarm_id_t swarm = bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
-    bbzvm_pop();
-    return swarm;
-
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 }
 
 /****************************************/
@@ -102,6 +109,7 @@ static bbzswarm_id_t get_id() {
 
 /**
  * Constructs the 'swarm' table and its dependencies.
+ * @param[in] swarm Position, in the heap, of the swarm table.
  */
 static void swarm_construct(bbzheap_idx_t swarm) {
     // Set swarm table
@@ -113,6 +121,11 @@ static void swarm_construct(bbzheap_idx_t swarm) {
     // Make stuff permanent
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->swarm.hpos));
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->swarm.swarmstack));
+
+#ifdef BBZ_DISABLE_SWARMLIST_BROADCASTS
+    // Initialize swarmlist.
+    vm->swarm.my_swarmlist = 0;
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 }
 
 void bbzswarm_register() {
@@ -128,6 +141,7 @@ void bbzswarm_register() {
     // Add some fields to the table (most common fields first)
     bbztable_add_function(__BBZSTRID_create,       bbzswarm_create);
     bbztable_add_function(__BBZSTRID_id,           bbzswarm_id);
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbztable_add_function(__BBZSTRID_intersection, bbzswarm_intersection);
     bbztable_add_function(__BBZSTRID_union,        bbzswarm_union);
     bbztable_add_function(__BBZSTRID_difference,   bbzswarm_difference);
@@ -135,6 +149,7 @@ void bbzswarm_register() {
     // Create our own swarm list
     bbzswarm_addmember(vm->robot, 0); // Add us as member of swarm 0, which creates the entry.
     bbzswarm_rmmember(vm->robot, 0); // Immediately remove us from swarm 0. The entry will still exist.
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
     // Table is stack top, and string 'swarm' is stack #1. Register it.
     bbzvm_gstore();
@@ -145,42 +160,30 @@ void bbzswarm_register() {
 
 /**
  * Base for bbzswarm_addmember() and bbzswarm_rmmember().
- * @param[in] robot The ID of the robot.
+ * @param[in] robot The ID of the robot. In non-broadcasting configuration,
+ * this value must be equal to the current robot's ID otherwise
+ * BBZVM_ERROR_OUTOFRANGE is set.
  * @param[in] swarm The ID of the swarm.
- * @param[in] should_add Whether the robot should be added or removed from the swarm.
+ * @param[in] should_add Whether the robot should be added to or removed from the swarm.
  * @return The swarm list of the robot we added to/removed from the swarm.
  */
 static bbzswarmlist_t addrm_member(bbzrobot_id_t robot,
                                    bbzswarm_id_t swarm,
                                    uint8_t should_add) {
-    uint16_t entry = swarmtoi(swarm);
-    swarmlist_get(robot);
-    bbzheap_idx_t existing = bbzvm_stack_at(0);
-    bbzvm_pop();
-    if (!bbztype_isnil(*bbzheap_obj_at(existing))) {
-        uint16_t existing_sw_bitfield =
-            (bbzheap_obj_at(existing)->i.value) & SWARM_MASK;
-        if (should_add) {
-            entry = (entry | existing_sw_bitfield);
-        }
-        else {
-            entry = (~entry & existing_sw_bitfield);
-        }
+    swarmlist_entry_t entry    = swarmlist_entry_fromswarm(swarm);
+    swarmlist_entry_t existing = swarmlist_get(robot);
+    if (should_add) {
+        existing.swarmlist |= entry.swarmlist;
     }
-    swarmlist_set(robot, entry);
-
-    uint8_t i = 8;
-    while (i != 0) {
-        entry >>= 1;
-        --i;
+    else {
+        existing.swarmlist &= ~entry.swarmlist;
     }
-
-    bbzswarmlist_t swarmlist = entry;
-    return swarmlist;
+    swarmlist_set(robot, existing);
+    return existing.swarmlist;
 }
 
 bbzswarmlist_t bbzswarm_addmember(bbzrobot_id_t robot,
-                        bbzswarm_id_t swarm) {
+                                  bbzswarm_id_t swarm) {
     return addrm_member(robot, swarm, 1);
 }
 
@@ -188,7 +191,7 @@ bbzswarmlist_t bbzswarm_addmember(bbzrobot_id_t robot,
 /****************************************/
 
 bbzswarmlist_t bbzswarm_rmmember(bbzrobot_id_t robot,
-                       bbzswarm_id_t swarm) {
+                                 bbzswarm_id_t swarm) {
     return addrm_member(robot, swarm, 0);
 }
 
@@ -197,14 +200,11 @@ bbzswarmlist_t bbzswarm_rmmember(bbzrobot_id_t robot,
 
 void bbzswarm_refresh(bbzrobot_id_t robot,
                       bbzswarmlist_t swarmlist) {
-    uint16_t entry = swarmlist;
-    uint8_t i = 8;
-    while (i != 0) {
-        entry <<= 1;
-        --i;
-    }
-
-    swarmlist_set(robot, entry);
+    swarmlist_entry_t entry = {.swarmlist = swarmlist};
+    swarmlist_entry_t existing = swarmlist_get(robot);
+    existing.swarmlist = entry.swarmlist; // Copy into existing entry to preserve
+                                          // the Lamport clock, if applicable.
+    swarmlist_set(robot, existing);
 }
 
 /****************************************/
@@ -212,25 +212,14 @@ void bbzswarm_refresh(bbzrobot_id_t robot,
 
 uint8_t bbzswarm_isrobotin(bbzrobot_id_t robot,
                            bbzswarm_id_t swarm) {
-    swarmlist_get(robot);
-    bbzheap_idx_t existing = bbzvm_stack_at(0);
-    bbzvm_pop();
-    if (!bbztype_isnil(*bbzheap_obj_at(existing))) {
-        uint16_t entry = bbzheap_obj_at(existing)->i.value;
-        uint16_t swarm_bitfield = swarmtoi(swarm);
-        return (entry & SWARM_MASK & swarm_bitfield) != 0;
-    }
-    else {
-        return 0;
-    }
+    swarmlist_entry_t entry = swarmlist_entry_fromswarm(swarm);
+    swarmlist_entry_t existing = swarmlist_get(robot);
+    return (existing.swarmlist & entry.swarmlist) != 0;
 }
 
 /****************************************/
 /****************************************/
 
-void bbzswarm_rmentry(bbzrobot_id_t robot) {
-    bbztable_set(vm->swarm.hpos, bbzint_new(robot), vm->nil);
-}
 
 // ======================================
 // =        BUZZ SWARM CLOSURES         =
@@ -249,51 +238,6 @@ void bbzswarm_create() {
         bbzvm_seterror(BBZVM_ERROR_SWARM);
     }
 
-    bbzvm_ret1();
-}
-
-/****************************************/
-/****************************************/
-
-void bbzswarm_intersection() {
-    bbzvm_assert_lnum(3);
-
-    // TODO Should we calculate the intersection once and for all, or
-    //      should we use a recursive definition for the membership?
-    // Also unhide the test for this function.
-    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
-
-    bbzvm_pushnil();
-    bbzvm_ret1();
-}
-
-/****************************************/
-/****************************************/
-
-void bbzswarm_union() {
-    bbzvm_assert_lnum(3);
-
-    // TODO Should we calculate the union once and for all, or
-    //      should we use a recursive definition for the membership?
-    // Also unhide the test for this function.
-    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
-
-    bbzvm_pushnil();
-    bbzvm_ret1();
-}
-
-/****************************************/
-/****************************************/
-
-void bbzswarm_difference() {
-    bbzvm_assert_lnum(3);
-
-    // TODO Should we calculate the difference once and for all, or
-    //      should we use a recursive definition for the membership?
-    // Also unhide the test for this function.
-    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
-
-    bbzvm_pushnil();
     bbzvm_ret1();
 }
 
@@ -336,28 +280,17 @@ void bbzswarm_id() {
 /****************************************/
 /****************************************/
 
-void bbzswarm_others() {
-    bbzvm_assert_lnum(1);
-
-    // TODO Should we calculate the complement once and for all, or
-    //      should we use a recursive definition for the membership?
-    // Also unhide the test for this function.
-    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
-
-    bbzvm_pushnil();
-    bbzvm_ret1();
-}
-
-/****************************************/
-/****************************************/
-
 void bbzswarm_join() {
     bbzvm_assert_lnum(0);
 
     bbzvm_lload(0); // Push table we are calling 'join' on.
-    uint8_t swarm = get_id();
+    bbzswarm_id_t swarm = get_id();
     bbzswarmlist_t swarmlist = bbzswarm_addmember(vm->robot, swarm);
-    bbzoutmsg_queue_append_swarm(vm->robot, swarmlist, 0); // TODO Lamport clock?
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        // TODO Broadcast our updated swarmlist.
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        RM_UNUSED_WARN(swarmlist);
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
     bbzvm_ret0();
 }
@@ -369,9 +302,13 @@ void bbzswarm_leave() {
     bbzvm_assert_lnum(0);
 
     bbzvm_lload(0); // Push table we are calling 'leave' on.
-    uint8_t swarm = get_id();
+    bbzswarm_id_t swarm = get_id();
     bbzswarmlist_t swarmlist = bbzswarm_rmmember(vm->robot, swarm);
-    bbzoutmsg_queue_append_swarm(vm->robot, swarmlist, 0); // TODO Lamport clock?
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+        // TODO Broadcast our updated swarmlist.
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+        RM_UNUSED_WARN(swarmlist);
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
     bbzvm_ret0();
 }
@@ -387,8 +324,7 @@ void bbzswarm_in() {
     bbzswarm_id_t swarm = get_id();
 
     // Get my swarm list
-    swarmlist_get(vm->robot);
-    uint8_t in = (bbzheap_obj_at(bbzvm_stack_at(0))->i.value & swarmtoi(swarm) & SWARM_MASK) != 0;
+    uint8_t in = bbzswarm_isrobotin(vm->robot, swarm);
     bbzvm_pushi(in);
 
     bbzvm_ret1();
@@ -400,13 +336,15 @@ void bbzswarm_in() {
 void bbzswarm_select() {
     bbzvm_assert_lnum(1);
 
-    if (bbztype_tobool(bbzheap_obj_at(bbzvm_lsym_at(1)))) {
+    uint8_t should_join = bbztype_tobool(bbzheap_obj_at(bbzvm_lsym_at(1)));
+    if (should_join) {
         bbzvm_lload(0); // Push table we are calling 'select' on.
-        uint8_t swarm = get_id();
-        swarmlist_get(vm->robot);
-        uint16_t existing = bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
-        uint16_t entry = swarmtoi(swarm) | (existing & SWARM_MASK);
-        swarmlist_set(vm->robot, entry);
+        bbzswarm_id_t swarm = get_id();
+        swarmlist_entry_t entry = swarmlist_entry_fromswarm(swarm);
+        swarmlist_entry_t existing = swarmlist_get(vm->robot);
+        existing.swarmlist |= entry.swarmlist; // Copy into existing entry to preserve
+                                               // the Lamport clock, if applicable.
+        swarmlist_set(vm->robot, existing);
     }
 
     bbzvm_ret0();
@@ -439,6 +377,127 @@ void bbzswarm_exec() {
     bbzvm_ret0();
 }
 
+/****************************************/
+/****************************************/
+
+// ------------------------------------- // TODO This implementation is currently not
+// -     WITH SWARMLIST BROADCASTS     - // necessary because 'neighbors.[non]kin' are
+// ------------------------------------- // not implemented.
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+static swarmlist_entry_t swarmlist_get(bbzrobot_id_t robot) {
+    bbzvm_push(vm->swarm.hpos);
+    bbzvm_pushi(robot);
+    bbzvm_tget();
+    bbzobj_t* entry = bbzheap_obj_at(bbzvm_stack_at(0));
+    bbzvm_pop();
+
+    // Entry already exists?
+    if (!bbztype_isnil(*entry)) {
+        // Yes ; return it
+        return *(swarmlist_entry_t*)&entry->i.value;
+    }
+    else {
+        // No ; return zero entry.
+        return (swarmlist_entry_t){};
+    }
+
+}
+
+static void swarmlist_set(bbzrobot_id_t robot, swarmlist_entry_t entry) {
+    bbzvm_push(vm->swarm.hpos);
+    bbzvm_pushi(robot);
+    bbzvm_pushi(*(int16_t*)&entry);
+    bbzvm_tput();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_rmentry(bbzrobot_id_t robot) {
+    bbztable_set(vm->swarm.hpos, bbzint_new(robot), vm->nil);
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_intersection() {
+    bbzvm_assert_lnum(3);
+
+    // TODO Implement and unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
+
+    bbzvm_pushnil();
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_union() {
+    bbzvm_assert_lnum(3);
+
+    // TODO Implement and unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
+
+    bbzvm_pushnil();
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_difference() {
+    bbzvm_assert_lnum(3);
+
+    // TODO Implement and unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
+
+    bbzvm_pushnil();
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_others() {
+    bbzvm_assert_lnum(1);
+
+    // TODO Implement and unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
+
+    bbzvm_pushnil();
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
+// -------------------------------------
+// -   WITHOUT SWARMLIST BROADCASTS    -
+// -------------------------------------
+#else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+static swarmlist_entry_t swarmlist_get(bbzrobot_id_t robot) {
+    if (robot == vm->robot) {
+        return (swarmlist_entry_t){.swarmlist = vm->swarm.my_swarmlist};
+    }
+    else {
+        bbzvm_seterror(BBZVM_ERROR_OUTOFRANGE);
+        return (swarmlist_entry_t){.swarmlist = ~0};
+    }
+}
+
+static void swarmlist_set(bbzrobot_id_t robot, swarmlist_entry_t entry) {
+    if (robot == vm->robot) {
+        vm->swarm.my_swarmlist = entry.swarmlist;
+    }
+    else {
+        bbzvm_seterror(BBZVM_ERROR_OUTOFRANGE);
+    }
+}
+
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 #else // !BBZ_DISABLE_SWARMS
 
 void bbzswarm_dummy()    {                bbzvm_ret0();}
