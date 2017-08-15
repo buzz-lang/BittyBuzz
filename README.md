@@ -43,7 +43,7 @@ to those of the PC compilation.
 Options
 -------
 
-It is possible to specify a custom value for a range of configuration values, as behaviors on low-resource robots often require parameter-tweaking. We recommend not to change these values unless it is necessary however.
+It is possible to specify a custom value for a range of configuration values, since behaviors on low-resource robots often require parameter-tweaking. However, we recommend against changing these values unless it is necessary.
 
 - `BBZHEAP_SIZE` : Size of the heap (in bytes) [Default: 1088].
 - `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].
@@ -68,3 +68,13 @@ activation record [Default: 28, Max: 254].
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 
     $ cmake -DBBZHEAP_SIZE=750 -DBBZSTACK_SIZE=200 ../src
+
+Generating documentation
+------------------------
+
+One may optionaly create Doxygen-generated documentation of BittyBuzz.
+This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done via:
+
+    $ make doc
+
+The documentation will be subsequently available in HTML and LaTeX formats under `<build_dir>/doc`, for example, `build/doc`.

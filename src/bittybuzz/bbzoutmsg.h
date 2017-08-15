@@ -45,7 +45,7 @@ uint16_t bbzoutmsg_queue_size();
 
 #ifndef BBZ_DISABLE_NEIGHBORS
 /**
- * @brief Appends a new BROADCAST message to the output queue.
+ * @brief Appends a new #BBZMSG_BROADCAST message to the output queue.
  * @param[in] topic The topic on which to send (a string object).
  * @param[in] value The value.
  */
@@ -54,18 +54,20 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
 
 #ifndef BBZ_DISABLE_SWARMS
 /**
- * @brief Appends a new SWARM_CHUNK message to the output queue.
- * @param[in] rid The robot which owns the swarm data.
+ * @brief Appends a new BBZMSG_SWARM message to the output queue.
+ * @param[in] robot The robot which owns the swarm data.
  * @param[in] swarms The swarmlist to append.
  * @param[in] lamport The swarmlist's lamport clock.
- * TODO
  */
-void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms, bbzlamport_t lamport);
+void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
+                                  bbzswarmlist_t swarms,
+                                  bbzlamport_t lamport);
 #endif
 
 #ifndef BBZ_DISABLE_VSTIGS
 /**
- * @brief Appends a new VSTIG_PUT/VSTIG_QUERY message to the output queue.
+ * @brief Appends a new #BBZMSG_VSTIG_PUT/#BBZMSG_VSTIG_QUERY message to the
+ * output queue.
  * @param[in] type The type of the message to append.
  * @param[in] rid The robot to whom the data belongs.
  * @param[in] key The string ID corresponding to the value to send.

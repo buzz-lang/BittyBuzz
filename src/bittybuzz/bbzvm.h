@@ -7,8 +7,6 @@
 #ifndef BBZVM_H
 #define BBZVM_H
 
-#include <inttypes.h>
-
 #include "bbzinclude.h"
 #include "bbzheap.h"
 #include "bbzdarray.h"

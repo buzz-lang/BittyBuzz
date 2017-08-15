@@ -22,7 +22,7 @@ void bbzvm_process_inmsgs() {
             case BBZMSG_VSTIG_PUT:
                 bbzmsg_process_vstig(msg);
                 break;
-            case BBZMSG_SWARM_CHUNK: {
+            case BBZMSG_SWARM: {
                 bbzmsg_process_swarm(msg);
                 break;
             }
@@ -68,8 +68,9 @@ extern char* _instr_desc[];
 char* _state_desc[] = {"BBZVM_STATE_NOCODE", "BBZVM_STATE_READY", "BBZVM_STATE_STOPPED", "BBZVM_STATE_DONE", "BBZVM_STATE_ERROR",
                        "BBZVM_STATE_COUNT"};
 char* _error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STACK", "BBZVM_ERROR_LNUM", "BBZVM_ERROR_PC",
-                       "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_OUTOFRANGE", "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING",
-                       "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM", "BBZVM_ERROR_MATH"};
+                       "BBZVM_ERROR_FLIST", "BBZVM_ERROR_TYPE", "BBZVM_ERROR_OUTOFRANGE", "BBZVM_ERROR_NOTIMPL",
+                       "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM",
+                       "BBZVM_ERROR_MATH"};
 char* _instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
                        "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
                        "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
@@ -121,12 +122,12 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->gsyms));
 
+    bbzvm_register_globals();
+
     // Register things
     bbzvstig_register();
     bbzswarm_register();
     bbzneighbors_register();
-
-    bbzvm_register_globals();
 }
 
 /****************************************/

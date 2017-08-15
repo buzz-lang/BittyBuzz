@@ -40,7 +40,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
 #else
             return;
 #endif
-        case BBZMSG_SWARM_CHUNK:
+        case BBZMSG_SWARM:
 #ifndef BBZ_DISABLE_SWARMS
             bbzmsg_deserialize_u16(&m->sw.lamport, payload, &pos);
             if (pos < 0) return;

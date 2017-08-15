@@ -133,7 +133,7 @@ void bbzswarm_register() {
     bbztable_add_function(__BBZSTRID_difference,   bbzswarm_difference);
 
     // Create our own swarm list
-    bbzswarm_addmember(vm->robot, 0); // Add us as member of swarm 0, which creates the entry
+    bbzswarm_addmember(vm->robot, 0); // Add us as member of swarm 0, which creates the entry.
     bbzswarm_rmmember(vm->robot, 0); // Immediately remove us from swarm 0. The entry will still exist.
 
     // Table is stack top, and string 'swarm' is stack #1. Register it.
@@ -148,10 +148,11 @@ void bbzswarm_register() {
  * @param[in] robot The ID of the robot.
  * @param[in] swarm The ID of the swarm.
  * @param[in] should_add Whether the robot should be added or removed from the swarm.
+ * @return The swarm list of the robot we added to/removed from the swarm.
  */
-static void addrm_member(bbzrobot_id_t robot,
-                         bbzswarm_id_t swarm,
-                         uint8_t should_add) {
+static bbzswarmlist_t addrm_member(bbzrobot_id_t robot,
+                                   bbzswarm_id_t swarm,
+                                   uint8_t should_add) {
     uint16_t entry = swarmtoi(swarm);
     swarmlist_get(robot);
     bbzheap_idx_t existing = bbzvm_stack_at(0);
@@ -167,19 +168,28 @@ static void addrm_member(bbzrobot_id_t robot,
         }
     }
     swarmlist_set(robot, entry);
+
+    uint8_t i = 8;
+    while (i != 0) {
+        entry >>= 1;
+        --i;
+    }
+
+    bbzswarmlist_t swarmlist = entry;
+    return swarmlist;
 }
 
-void bbzswarm_addmember(bbzrobot_id_t robot,
+bbzswarmlist_t bbzswarm_addmember(bbzrobot_id_t robot,
                         bbzswarm_id_t swarm) {
-    addrm_member(robot, swarm, 1);
+    return addrm_member(robot, swarm, 1);
 }
 
 /****************************************/
 /****************************************/
 
-void bbzswarm_rmmember(bbzrobot_id_t robot,
+bbzswarmlist_t bbzswarm_rmmember(bbzrobot_id_t robot,
                        bbzswarm_id_t swarm) {
-    addrm_member(robot, swarm, 0);
+    return addrm_member(robot, swarm, 0);
 }
 
 /****************************************/
@@ -251,6 +261,7 @@ void bbzswarm_intersection() {
     // TODO Should we calculate the intersection once and for all, or
     //      should we use a recursive definition for the membership?
     // Also unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
 
     bbzvm_pushnil();
     bbzvm_ret1();
@@ -265,6 +276,7 @@ void bbzswarm_union() {
     // TODO Should we calculate the union once and for all, or
     //      should we use a recursive definition for the membership?
     // Also unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
 
     bbzvm_pushnil();
     bbzvm_ret1();
@@ -279,6 +291,7 @@ void bbzswarm_difference() {
     // TODO Should we calculate the difference once and for all, or
     //      should we use a recursive definition for the membership?
     // Also unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
 
     bbzvm_pushnil();
     bbzvm_ret1();
@@ -329,6 +342,7 @@ void bbzswarm_others() {
     // TODO Should we calculate the complement once and for all, or
     //      should we use a recursive definition for the membership?
     // Also unhide the test for this function.
+    bbzvm_seterror(BBZVM_ERROR_NOTIMPL);
 
     bbzvm_pushnil();
     bbzvm_ret1();
@@ -342,7 +356,8 @@ void bbzswarm_join() {
 
     bbzvm_lload(0); // Push table we are calling 'join' on.
     uint8_t swarm = get_id();
-    bbzswarm_addmember(vm->robot, swarm);
+    bbzswarmlist_t swarmlist = bbzswarm_addmember(vm->robot, swarm);
+    bbzoutmsg_queue_append_swarm(vm->robot, swarmlist, 0); // TODO Lamport clock?
 
     bbzvm_ret0();
 }
@@ -355,7 +370,8 @@ void bbzswarm_leave() {
 
     bbzvm_lload(0); // Push table we are calling 'leave' on.
     uint8_t swarm = get_id();
-    bbzswarm_rmmember(vm->robot, swarm);
+    bbzswarmlist_t swarmlist = bbzswarm_rmmember(vm->robot, swarm);
+    bbzoutmsg_queue_append_swarm(vm->robot, swarmlist, 0); // TODO Lamport clock?
 
     bbzvm_ret0();
 }
@@ -409,6 +425,8 @@ void bbzswarm_exec() {
     bbzvm_pushi(swarm);
     bbzheap_idx_t swarm_obj = bbzvm_stack_at(0);
     bbzvm_pop();
+
+    // Push swarmstack
     bbzdarray_push(vm->swarm.swarmstack, swarm_obj);
 
     // Call closure

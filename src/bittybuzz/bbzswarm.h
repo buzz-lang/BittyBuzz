@@ -39,25 +39,27 @@ void bbzswarm_register();
  * @note The swarm's ID must be between 0 and 7, otherwise BBZVM_ERROR_SWARM is set.
  * @param[in] robot The robot ID.
  * @param[in] swarm The swarm ID.
+ * @return The swarm list of the robot we added to the swarm.
  */
-void bbzswarm_addmember(bbzrobot_id_t robot,
-                        bbzswarm_id_t swarm);
+bbzswarmlist_t bbzswarm_addmember(bbzrobot_id_t robot,
+                                  bbzswarm_id_t swarm);
 
 /**
  * @brief Adds info on the fact that a robot left a swarm.
  * @note The swarm's ID must be between 0 and 7, otherwise BBZVM_ERROR_SWARM is set.
  * @param[in] robot The robot ID.
  * @param[in] swarm The swarm ID.
+ * @return The swarm list of the robot we removed from the swarm.
  */
-void bbzswarm_rmmember(bbzrobot_id_t robot,
-                       bbzswarm_id_t swarm);
+bbzswarmlist_t bbzswarm_rmmember(bbzrobot_id_t robot,
+                                 bbzswarm_id_t swarm);
 
 /**
  * @brief Refreshes the membership information for a robot.
  * @param[in] robot The robot ID.
  * @param[in] swarmlist Bitfield where the i-th bit represents whether
- * the robot is a member of the i-th swarm.
- * Thus, bit 0 -> swarm 0, bit 1 -> swarm 1, ...
+ * the robot is a member of the i-th swarm. Thus,
+ * bit 0 -> swarm 0, bit 1 -> swarm 1, ...
  */
 void bbzswarm_refresh(bbzrobot_id_t robot,
                       bbzswarmlist_t swarmlist);

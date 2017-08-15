@@ -25,7 +25,7 @@ uint16_t bbzoutmsg_queue_size() {
 /****************************************/
 /****************************************/
 
-bbzmsg_t* bbzoutmsg_queue_append_template() {
+static bbzmsg_t* outmsg_queue_append_template() {
     bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, vm->outmsgs.queue.dataend + vm->outmsgs.queue.capacity));
     if (bbzringbuf_full(&vm->outmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.
@@ -44,7 +44,7 @@ bbzmsg_t* bbzoutmsg_queue_append_template() {
 #ifndef BBZ_DISABLE_NEIGHBORS
 void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) {
     /* Make a new BROADCAST message */
-    bbzmsg_t* m = bbzoutmsg_queue_append_template();
+    bbzmsg_t* m = outmsg_queue_append_template();
     m->bc.type = BBZMSG_BROADCAST;
     m->bc.rid = vm->robot;
     m->bc.topic = bbzheap_obj_at(topic)->s.value;
@@ -57,11 +57,13 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) 
 /****************************************/
 
 #ifndef BBZ_DISABLE_SWARMS
-void bbzoutmsg_queue_append_swarm_chunk(bbzrobot_id_t rid, bbzswarmlist_t swarms, bbzlamport_t lamport) {
-    /* Make a new SWARM_CHUNK message */
-    bbzmsg_t* m = bbzoutmsg_queue_append_template();
-    m->sw.type = BBZMSG_SWARM_CHUNK;
-    m->sw.rid = rid;
+void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
+                                  bbzswarmlist_t swarms,
+                                  bbzlamport_t lamport) {
+    /* Make a new swarm message */
+    bbzmsg_t* m = outmsg_queue_append_template();
+    m->sw.type = BBZMSG_SWARM;
+    m->sw.rid = robot;
     m->sw.lamport = lamport;
     m->sw.swarms = swarms;
     bbzmsg_sort_priority(&vm->outmsgs.queue);
@@ -78,7 +80,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   bbzheap_idx_t value,
                                   uint8_t lamport) {
     /* Make a new VSTIG_PUT/VSTIG_QUERY message */
-    bbzmsg_t* m = bbzoutmsg_queue_append_template();
+    bbzmsg_t* m = outmsg_queue_append_template();
     m->vs.type = type;
     m->vs.rid = rid;
     m->vs.lamport = lamport;
@@ -117,7 +119,7 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
 #else
             return;
 #endif
-        case BBZMSG_SWARM_CHUNK:
+        case BBZMSG_SWARM:
 #ifndef BBZ_DISABLE_SWARMS
             bbzmsg_serialize_u16(buf, msg->sw.lamport);
             bbzmsg_serialize_u8(buf, msg->sw.swarms);

@@ -72,11 +72,11 @@ typedef struct PACKED bbzmsg_vstig_t {
  */
 typedef union PACKED bbzmsg_t {
 #ifndef BBZ_DISABLE_MESSAGES
-    bbzmsg_payload_type_t type; /**< @brief The message type */
-    bbzmsg_base_t base; /**< @brief Constains generic message fields */
+    bbzmsg_payload_type_t type; /**< @brief Message type */
+    bbzmsg_base_t base; /**< @brief Contains generic message fields */
     bbzmsg_broadcast_t bc; /**< @brief Broadcast message data */
     bbzmsg_swarm_t sw; /**< @brief Swarm message data */
-    bbzmsg_vstig_t vs; /**< @brief Vistual Stigmergy messages data */
+    bbzmsg_vstig_t vs; /**< @brief Virtual Stigmergy messages data */
 #endif
 } bbzmsg_t;
 

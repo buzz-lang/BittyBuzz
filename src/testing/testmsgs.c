@@ -72,9 +72,9 @@ TEST(m_out_append) {
 
     // The actual tests
 
-    bbzoutmsg_queue_append_swarm_chunk(21, 0x42, 2);
+    bbzoutmsg_queue_append_swarm(21, 0x42, 2);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 1);
-    ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_SWARM);
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.rid, 21);
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.swarms, 0x42);
     ASSERT_EQUAL((vm->outmsgs.buf)->sw.lamport, 2);
@@ -82,7 +82,7 @@ TEST(m_out_append) {
     bbzoutmsg_queue_append_broadcast(bbzstring_get(__BBZSTRID_id), val);
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 2);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
-    ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_SWARM);
     ASSERT_EQUAL((vm->outmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->outmsgs.buf)->bc.topic, __BBZSTRID_id);
     ASSERT_EQUAL((vm->outmsgs.buf)->bc.value.u.mdata, bbzheap_obj_at(val)->u.mdata);
@@ -92,7 +92,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL(bbzoutmsg_queue_size(), 3);
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_VSTIG_PUT);
-    ASSERT_EQUAL((&vm->outmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((&vm->outmsgs.buf[2])->type, BBZMSG_SWARM);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.key, __BBZSTRID_put);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->vs.data.u.mdata, bbzheap_obj_at(val)->u.mdata);
@@ -104,7 +104,7 @@ TEST(m_out_append) {
     ASSERT_EQUAL((vm->outmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->outmsgs.buf[2])->type, BBZMSG_VSTIG_PUT);
-    ASSERT_EQUAL((&vm->outmsgs.buf[3])->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((&vm->outmsgs.buf[3])->type, BBZMSG_SWARM);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.rid, 42);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.topic, __BBZSTRID_count);
     ASSERT_EQUAL((&vm->outmsgs.buf[1])->bc.value.u.mdata, bbzheap_obj_at(val2)->u.mdata);
@@ -161,7 +161,7 @@ TEST(m_in_append) {
     bbzringbuf_construct(&payload2, buf2, 1, 10);
     bbzringbuf_construct(&payload3, buf3, 1, 10);
 
-    bbzmsg_serialize_u8 (&payload1, BBZMSG_SWARM_CHUNK);
+    bbzmsg_serialize_u8 (&payload1, BBZMSG_SWARM);
     bbzmsg_serialize_u16(&payload1, 21);
     bbzmsg_serialize_u16(&payload1, 2);
     bbzmsg_serialize_u8 (&payload1, 0x42);
@@ -184,7 +184,7 @@ TEST(m_in_append) {
 
     bbzinmsg_queue_append(&payload1);
     ASSERT_EQUAL(bbzinmsg_queue_size(), 1);
-    ASSERT_EQUAL((vm->inmsgs.buf)->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((vm->inmsgs.buf)->type, BBZMSG_SWARM);
     ASSERT_EQUAL((vm->inmsgs.buf)->sw.rid, 21);
     ASSERT_EQUAL((vm->inmsgs.buf)->sw.lamport, 2);
     ASSERT_EQUAL((vm->inmsgs.buf)->sw.swarms, 0x42);
@@ -192,7 +192,7 @@ TEST(m_in_append) {
     bbzinmsg_queue_append(&payload2);
     ASSERT_EQUAL(bbzinmsg_queue_size(), 2);
     ASSERT_EQUAL((vm->inmsgs.buf)->type, BBZMSG_BROADCAST);
-    ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_SWARM);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.rid, 42);
     ASSERT_EQUAL((vm->inmsgs.buf)->bc.topic, __BBZSTRID_id);
     ASSERT_EQUAL((uint8_t)((vm->inmsgs.buf)->bc.value.mdata & ~BBZHEAP_OBJ_MASK_VALID), (uint8_t)(obj1.mdata & ~BBZHEAP_OBJ_MASK_VALID));
@@ -202,7 +202,7 @@ TEST(m_in_append) {
     ASSERT_EQUAL(bbzinmsg_queue_size(), 3);
     ASSERT_EQUAL((vm->inmsgs.buf)->type, BBZMSG_BROADCAST);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->type, BBZMSG_VSTIG_PUT);
-    ASSERT_EQUAL((&vm->inmsgs.buf[2])->type, BBZMSG_SWARM_CHUNK);
+    ASSERT_EQUAL((&vm->inmsgs.buf[2])->type, BBZMSG_SWARM);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.rid, 42);
     ASSERT_EQUAL((&vm->inmsgs.buf[1])->vs.key, __BBZSTRID_put);
     ASSERT_EQUAL((uint8_t)((&vm->inmsgs.buf[1])->vs.data.mdata & ~BBZHEAP_OBJ_MASK_VALID), (uint8_t)(obj2.mdata & ~BBZHEAP_OBJ_MASK_VALID));
