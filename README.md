@@ -49,15 +49,13 @@ Writing your own behaviors
 Currently, BittyBuzz does not support global installation. Behaviors must thus be
 implemented under `src/kilobot/behaviors` directly.
 
-The C source file should be placed inside `src/kilobot/behaviors`, whereas the Buzz
-script is expected to have the same name and be placer under
-`src/kilobot/behaviors/buzz_scripts`. You may also place a Buzz String Table (`.bst`)
-file next to the Buzz script (which specifies which string corresponds to
-which string ID), however that is only necessary:
-1) If You use Buzz strings inside the C source code that do not appear inside
-the Buzz script; or
-2) If you intend strings to be communicated between robots running different
-behaviors.
+The C source file should be placed inside `src/kilobot/behaviors`,
+whereas the Buzz script is expected to have the same name and be
+placer under `src/kilobot/behaviors/buzz_scripts`. You should also place a
+Buzz String Table (`.bst`) file (which allows BittyBuzz to generate a
+string ID corresponding to each string) next to your Buzz script, which
+should contain any string used within the C code and that does not appear
+in the Buzz script.
 
 _Important:_ After adding new files, be sure to run `cmake ../src` inside
 your kilobot build directory for CMake to take them into account.
