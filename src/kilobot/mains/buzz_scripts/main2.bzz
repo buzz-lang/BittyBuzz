@@ -6,7 +6,7 @@ function init() {
             return ld
     })
     if (id == 7) {
-        stig.put("1", 41)
+        stig.put("1", 42)
     }
     led(0)
     delay(200)
@@ -15,7 +15,7 @@ function init() {
     led(0)
 }
 
-i = 0
+i = 1
 
 function step() {
     i = i + 1
