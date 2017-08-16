@@ -301,6 +301,7 @@ void bbzkilo_start(void (*setup)(void)) {
                 if (!has_setup) {
                     bbzvm_construct(kilo_uid);
                     bbzvm_set_bcode(bbzkilo_bcodeFetcher, pgm_read_word((uint16_t)&bcode_size));
+                    bbzvm_set_error_receiver(bbzkilo_err_receiver);
                     setup();
                     has_setup = 1;
                 }
@@ -644,6 +645,41 @@ void set_color(uint8_t rgb) {
 
 void tx_clock_reset() {
     tx_clock = kilo_tx_period - 0;
+}
+
+static void ___led(uint8_t x) {set_color(x); delay(50); set_color(0); delay(100);}
+void bbzkilo_err_receiver(bbzvm_error errcode) {
+    set_motors(0,0);
+    uint8_t i;
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    ___led(RGB(1,2,0));
+    delay(300);
+#if 1
+    for (i = 4; i; --i) {
+        delay(700);
+        switch(errcode) {
+            case BBZVM_ERROR_INSTR:      ___led(RGB(2,0,0)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_STACK:      ___led(RGB(1,2,0)); if (bbzvm_stack_size() >= BBZSTACK_SIZE) { ___led(RGB(0,3,0)); } else if (bbzvm_stack_size() <= 0) { ___led(RGB(2,0,0)); } else { ___led(RGB(1,2,0)); } break;
+            case BBZVM_ERROR_LNUM:       ___led(RGB(3,1,0)); ___led(RGB(3,1,0)); break;
+            case BBZVM_ERROR_PC:         ___led(RGB(0,3,0)); ___led(RGB(0,3,0)); break;
+            case BBZVM_ERROR_FLIST:      ___led(RGB(0,3,0)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_TYPE:       ___led(RGB(0,3,0)); ___led(RGB(1,2,0)); break;
+            case BBZVM_ERROR_OUTOFRANGE: ___led(RGB(0,0,2)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_NOTIMPL:    ___led(RGB(0,0,2)); ___led(RGB(0,2,0)); break;
+            case BBZVM_ERROR_RET:        ___led(RGB(0,3,0)); ___led(RGB(0,0,2)); break;
+            case BBZVM_ERROR_STRING:     ___led(RGB(0,2,1)); ___led(RGB(0,2,1)); break;
+            case BBZVM_ERROR_SWARM:      ___led(RGB(0,2,1)); ___led(RGB(2,0,0)); break;
+            case BBZVM_ERROR_VSTIG:      ___led(RGB(0,2,1)); ___led(RGB(1,2,0)); break;
+            case BBZVM_ERROR_MEM:        ___led(RGB(0,2,1)); ___led(RGB(0,0,2)); break;
+            case BBZVM_ERROR_MATH:       ___led(RGB(0,0,2)); ___led(RGB(0,0,2)); break;
+            default: ___led(RGB(2,0,2)); ___led(RGB(2,0,2)); break;
+        }
+    }
+#endif
+    ___led(RGB(2,2,2));
+    ___led(RGB(2,2,2));
 }
 
 /**

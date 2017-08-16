@@ -429,6 +429,35 @@ void spinup_motors();
 void set_color(uint8_t color);
 
 /**
+ * @brief Error receiver. Stops the motors and makes the led flash
+ * whenever BittyBuzz encounters an error.
+ * @details The function makes the kilobot flash yellow 4 times, then
+ * repeats a color pattern 4 times, and ends by flashing the led white
+ * twice.<br/>
+ * Here is the map between error types and color patterns:<br/>
+ * - BBZVM_ERROR_INSTR      :     red, red <br/>
+ * - BBZVM_ERROR_STACK (underflow) : yellow, red <br/>
+ * - BBZVM_ERROR_STACK (overflow)  : yellow, green <br/>
+ * - BBZVM_ERROR_STACK (other)     : yellow, yellow <br/>
+ * - BBZVM_ERROR_LNUM       :  orange, orange <br/>
+ * - BBZVM_ERROR_PC         :   green, green <br/>
+ * - BBZVM_ERROR_FLIST      :   green, red <br/>
+ * - BBZVM_ERROR_TYPE       :   green, yellow <br/>
+ * - BBZVM_ERROR_OUTOFRANGE :    blue, red <br/>
+ * - BBZVM_ERROR_NOTIMPL    :    blue, green <br/>
+ * - BBZVM_ERROR_RET        :   green, blue <br/>
+ * - BBZVM_ERROR_STRING     :    cyan, cyan <br/>
+ * - BBZVM_ERROR_SWARM      :    cyan, red <br/>
+ * - BBZVM_ERROR_VSTIG      :    cyan, yellow <br/>
+ * - BBZVM_ERROR_MEM        :    cyan, blue <br/>
+ * - BBZVM_ERROR_MATH       :    blue, blue <br/>
+ * - <OTHER>                : magenta, magenta <br/>
+ * @param[in] errcode The error's code.
+ * @see bbzvm_set_error_receiver()
+ */
+void bbzkilo_err_receiver(bbzvm_error errcode);
+
+/**
  * @brief Initialize kilobot hardware.
  *
  * TODO Change the list of what this function does.
