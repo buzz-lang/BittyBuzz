@@ -23,7 +23,7 @@ typedef struct PACKED bbzoutmsg_queue_t {
 #ifndef BBZ_DISABLE_MESSAGES
     bbzringbuf_t queue; /**< @brief Message queue. */
     bbzmsg_t buf[BBZOUTMSG_QUEUE_CAP+2]; /**< @brief Output message buffer */
-#endif
+#endif // !BBZ_DISABLE_MESSAGES
 } bbzoutmsg_queue_t;
 
 #ifndef BBZ_DISABLE_MESSAGES
@@ -50,7 +50,7 @@ uint16_t bbzoutmsg_queue_size();
  * @param[in] value The value.
  */
 void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
-#endif
+#endif // !BBZ_DISABLE_NEIGHBORS
 
 #ifndef BBZ_DISABLE_SWARMS
 /**
@@ -62,7 +62,7 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value);
 void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
                                   bbzswarmlist_t swarms,
                                   bbzlamport_t lamport);
-#endif
+#endif // !BBZ_DISABLE_SWARMS
 
 #ifndef BBZ_DISABLE_VSTIGS
 /**
@@ -79,7 +79,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
                                   uint16_t key,
                                   bbzheap_idx_t value,
                                   uint8_t lamport);
-#endif
+#endif // !BBZ_DISABLE_VSTIGS
 
 /**
  * @brief Serializes and returns the first message in the queue.

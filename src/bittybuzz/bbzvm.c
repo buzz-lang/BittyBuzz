@@ -36,12 +36,17 @@ void bbzvm_process_inmsgs() {
 /****************************************/
 
 void bbzvm_process_outmsgs() {
+#ifndef BBZ_DISABLE_NEIGHBORS
     if (!(vm->neighbors.clear_counter--)) {
         vm->neighbors.clear_counter = BBZNEIGHBORS_CLEAR_PERIOD;
         // Execute the neighbors' data garbage-collector.
         bbzneighbors_data_gc();
     }
-    //TODO Send swarm' message
+#endif // !BBZ_DISABLE_NEIGHBORS
+
+#ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+    // TODO Send swarm message
+#endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 }
 
 /****************************************/

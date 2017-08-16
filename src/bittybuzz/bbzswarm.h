@@ -67,7 +67,9 @@
  * the <code>neighbors</code> structure with the <code>swarm</code>
  * structure in such a way that removing the swarmlist entry for
  * <code>swarm</code> is done at the same time as we remove the neighbor
- * for <code>neighbors</code>.
+ * for <code>neighbors</code>. The downside at that point is that we would
+ * always need the 'neighbors' structure to be enabled when we use swarm
+ * broadcasts.
  *
  *
  * <h3>Without swarmlist broadcasts</h3>

@@ -860,11 +860,13 @@ TEST(vm_message_processing) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT(bbzinmsg_queue_isempty());
     REQUIRE(bbzinmsg_queue_size() == 0);
+#ifndef BBZ_DISABLE_VSTIGS
     ASSERT_EQUAL(vm->vstig.data[0].robot, 42);
     ASSERT_EQUAL(vm->vstig.data[0].key, __BBZSTRID_put);
     ASSERT_EQUAL(bbztype(*bbzheap_obj_at(vm->vstig.data[0].value)), BBZTYPE_INT);
     ASSERT_EQUAL(bbzheap_obj_at(vm->vstig.data[0].value)->i.value, obj1.i.value);
     ASSERT_EQUAL(vm->vstig.data[0].timestamp, 1);
+# endif // !BBZ_DISABLE_VSTIGS
 
     bbzvm_destruct();
 }

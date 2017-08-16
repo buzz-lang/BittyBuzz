@@ -1,6 +1,6 @@
 #include "bbzoutmsg.h"
 
-#ifndef BBZ_DISABLE_NEIGHBORS
+#ifndef BBZ_DISABLE_MESSAGES
 /****************************************/
 /****************************************/
 
@@ -51,7 +51,7 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) 
     m->bc.value = *bbzheap_obj_at(value);
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
-#endif
+#endif // !BBZ_DISABLE_NEIGHBORS
 
 /****************************************/
 /****************************************/
@@ -68,7 +68,7 @@ void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
     m->sw.swarms = swarms;
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
-#endif
+#endif // !BBZ_DISABLE_SWARMS
 
 /****************************************/
 /****************************************/
@@ -88,7 +88,7 @@ void bbzoutmsg_queue_append_vstig(bbzmsg_payload_type_t type,
     m->vs.data = *bbzheap_obj_at(value);
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
-#endif
+#endif // !BBZ_DISABLE_VSTIGS
 
 /****************************************/
 /****************************************/
@@ -105,9 +105,9 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
             bbzmsg_serialize_u16(buf, msg->bc.topic);
             bbzmsg_serialize_obj(buf, &msg->bc.value);
             break;
-#else
+#else // !BBZ_DISABLE_NEIGHBORS
             return;
-#endif
+#endif // !BBZ_DISABLE_NEIGHBORS
         case BBZMSG_VSTIG_PUT: // fallthrough
         case BBZMSG_VSTIG_QUERY:
 #ifndef BBZ_DISABLE_VSTIGS
@@ -116,17 +116,17 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
             bbzmsg_serialize_obj(buf, &msg->vs.data);
             bbzmsg_serialize_u8(buf, msg->vs.lamport);
             break;
-#else
+#else // !BBZ_DISABLE_VSTIGS
             return;
-#endif
+#endif // !BBZ_DISABLE_VSTIGS
         case BBZMSG_SWARM:
 #ifndef BBZ_DISABLE_SWARMS
             bbzmsg_serialize_u16(buf, msg->sw.lamport);
             bbzmsg_serialize_u8(buf, msg->sw.swarms);
             break;
-#else
+#else // !BBZ_DISABLE_SWARMS
             return;
-#endif
+#endif // !BBZ_DISABLE_SWARMS
         default:
             break;
     }
@@ -139,9 +139,9 @@ void bbzoutmsg_queue_next() {
     bbzringbuf_pop(&vm->outmsgs.queue);
 #ifdef BBZMSG_POP_NEEDS_SORT
     bbzmsg_sort_priority(&vm->outmsgs.queue);
-#endif
+#endif // !BBZMSG_POP_NEEDS_SORT
 }
 
 /****************************************/
 /****************************************/
-#endif
+#endif // !BBZ_DISABLE_MESSAGES
