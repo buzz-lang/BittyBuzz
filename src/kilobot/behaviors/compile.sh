@@ -19,7 +19,7 @@ KILOLIB_NAME=bbzkilobot-kilobot
 BO2BBO_PATH=${BIN_DIR}/bittybuzz/exec/bo2bbo
 KILO_SYMGEN_PATH=${BIN_DIR}/bittybuzz/exec/kilo_bcodegen
 
-GEN_PATH=${BIN_DIR}/kilobot/mains
+GEN_PATH=${BIN_DIR}/kilobot/behaviors
 GEN_SYMS_FILENAME=bbzsymbols.h
 
 # Checking options
