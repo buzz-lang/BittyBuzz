@@ -1,4 +1,5 @@
 - Change the 'Options' section in README.md in order to use a table rather
-than a long list of options.
+than a long list of options. The table should also have a column telling
+whhether this option this important or not.
 - Allow a user to choose what configuration values to use for each C script.
 Not sure how to implement this exactly.

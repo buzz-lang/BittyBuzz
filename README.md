@@ -51,10 +51,16 @@ implemented under `src/kilobot/mains` directly.
 
 The C source file should be placed inside `src/kilobot/mains`, whereas the Buzz
 script is expected to have the same name and be placer under
-`src/kilobot/mains/buzz_scripts`.
+`src/kilobot/mains/buzz_scripts`. You may also place a Buzz String Table (`.bst`)
+file next to the Buzz script (which specifies which string corresponds to
+which string ID), however that is only necessary:
+1) If You use Buzz strings inside the C source code that do not appear inside
+the Buzz script; or
+2) If you intend strings to be communicated between robots running different
+behaviors.
 
-_Important:_ After adding new files, be sure to rerun the CMake command again
-for CMake to take them into account.
+_Important:_ After adding new files, be sure to run `cmake ../src` for
+CMake to take them into account.
 
 Options
 -------
