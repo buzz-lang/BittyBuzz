@@ -27,7 +27,8 @@ For the Kilobot
 ---------------
 
 To compile BittyBuzz to an .hex file that can be used with the
-Kilobot, you need _avr-gcc_ and related tools.
+Kilobot, you need _avr-gcc_ and related tools installed under
+`/usr/lib/avr/`.
 
 Type these commands:
 
@@ -40,10 +41,26 @@ Type these commands:
 The configuration options available for this compilation type are similar
 to those of the PC compilation.
 
+Writing your own behaviors
+--------------------------
+
+**For kilobots**
+
+Currently, BittyBuzz does not support global installation. Behaviors must thus be
+implemented under `src/kilobot/mains` directly.
+
+The C source file should be placed inside `src/kilobot/mains`, whereas the Buzz
+script is expected to have the same name and be placer under
+`src/kilobot/mains/buzz_scripts`.
+
+_Important:_ After adding new files, be sure to rerun the CMake command again
+for CMake to take them into account.
+
 Options
 -------
 
-It is possible to specify a custom value for a range of configuration values, since behaviors on low-resource robots often require parameter-tweaking. However, we recommend against changing these values unless it is necessary.
+It is possible to specify a custom value for a range of configuration values. Behaviors on low-resource robots often require parameter-tweaking. However, we
+recommend against changing these values unless it is necessary.
 
 - `BBZHEAP_SIZE` : Size of the heap (in bytes) [Default: 1088].
 - `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].
