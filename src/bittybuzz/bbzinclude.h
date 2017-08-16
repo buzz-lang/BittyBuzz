@@ -20,8 +20,10 @@ extern "C" {
 
 /**
  * @brief Type for a heap index.
- * This can be considered to be a custom pointer
- * to a heap-allocated element.
+ * This can be considered to be a custom pointer to a heap-allocated element.
+ * @details Only the 15 LSBs can be used out of the 16 bits that
+ * a heap index has, meaning the heap's design can contain up to to
+ * 32,768 objects.
  */
 typedef uint16_t bbzheap_idx_t;
 

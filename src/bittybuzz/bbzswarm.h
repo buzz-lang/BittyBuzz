@@ -1,6 +1,81 @@
 /**
  * @file bbzswarm.h
  * @brief Definition of swarms, which are collections of robots.
+ * @details <h2>Explanation of the implementation:</h2>
+ *
+ * The swarm membership information for a robot (the "swarmlist") is
+ * contained in a bitfield. See #bbzswarmlist_t for details.
+ *
+ * <h3>With swarmlist broadcasts:</h3>
+ *
+ * This configuration is required by the <code>neighbors.kin</code> and
+ * <code>neighbors.nonkin</code> closures. However, these closures are
+ * currently not implemented, thus <b>this configuration is currently not
+ * supported.</b> However, for future work and for reference, here are
+ * some possible designs that were thought of until it was realized
+ * that broadcasting swarmlists is not necessary:
+ *
+ * <h4>C implementation (BBZ_XTREME_MEMORY?)</h4>
+ *
+ * The swarmlists data would be stored in a C array. Each element would
+ * contain the robot's ID (2B) and its swarmlist (1B), totalling for
+ * 3B per entry.
+ *
+ * This had the advantage of taking very little RAM, but the number
+ * of entries has a hard limit.
+ *
+ * <h4>Dynamic implementation (NON-BBZ_XTREME_MEMORY?)</h4>
+ *
+ * The swarmlists data would be stored directly inside the <code>swarm</code>
+ * table, or in a subtable of it, like in the non-xtreme implementation
+ * of the <code>neighbors</code> structure. The key of each entry
+ * would be the robot's ID and the data would be the swarmlist of
+ * that robot. This requires 10B in the heap for each entry:
+ *
+ * <table>
+ * <tr><th>Object-side of the heap</th>       <td>robot ID object (3B)</td>   <td>swarmlist obj (3B)</td></tr>
+ * <tr><th>Table segment-side of the heap</th><td>robot ID reference (2B)</td><td>swarmlist reference (2B)</td></tr>
+ * </table>
+ *
+ * Normally, the table segments are supposed to contain a reference
+ * (#bbzheap_idx_t) to the key and the value, as the above table shows.
+ * However, assuming no user will try to access the fields, we could
+ * "cheat" this down to 4B:
+ *
+ * <table>
+ * <tr><th>Table segment-side of the heap</th><td>robot ID (2B)</td><td>swarmlist (2B)</td></tr>
+ * </table>
+ *
+ * Beware that only the 15 least least significant bits of the
+ * robot's ID as well as the swarmlist could be used at that point.
+ *
+ * This method has the advantage of being dynamic, meaning the data table
+ * will become larger when we need more entries and might shrink when
+ * we release entries. Also, we could be able to increase the swarmlist to
+ * 2B at this point without any extra heap usage, since heap-allocated
+ * objects always have 2B of payload data anyway. However, it takes more
+ * RAM space compared to the C implementation, and the last cheat we
+ * propose kinda breaks the engineering.
+ *
+ * <h4>Note</h4>
+ *
+ * The 'regular' Buzz also has an 'age' field to tell since how long
+ * we haven't received any update for the swarmlist of a neighbor robot.
+ * It is used to remove entries that we haven't had an update for for a
+ * while. It would be possible to use this inside BittyBuzz too,
+ * however we can work without it. This could be done by synchronizing
+ * the <code>neighbors</code> structure with the <code>swarm</code>
+ * structure in such a way that removing the swarmlist entry for
+ * <code>swarm</code> is done at the same time as we remove the neighbor
+ * for <code>neighbors</code>.
+ *
+ *
+ * <h3>Without swarmlist broadcasts</h3>
+ *
+ * Since we don't share swarmlists, we only have our own swarmlist,
+ * which is a 1B value. It is available under
+ * <code>vm->swarm.my_swarmlist</code>, however users are expected not to
+ * use this value, but use bbzswarm_isrobotin() instead.
  */
 
 #ifndef BBZSWARM_H
@@ -112,8 +187,9 @@ void bbzswarm_create();
  * <ul>
  * <li>The swarm's ID must be between 0 and 7, otherwise
  * #BBZVM_ERROR_SWARM is set.</li>
- * <li>Due to memory shortages, we disable this feature unless we really require it.
- * With BBZ_DISABLE_SWARMLIST_BROADCASTS enabled, this feature can be
+ * <li>Due to memory shortages, we disable this feature unless
+ * swarmlist broadcasts are enabled.
+ * With swarmlists broadcasts disabled, this feature can be
  * reproduced with:</li>
  * @code
  * s0 = swarm.create(0)
@@ -143,8 +219,9 @@ void bbzswarm_intersection();
  * <ul>
  * <li>The swarm's ID must be between 0 and 7, otherwise
  * #BBZVM_ERROR_SWARM is set.</li>
- * <li>Due to memory shortages, we disable this feature unless we really require it.
- * With BBZ_DISABLE_SWARMLIST_BROADCASTS enabled, this feature can be
+ * <li>Due to memory shortages, we disable this feature unless
+ * swarmlist broadcasts are enabled.
+ * With swarmlists broadcasts disabled, this feature can be
  * reproduced with:</li>
  * @code
  * s0 = swarm.create(0)
@@ -175,8 +252,9 @@ void bbzswarm_union();
  * <ul>
  * <li>The swarm's ID must be between 0 and 7, otherwise
  * #BBZVM_ERROR_SWARM is set.</li>
- * <li>Due to memory shortages, we disable this feature unless we really require it.
- * With BBZ_DISABLE_SWARMLIST_BROADCASTS enabled, this feature can be
+ * <li>Due to memory shortages, we disable this feature unless
+ * swarmlist broadcasts are enabled.
+ * With swarmlists broadcasts disabled, this feature can be
  * reproduced with:</li>
  * @code
  * s0 = swarm.create(0)
@@ -213,8 +291,9 @@ void bbzswarm_id();
 /**
  * @brief Buzz C closure which creates a subswarm structure as the
  * complement of another subswarm structure.
- * @note Due to memory shortages, we disable this feature unless we really require it.
- * With BBZ_DISABLE_SWARMLIST_BROADCASTS enabled, this feature can be
+ * @note Due to memory shortages, we disable this feature unless
+ * swarmlist broadcasts are enabled.
+ * With swarmlists broadcasts disabled, this feature can be
  * reproduced with:
  * @code
  * s0 = swarm.create(0)

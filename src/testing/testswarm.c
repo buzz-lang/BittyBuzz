@@ -238,6 +238,12 @@ TEST(isrobotin) {
 /****************************************/
 
 #ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+// To those who implement swarmlist broadcasts, beware: the tests for
+// them were written and do compile but were never actually tried. You
+// will likely find some logic errors in them.
+make_devs_look_at_the_above_comment();
+
 TEST(rmentry) {
     bbzvm_t vmObj;
     vm = &vmObj;
