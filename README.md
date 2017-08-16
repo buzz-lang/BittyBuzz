@@ -59,8 +59,8 @@ the Buzz script; or
 2) If you intend strings to be communicated between robots running different
 behaviors.
 
-_Important:_ After adding new files, be sure to run `cmake ../src` for
-CMake to take them into account.
+_Important:_ After adding new files, be sure to run `cmake ../src` inside
+your kilobot build directory for CMake to take them into account.
 
 Options
 -------
