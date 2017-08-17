@@ -751,6 +751,9 @@ TEST(exec) {
     bbzvm_t vmObj;
     init_test(&vmObj);
 
+    // TODO This unit should test whether 'exec()' on a swarm we are
+    //      not a member of does not execute the closure.
+
     // Create subswarm structure
     bbzheap_idx_t s0 = create_subswarm_structure(0);
     bbzheap_idx_t s1 = create_subswarm_structure(1);

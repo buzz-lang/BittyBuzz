@@ -360,19 +360,21 @@ void bbzswarm_exec() {
     // Get swarm ID and push it on the swarmstack
     bbzvm_lload(0); // Push table we are calling 'exec' on.
     bbzswarm_id_t swarm = get_id();
-    bbzvm_pushi(swarm);
-    bbzheap_idx_t swarm_obj = bbzvm_stack_at(0);
-    bbzvm_pop();
+    if (bbzswarm_isrobotin(vm->robot, swarm)) {
+        bbzvm_pushi(swarm);
+        bbzheap_idx_t swarm_obj = bbzvm_stack_at(0);
+        bbzvm_pop();
 
-    // Push swarmstack
-    bbzdarray_push(vm->swarm.swarmstack, swarm_obj);
+        // Push swarmstack
+        bbzdarray_push(vm->swarm.swarmstack, swarm_obj);
 
-    // Call closure
-    bbzvm_lload(1); // Push closure
-    bbzvm_closure_call(0);
+        // Call closure
+        bbzvm_lload(1); // Push closure
+        bbzvm_closure_call(0);
 
-    // Pop swarmstack
-    bbzdarray_pop(vm->swarm.swarmstack);
+        // Pop swarmstack
+        bbzdarray_pop(vm->swarm.swarmstack);
+    }
 
     bbzvm_ret0();
 }
