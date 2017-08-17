@@ -57,6 +57,12 @@ string ID corresponding to each string) next to your Buzz script, which
 should contain any string used within the C code and that does not appear
 in the Buzz script.
 
+At this point, you may run `make` inside your kilobot build directory to
+generate a HEX file that can be sent to the kilobots. You will find it
+under `<build_dir>/kilobot/behaviors/<buzz_script_name>/<buzz_script_name>.hex`.
+This file can be sent to the kilobots using the
+[KiloGUI](https://www.kilobotics.com/download).
+
 _Important:_ After adding new files, be sure to run `cmake ../src` inside
 your kilobot build directory for CMake to take them into account.
 

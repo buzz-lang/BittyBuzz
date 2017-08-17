@@ -4,7 +4,8 @@ Thus, it would be good if these closures were registered from the
 bbzkilobot library instead of the C implementations. That also means that
 the names of the closures registered from the kilobot side should be
 concatenated to user's BST file. That's a small change that would make
-creating a new behavior less daunting.
+creating a new behavior less daunting. Ideally, users should be able to
+simply write a Buzz script and have it generated into a hex file.
 - Change the 'Options' section in README.md in order to use a table rather
 than a long list of options. The table should also have a column telling
 whhether this option this important or not.
