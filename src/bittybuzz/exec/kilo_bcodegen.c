@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
         printf("Usage: \n\tbcodegen <buzzscript.bo> <outfile.h>\n\n\n"
 
 
-               "Metaprogram which takes a BittyBuzz object (.bbo) file generated \n"
+               "Metaprogram which takes a Buzz object (.bo) file generated \n"
                "by the Buzz compiler (bzzc or bzzasm) and generates a header \n"
                "file containing raw bytecode for kilobot programs, as well \n"
                "as macros corresponding to the string ID of strings appearing \n"

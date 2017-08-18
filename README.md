@@ -66,6 +66,18 @@ This file can be sent to the kilobots using the
 _Important:_ After adding new files, be sure to run `cmake ../src` inside
 your kilobot build directory for CMake to take them into account.
 
+
+Generating documentation
+------------------------
+
+A good place to start understanding BittyBuzz is the source code documentation.
+One may optionaly create such Doxygen-generated documentation of BittyBuzz.
+This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done via:
+
+    $ make doc
+
+The documentation will be subsequently available in HTML and LaTeX formats under `<build_dir>/doc`, for example, `build/doc`.
+
 Options
 -------
 
@@ -95,13 +107,3 @@ activation record [Default: 28, Max: 254].
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 
     $ cmake -DBBZHEAP_SIZE=750 -DBBZSTACK_SIZE=200 ../src
-
-Generating documentation
-------------------------
-
-One may optionaly create Doxygen-generated documentation of BittyBuzz.
-This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done via:
-
-    $ make doc
-
-The documentation will be subsequently available in HTML and LaTeX formats under `<build_dir>/doc`, for example, `build/doc`.

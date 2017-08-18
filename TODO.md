@@ -17,3 +17,15 @@ example, `bzbheap_idx_t foo = bbzint_new(value)` is better than
 `bbzvm_pushi(value); bbzheap_idx_t foo = bbzvm_stack_at(0); bbzvm_pop();`
 because it's faster to run, doesn't use the stack and BittyBuzz will take
 less Flash space.
+- Implement a BittyBuzz kilobot controller for ARGoS so that users can
+simulate their behaviors on it. (_NOTE:_ BittyBuzz expects the existance of
+exactly one VM. For kilobots, this doesn't matter because the kilobot
+extension or ARGoS uses separate processes, but if someone implements a
+controller for a robot for which this is not the case, the controller
+developper can merely 'swap' VM pointer when changing which robot we are
+controlling, or something like that).
+- Redo the heap tests so that they use our testing macro (REQUIRE, ASSERT,
+ASSERT_EQUAL). Currently, the test will look like it passes even if it
+doesn't.
+- Look for TODO and FIXME everywhere inside the repository for smaller
+things that could be improved.
