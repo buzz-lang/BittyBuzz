@@ -26,7 +26,7 @@
  * activation record.
  * @note The maximum value is 0xFE (254)
  */
-#define RESERVED_ACTREC_MAX (uint16_t)@RESERVED_ACTREC_MAX@
+#define BBZHEAP_RSV_ACTREC_MAX (uint16_t)@BBZHEAP_RSV_ACTREC_MAX@
 
 /**
  * @brief Virtual stigmergy's capacity.

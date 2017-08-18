@@ -30,7 +30,7 @@ TEST(all) {
         bbzheap_print();
     }
     printf("[testheap] Garbage collection\n");
-    uint16_t stack1[5] = { RESERVED_ACTREC_MAX + 1, RESERVED_ACTREC_MAX + 3, RESERVED_ACTREC_MAX + 2, 0, 0 };
+    uint16_t stack1[5] = { BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 3, BBZHEAP_RSV_ACTREC_MAX + 2, 0, 0 };
     bbzheap_gc(stack1, 3);
     bbzheap_print();
     for(int i = 0; i < 3; ++i) {
@@ -64,8 +64,8 @@ TEST(all) {
         bbzheap_print();
     }
     printf("[testheap] Garbage collection\n");
-    uint16_t stack2[8] = { RESERVED_ACTREC_MAX + 0, RESERVED_ACTREC_MAX + 1, RESERVED_ACTREC_MAX + 2, RESERVED_ACTREC_MAX + 3,
-                           RESERVED_ACTREC_MAX + 4, RESERVED_ACTREC_MAX + 5, RESERVED_ACTREC_MAX + 7, RESERVED_ACTREC_MAX + 8 };
+    uint16_t stack2[8] = { BBZHEAP_RSV_ACTREC_MAX + 0, BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 2, BBZHEAP_RSV_ACTREC_MAX + 3,
+                           BBZHEAP_RSV_ACTREC_MAX + 4, BBZHEAP_RSV_ACTREC_MAX + 5, BBZHEAP_RSV_ACTREC_MAX + 7, BBZHEAP_RSV_ACTREC_MAX + 8 };
     bbzheap_gc(stack2, 8);
     bbzheap_print();
     for(int i = 0; i < 5; ++i) {
@@ -82,7 +82,7 @@ TEST(all) {
     sz = bbztable_size(8);
     printf("[testheap] Table #8 size = %d\n", sz);
     printf("[testheap] Garbage collection\n");
-    uint16_t stack3[2] = { RESERVED_ACTREC_MAX + 7, RESERVED_ACTREC_MAX + 8 };
+    uint16_t stack3[2] = { BBZHEAP_RSV_ACTREC_MAX + 7, BBZHEAP_RSV_ACTREC_MAX + 8 };
     bbzheap_gc(stack3, 2);
     bbzheap_print();
     if(bbzheap_obj_alloc(BBZTYPE_NIL, &o))

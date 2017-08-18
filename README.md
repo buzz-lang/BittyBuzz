@@ -79,7 +79,7 @@ recommend against changing these values unless it is necessary.
 - `BBZNEIGHBORS_CAP` : Capacity of the neighbors structure (in number of neighbors) [Default: 15, Max: 255]. Used only when `BBZ_XTREME_MEMORY` is ON.
 - `BBZINMSG_QUEUE_CAP` : Capacity of the incoming message queue [Default: 10].
 - `BBZOUTMSG_QUEUE_CAP` : Capacity of the outgoing message queue [Default: 10].
-- `RESERVED_ACTREC_MAX` : Number of table objects reserved on the heap for lambdas'
+- `BBZHEAP_RSV_ACTREC_MAX` : Number of table objects reserved on the heap for lambdas'
 activation record [Default: 28, Max: 254].
 - `BBZLAMPORT_THRESHOLD` : Maximum difference for between two (2) lamport clocks for one to be considered newer than the other [Default: 50].
 - `BBZHEAP_GCMARK_DEPTH` : Max recursion depth for the heap's Garbage Collector marking function [Default: 8].

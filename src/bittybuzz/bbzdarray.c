@@ -351,7 +351,7 @@ uint16_t bbzdarray_find(bbzheap_idx_t d,
 uint8_t bbzdarray_lambda_alloc(bbzheap_idx_t d, uint8_t* l) {
     /* Look for empty slot */
     for(uint8_t i = 0;
-        i < RESERVED_ACTREC_MAX;
+        i < BBZHEAP_RSV_ACTREC_MAX;
         ++i)
         if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
             /* Empty slot found */

@@ -11,9 +11,9 @@
 /****************************************/
 
 void bbzheap_clear() {
-    vm->heap.rtobj = vm->heap.data + RESERVED_ACTREC_MAX * sizeof(bbzobj_t);
+    vm->heap.rtobj = vm->heap.data + BBZHEAP_RSV_ACTREC_MAX * sizeof(bbzobj_t);
     vm->heap.ltseg = vm->heap.data + BBZHEAP_SIZE;
-    for(int16_t i = (RESERVED_ACTREC_MAX-1)* sizeof(bbzobj_t); i >= 0; --i) {
+    for(int16_t i = (BBZHEAP_RSV_ACTREC_MAX-1)* sizeof(bbzobj_t); i >= 0; --i) {
         vm->heap.data[i] = 0;
     }
 }
@@ -39,7 +39,7 @@ static uint8_t bbzheap_obj_alloc_prepare_obj(uint8_t t, bbzobj_t* x) {
 uint8_t bbzheap_obj_alloc(uint8_t t,
                           bbzheap_idx_t* o) {
     /* Look for empty slot */
-    for(uint16_t i = RESERVED_ACTREC_MAX;
+    for(uint16_t i = BBZHEAP_RSV_ACTREC_MAX;
         i < (uint16_t)(vm->heap.rtobj - vm->heap.data) / sizeof(bbzobj_t);
         ++i) {
         if(!bbzheap_obj_isvalid(*bbzheap_obj_at(i))) {
@@ -196,7 +196,7 @@ void bbzheap_gc(bbzheap_idx_t* st,
     }
     /* Move rightmost object pointer as far left as possible */
     for(;
-        vm->heap.rtobj > vm->heap.data + RESERVED_ACTREC_MAX*sizeof(bbzobj_t);
+        vm->heap.rtobj > vm->heap.data + BBZHEAP_RSV_ACTREC_MAX*sizeof(bbzobj_t);
         vm->heap.rtobj -= sizeof(bbzobj_t))
         if(bbzheap_obj_isvalid(*(bbzobj_t*)(vm->heap.rtobj - sizeof(bbzobj_t))))
             break;
