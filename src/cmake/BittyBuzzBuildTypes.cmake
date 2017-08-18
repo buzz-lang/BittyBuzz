@@ -3,7 +3,6 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 # Add new build types
-message(STATUS "Adding build types...")
 SET(CMAKE_CXX_FLAGS_KILODEBUG "${CMAKE_CXX_FLAGS_DEBUG}"
         CACHE STRING "Flags used by the AVR-C++ compiler to debug kilobots."
         FORCE)

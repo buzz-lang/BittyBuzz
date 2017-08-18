@@ -1,3 +1,17 @@
+- Currently, stigmergies can only have a string as key. The reason for that
+is that we thought we didn't have enough space in a message's payload to also
+specify the type of the key. However, since we prohibit sending tables and
+closures (which require two extra metadata bits), we could use one byte
+which contains the type of both the key and the value, and 4B (2*2B) for the
+objects' values. Thus, the `bbzmsg_vstig_t` structure would look as such:
+  ```C
+  bbzmsg_payload_type_t type;
+  bbzrobot_id_t rid;
+  uint8_t lamport;
+  uint8_t types; /**< @brief bits 6-4: type of 'key', bits 3-0: type of 'data' */
+  uintptr_t key;
+  uintptr_t data;
+  ```
 - We create kilobot-specific C closures `src/kilobot/behaviors`. Most of
 these are generic functions of kilobots should be available out-of-the box.
 Thus, it would be good if these closures were registered from the

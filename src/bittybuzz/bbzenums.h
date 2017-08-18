@@ -12,8 +12,7 @@
 typedef enum bbzvm_state {
     BBZVM_STATE_NOCODE = 0, /**< @brief No code loaded */
     BBZVM_STATE_READY,      /**< @brief Ready to execute next instruction */
-    BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) @details May be used
-                              * for debugging purpose. */
+    BBZVM_STATE_STOPPED,    /**< @brief Stopped (Paused) @details May be used for debugging purpose. */
     BBZVM_STATE_DONE,       /**< @brief Program finished */
     BBZVM_STATE_ERROR,      /**< @brief Error occurred */
     BBZVM_STATE_COUNT,      /**< @brief The number of states in the enum. */
@@ -54,10 +53,8 @@ typedef enum bbzvm_instr {
     BBZVM_INSTR_PUSHNIL, /**< @brief Push nil onto stack */ // =2
     BBZVM_INSTR_DUP,     /**< @brief Duplicate stack top */ // =3
     BBZVM_INSTR_POP,     /**< @brief Pop value from stack */ // =4
-    BBZVM_INSTR_RET0,    /**< @brief Returns from closure call
-                           * @see bbzvm_ret0() */ // =5
-    BBZVM_INSTR_RET1,    /**< @brief Returns from closure call
-                           * @see bbzvm_ret1() */ // =6
+    BBZVM_INSTR_RET0,    /**< @brief Returns from closure call @see bbzvm_ret0() */ // =5
+    BBZVM_INSTR_RET1,    /**< @brief Returns from closure call @see bbzvm_ret1() */ // =6
     BBZVM_INSTR_ADD,     /**< @brief Push stack(#0) + stack(#1), pop operands*/ // =7
     BBZVM_INSTR_SUB,     /**< @brief Push stack(#0) - stack(#1), pop operands*/ // =8
     BBZVM_INSTR_MUL,     /**< @brief Push stack(#0) * stack(#1), pop operands*/ // =9
@@ -68,29 +65,19 @@ typedef enum bbzvm_instr {
     BBZVM_INSTR_AND,     /**< @brief Push stack(#0) & stack(#1), pop operands*/ // =14
     BBZVM_INSTR_OR,      /**< @brief Push stack(#0) | stack(#1), pop operands*/ // =15
     BBZVM_INSTR_NOT,     /**< @brief Push !stack(#0), pop operand */ // =16
-    BBZVM_INSTR_EQ,      /**< @brief Push stack(#0) == stack(#1),
-                           * pop operands*/ // =17
-    BBZVM_INSTR_NEQ,     /**< @brief Push stack(#0) != stack(#1),
-                           * pop operands*/ // =18
+    BBZVM_INSTR_EQ,      /**< @brief Push stack(#0) == stack(#1), pop operands*/ // =17
+    BBZVM_INSTR_NEQ,     /**< @brief Push stack(#0) != stack(#1), pop operands*/ // =18
     BBZVM_INSTR_GT,      /**< @brief Push stack(#0) > stack(#1), pop operands*/ // =19
-    BBZVM_INSTR_GTE,     /**< @brief Push stack(#0) >= stack(#1),
-                           * pop operands*/ // =20
+    BBZVM_INSTR_GTE,     /**< @brief Push stack(#0) >= stack(#1), pop operands*/ // =20
     BBZVM_INSTR_LT,      /**< @brief Push stack(#0) < stack(#1), pop operands*/ // =21
-    BBZVM_INSTR_LTE,     /**< @brief @brief/ Push stack(#0) <= stack(#1),
-                           * pop operands */ // =22
-    BBZVM_INSTR_GLOAD,   /**< @brief Push global variable corresponding to
-                           * string at stack #0, pop operand */ // =23
-    BBZVM_INSTR_GSTORE,  /**< @brief Store value at stack #0 into global
-                           * variable at stack #1, pop operands */ // =24
+    BBZVM_INSTR_LTE,     /**< @brief @brief/ Push stack(#0) <= stack(#1), pop operands */ // =22
+    BBZVM_INSTR_GLOAD,   /**< @brief Push global variable corresponding to string at stack #0, pop operand */ // =23
+    BBZVM_INSTR_GSTORE,  /**< @brief Store value at stack #0 into global variable at stack #1, pop operands */ // =24
     BBZVM_INSTR_PUSHT,   /**< @brief Push empty table */ // =25
-    BBZVM_INSTR_TPUT,    /**< @brief Put key (stack(#1)), value (stack #0) in
-                           * table (stack #2), pop operands */ // =26
-    BBZVM_INSTR_TGET,    /**< @brief Push value for key (stack(#0)) in
-                           * table (stack #1), pop key */ // =27
-    BBZVM_INSTR_CALLC,   /**< @brief Calls the closure on top of the stack as
-                           * a normal closure */ // =28
-    BBZVM_INSTR_CALLS,   /**< @brief Calls the closure on top of the stack as
-                           * a swarm closure */ // =29
+    BBZVM_INSTR_TPUT,    /**< @brief Put key (stack(#1)), value (stack #0) in table (stack #2), pop operands */ // =26
+    BBZVM_INSTR_TGET,    /**< @brief Push value for key (stack(#0)) in table (stack #1), pop key */ // =27
+    BBZVM_INSTR_CALLC,   /**< @brief Calls the closure on top of the stack as a normal closure */ // =28
+    BBZVM_INSTR_CALLS,   /**< @brief Calls the closure on top of the stack as a swarm closure */ // =29
     /*
      * Opcodes with argument
      */
@@ -103,15 +90,11 @@ typedef enum bbzvm_instr {
     BBZVM_INSTR_PUSHCC,  /**< @brief Push c-function closure onto stack */ // =34
     BBZVM_INSTR_PUSHL,   /**< @brief Push native closure lambda onto stack */ // =35
     BBZVM_INSTR_LLOAD,   /**< @brief Push local variable at given position */ // =36
-    BBZVM_INSTR_LSTORE,  /**< @brief Store stack-top value into local variable
-                           * at given position, pop operand */ // =37
+    BBZVM_INSTR_LSTORE,  /**< @brief Store stack-top value into local variable at given position, pop operand */ // =37
     BBZVM_INSTR_JUMP,    /**< @brief Set PC to argument */ // =38
-    BBZVM_INSTR_JUMPZ,   /**< @brief Set PC to argument if stack top is zero,
-                           * pop operand */ // =39
-    BBZVM_INSTR_JUMPNZ,  /**< @brief Set PC to argument if stack top is
-                           * not zero, pop operand */ // =40
-    BBZVM_INSTR_COUNT    /**< @brief Used to count how many instructions
-                           * have been defined */ // =41
+    BBZVM_INSTR_JUMPZ,   /**< @brief Set PC to argument if stack top is zero, pop operand */ // =39
+    BBZVM_INSTR_JUMPNZ,  /**< @brief Set PC to argument if stack top is not zero, pop operand */ // =40
+    BBZVM_INSTR_COUNT    /**< @brief Used to count how many instructions have been defined */ // =41
 } bbzvm_instr;
 
 /**
@@ -123,8 +106,7 @@ typedef enum bbzmsg_payload_type_t {
     BBZMSG_VSTIG_PUT,     /**< @brief Virtual stigmergy PUT */
     BBZMSG_VSTIG_QUERY,   /**< @brief Virtual stigmergy QUERY */
     BBZMSG_SWARM,         /**< @brief Swarm listing */
-    BBZMSG_TYPE_COUNT     /**< @brief How many message types have been
-                            * defined */
+    BBZMSG_TYPE_COUNT     /**< @brief How many message types have been defined */
 } bbzmsg_payload_type_t;
 
 #endif // !BBZENUMS_H

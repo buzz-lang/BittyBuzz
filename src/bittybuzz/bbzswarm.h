@@ -11,9 +11,9 @@
  * This configuration is required by the <code>neighbors.kin</code> and
  * <code>neighbors.nonkin</code> closures. However, these closures are
  * currently not implemented, thus <b>this configuration is currently not
- * supported.</b> However, for future work and for reference, here are
- * some possible designs that were thought of until it was realized
- * that broadcasting swarmlists is not necessary:
+ * supported</b> (but has been partly implemented). However, for future work
+ * and for reference, here are some possible designs that were thought
+ * of until it was realized that broadcasting swarmlists is not necessary:
  *
  * <h4>C implementation (BBZ_XTREME_MEMORY?)</h4>
  *

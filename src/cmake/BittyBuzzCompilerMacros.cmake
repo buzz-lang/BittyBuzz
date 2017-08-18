@@ -45,6 +45,5 @@ set(NATIVE_C_FLAGS "${HOST_C_FLAGS}" CACHE STRING "GCC flags for the native comp
 set(NATIVE_C_COMPILER "${HOST_C_COMPILER}" CACHE STRING "Path to the compiler for the system we are programing for.")
 # Set the current compiler as "HOST" if we didn't set it to anything yet.
 if (NOT CURRENT_COMPILER)
-    message(STATUS "Setting Current compiler as the host compiler")
     use_host_compiler()
 endif (NOT CURRENT_COMPILER)
