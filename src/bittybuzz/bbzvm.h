@@ -651,14 +651,14 @@ extern "C" {
      * @param[in] idx The local symbols index.
      * @return The heap index of the element at given local symbols index.
      */
-    #define bbzvm_lsym_at(idx) ({ bbzheap_idx_t ret; bbzdarray_get(vm->lsyms, idx, &ret); ret; })
+    #define bbzvm_locals_at(idx) ({ bbzheap_idx_t ret; bbzdarray_get(vm->lsyms, idx, &ret); ret; })
 
     /**
      * @brief Determines how many arguments were passed to the closure that
      * is being executed.
      * @return The number of arguments.
      */
-    #define bbzvm_lsym_size() (bbzdarray_size(vm->lsyms) - 1)
+    #define bbzvm_locals_count() (bbzdarray_size(vm->lsyms) - 1)
 
     /**
      * @brief Assert the correct execution of a boolean returning function.
@@ -710,7 +710,7 @@ extern "C" {
      * @param[in] RET (optional) The value returned if the assertion fails.
      */
     #define bbzvm_assert_lnum(num, RET...)                              \
-        bbzvm_assert_exec(bbzvm_lsym_size() == (num), BBZVM_ERROR_LNUM, RET)
+        bbzvm_assert_exec(bbzvm_locals_count() == (num), BBZVM_ERROR_LNUM, RET)
 
     /**
      * @brief Assert the state of the VM. To be used after explicit usage of

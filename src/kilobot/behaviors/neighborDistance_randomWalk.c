@@ -4,7 +4,7 @@
 void bbz_led() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
-    const uint8_t color = (uint8_t)bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
+    const uint8_t color = (uint8_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
     set_color((uint8_t)RGB(color&1?3:0, color&2?3:0, color&4?3:0));
 #endif
     bbzvm_ret0();
@@ -13,7 +13,7 @@ void bbz_led() {
 void bbz_delay() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
-    const uint16_t d = (uint16_t)bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
+    const uint16_t d = (uint16_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
     delay(d);
 #endif
     bbzvm_ret0();
@@ -21,7 +21,7 @@ void bbz_delay() {
 
 void bbz_min() {
     bbzvm_assert_lnum(2);
-    bbzvm_lload(bbztype_cmp(bbzheap_obj_at(bbzvm_lsym_at(1)),bbzheap_obj_at(bbzvm_lsym_at(2)))>0?2:1);
+    bbzvm_lload(bbztype_cmp(bbzheap_obj_at(bbzvm_locals_at(1)),bbzheap_obj_at(bbzvm_locals_at(2)))>0?2:1);
     bbzvm_ret1();
 }
 

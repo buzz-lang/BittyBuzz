@@ -23,7 +23,7 @@ void bbzheap_clear() {
 
 static uint8_t bbzheap_obj_alloc_prepare_obj(uint8_t t, bbzobj_t* x) {
     /* Set valid bit and type */
-    x->mdata = (t << BBZTYPE_TYPEIDX) | BBZHEAP_OBJ_MASK_VALID;
+    x->mdata = ((t << BBZTYPE_TYPEIDX) & BBZTYPE_MASK) | BBZHEAP_OBJ_MASK_VALID;
     /* Take care of special initialisations */
     if (t == BBZTYPE_TABLE) {
         if (!bbzheap_tseg_alloc(&x->t.value)) return 0;

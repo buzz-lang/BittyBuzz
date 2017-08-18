@@ -164,7 +164,7 @@ TEST(map) {
 void reduce_fun() {
     bbzvm_assert_lnum(3);
 
-    bbzheap_obj_at(bbzvm_lsym_at(3))->i.value += 1;
+    bbzheap_obj_at(bbzvm_locals_at(3))->i.value += 1;
 
     bbzvm_lload(3);
     bbzvm_ret1();
@@ -196,7 +196,7 @@ void filter_fun() {
     bbzvm_assert_lnum(2);
 
     // ...
-    bbzvm_pushi((int16_t) (bbzheap_obj_at(bbzvm_lsym_at(1))->i.value % 2));
+    bbzvm_pushi((int16_t) (bbzheap_obj_at(bbzvm_locals_at(1))->i.value % 2));
 
     bbzvm_ret1();
 }

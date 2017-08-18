@@ -228,7 +228,7 @@ uint8_t bbzswarm_isrobotin(bbzrobot_id_t robot,
 void bbzswarm_create() {
     bbzvm_assert_lnum(1);
 
-    uint16_t swarm = bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
+    uint16_t swarm = bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
 
     if (swarm < 8) {
         make_table(swarm);
@@ -245,17 +245,17 @@ void bbzswarm_create() {
 /****************************************/
 
 void bbzswarm_id() {
-    bbzvm_assert_exec(bbzvm_lsym_size() <= 1, BBZVM_ERROR_LNUM);
+    bbzvm_assert_exec(bbzvm_locals_count() <= 1, BBZVM_ERROR_LNUM);
 
     if (!bbzdarray_isempty(vm->swarm.swarmstack)) {
         uint16_t stack_depth;
 
         // Get stack depth (defaults to 0)
-        if (bbzvm_lsym_size() == 0) {
+        if (bbzvm_locals_count() == 0) {
             stack_depth = 0;
         }
         else {
-            stack_depth = bbzheap_obj_at(bbzvm_lsym_at(1))->i.value;
+            stack_depth = bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
         }
 
         // Make sure we have enough elements
@@ -272,6 +272,7 @@ void bbzswarm_id() {
     else {
         // Swarmstack empty. Push nil instead.
         bbzvm_pushnil();
+        bbzvm_seterror(BBZVM_ERROR_OUTOFRANGE);
     }
 
     bbzvm_ret1();
@@ -336,7 +337,7 @@ void bbzswarm_in() {
 void bbzswarm_select() {
     bbzvm_assert_lnum(1);
 
-    uint8_t should_join = bbztype_tobool(bbzheap_obj_at(bbzvm_lsym_at(1)));
+    uint8_t should_join = bbztype_tobool(bbzheap_obj_at(bbzvm_locals_at(1)));
     if (should_join) {
         bbzvm_lload(0); // Push table we are calling 'select' on.
         bbzswarm_id_t swarm = get_id();
@@ -355,7 +356,7 @@ void bbzswarm_select() {
 
 void bbzswarm_exec() {
     bbzvm_assert_lnum(1);
-    bbzvm_assert_type(bbzvm_lsym_at(1), BBZTYPE_CLOSURE);
+    bbzvm_assert_type(bbzvm_locals_at(1), BBZTYPE_CLOSURE);
 
     // Get swarm ID and push it on the swarmstack
     bbzvm_lload(0); // Push table we are calling 'exec' on.

@@ -9,11 +9,6 @@ function (copy_test_resources)
     set(files
             1_InstrTest.bo
             1_InstrTest.bbo
-            2_IfTest.bzz
-            3_test1.bzz
-            3_test1.bst
-            4_AllFeaturesTest.bzz
-            4_AllFeaturesTest.bst
     )
 
     # Copy those files to a new ressource directory.
@@ -42,9 +37,9 @@ function (generate_all_bbos)
         # Generate BittyBuzz Object
         set(SOUGHT_BST_FILE "${basename}.bst")
         if (SOUGHT_BST_FILE IN_LIST BST_SOURCES)
-            generate_bbo(${BBO_TARGET} ${CMAKE_CURRENT_BINARY_DIR} ${buzz_source} "${CMAKE_CURRENT_BINARY_DIR}/${SOUGHT_BST_FILE}")
+            generate_bbo(${BBO_TARGET} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${buzz_source} "${CMAKE_CURRENT_SOURCE_DIR}/${SOUGHT_BST_FILE}")
         else()
-            generate_bbo(${BBO_TARGET} ${CMAKE_CURRENT_BINARY_DIR} ${buzz_source} "")
+            generate_bbo(${BBO_TARGET} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${buzz_source} "")
         endif()
         add_dependencies(test_resources ${BBO_TARGET})
     endforeach()

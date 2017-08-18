@@ -38,7 +38,7 @@ void bbzvstig_create() {
     bbzvm_pusht();
     // TODO When creating a second vstig table, we might want the first one
     //      to have its id changed too.
-    bbztable_add_data(__BBZSTRID_id, bbzvm_lsym_at(1));
+    bbztable_add_data(__BBZSTRID_id, bbzvm_locals_at(1));
     bbztable_add_function(__BBZSTRID_put,  bbzvstig_put);
     bbztable_add_function(__BBZSTRID_get,  bbzvstig_get);
     bbzvm_gc();
@@ -61,7 +61,7 @@ void bbzvstig_onconflict() {
 
     bbzvm_push(vm->vstig.hpos);
     bbzvm_gc();
-    bbztable_add_data(BBZVSTIG_ONCONFLICT_FIELD, bbzvm_lsym_at(1));
+    bbztable_add_data(BBZVSTIG_ONCONFLICT_FIELD, bbzvm_locals_at(1));
     bbzvm_gc();
 
     bbzvm_ret0();
@@ -76,7 +76,7 @@ void bbzvstig_onconflictlost() {
 
     bbzvm_push(vm->vstig.hpos);
     bbzvm_gc();
-    bbztable_add_data(BBZVSTIG_ONCONFLICTLOST_FIELD, bbzvm_lsym_at(1));
+    bbztable_add_data(BBZVSTIG_ONCONFLICTLOST_FIELD, bbzvm_locals_at(1));
     bbzvm_gc();
 
     bbzvm_ret0();
@@ -90,7 +90,7 @@ void bbzvstig_get() {
     bbzvm_assert_lnum(1);
 
     // Get args
-    bbzheap_idx_t key = bbzvm_lsym_at(1);
+    bbzheap_idx_t key = bbzvm_locals_at(1);
 
     bbzvm_gc();
 
@@ -134,8 +134,8 @@ void bbzvstig_put() {
     bbzvm_assert_lnum(2);
 
     // Get args
-    bbzheap_idx_t key   = bbzvm_lsym_at(1);
-    bbzheap_idx_t value = bbzvm_lsym_at(2);
+    bbzheap_idx_t key   = bbzvm_locals_at(1);
+    bbzheap_idx_t value = bbzvm_locals_at(2);
     // BittyBuzz's virtual stigmertgie cannot handle composite types.
     bbzvm_assert_exec(!bbztype_istable(*bbzheap_obj_at(value)), BBZVM_ERROR_TYPE);
 

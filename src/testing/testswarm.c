@@ -21,6 +21,9 @@ void bbzvm_reset_state() {
     vm->error = BBZVM_ERROR_NONE;
 }
 
+void error_receiver(bbzvm_error errcode) {
+}
+
 /**
  * @brief Checks if the wrong number of arguments of a closure fail.
  * @details This checks for one argument less than min as
@@ -290,11 +293,14 @@ TEST(create) {
     }
     ASSERT_EQUAL(bbztable_size(subswarm), SUBSWARM_TBL_SIZE);
 
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if <0 and >7 swarm IDs fail.
     test_wrong_swarm_ids(CREATE);
 
     // Check if wrong number of parameters fails
     test_wrong_num_params(CREATE, 1, 1);
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/
@@ -425,6 +431,8 @@ TEST(id) {
         }
     }
 
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check erroneous arguments
     {
         int16_t args[2] = {-1, NUM_PUSHES};
@@ -442,6 +450,7 @@ TEST(id) {
         test_wrong_num_params(ID, 0, 1);
     }
 
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/
@@ -564,10 +573,13 @@ TEST(join_leave) {
         ASSERT(bbzswarm_isrobotin(0, 1));
     }
 
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
         test_wrong_num_params(JOIN0, 0, 0);
     }
+    bbzvm_set_error_receiver(old_err_rcvr);
 
     // --------------
     // - TEST LEAVE -
@@ -584,10 +596,13 @@ TEST(join_leave) {
         ASSERT(bbzswarm_isrobotin(0, 1));
     }
 
+    old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
         test_wrong_num_params(LEAVE0, 0, 0);
     }
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/
@@ -639,10 +654,13 @@ TEST(in) {
         }
     }
 
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
         test_wrong_num_params(IN0, 0, 0);
     }
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/
@@ -689,10 +707,13 @@ TEST(select) {
         }
     }
 
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
         test_wrong_num_params(SELECT0, 1, 1);
     }
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/
@@ -780,13 +801,18 @@ TEST(exec) {
             bbzvm_push(exec_function_closure);
             bbzvm_gc(); // Call garbage-collector
             bbzvm_closure_call(1); // 's0.exec(exec_function_closure)'
+            ASSERT_EQUAL(vm->error, BBZVM_ERROR_NONE);
         }
     }
 
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
+    bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
         test_wrong_num_params(exec0, 1, 1);
     }
+    bbzvm_set_error_receiver(old_err_rcvr);
 }
 
 /****************************************/

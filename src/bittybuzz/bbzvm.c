@@ -959,8 +959,10 @@ void bbzvm_dup() {
     uint16_t stack_size = (uint16_t)bbzvm_stack_size();
     bbzvm_assert_exec(stack_size > 0 && stack_size < BBZSTACK_SIZE, BBZVM_ERROR_STACK);
     bbzheap_idx_t idx;
-    bbzvm_assert_mem_alloc(BBZTYPE_NIL, &idx);
+    bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &idx);
     bbzheap_obj_copy(bbzvm_stack_at(0), idx);
+    bbzheap_obj_makevalid(*bbzheap_obj_at(idx));
+    bbzheap_obj_unmake_permanent(*bbzheap_obj_at(idx));
     bbzvm_push(idx);
 }
 
@@ -1043,6 +1045,7 @@ void bbzvm_pushl(uint16_t addr) {
                 bbzdarray_lambda_alloc(vm->lsyms, &bbzheap_obj_at(o)->l.value.actrec),
                 BBZVM_ERROR_MEM);
     }
+    bbzdarray_set(bbzheap_obj_at(o)->l.value.actrec, 0, vm->nil);
 
     bbzvm_push(o);
 }

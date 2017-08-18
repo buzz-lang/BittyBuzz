@@ -103,7 +103,7 @@ TEST(vstig_size) {
     bbzvm_tget();
     bbzvm_pushi(0);
     bbzvm_closure_call(1);
-    bbzheap_idx_t vs = bbzvm_stack_at(0);
+    bbzvm_dup(); // Keep on the stack for future use
 
     bbzvm_pushs(__BBZSTRID_put);
     bbzvm_tget();
@@ -111,7 +111,7 @@ TEST(vstig_size) {
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
 
-    bbzvm_push(vs);
+    // We use the duplicated table here
     bbzvm_pushs(__BBZSTRID_size);
     bbzvm_tget();
     bbzvm_closure_call(0);

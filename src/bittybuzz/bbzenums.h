@@ -49,69 +49,69 @@ typedef enum bbzvm_instr {
     /*
      * Opcodes without argument
      */
-    BBZVM_INSTR_NOP = 0, /**< @brief No operation */
-    BBZVM_INSTR_DONE,    /**< @brief End of the program */
-    BBZVM_INSTR_PUSHNIL, /**< @brief Push nil onto stack */
-    BBZVM_INSTR_DUP,     /**< @brief Duplicate stack top */
-    BBZVM_INSTR_POP,     /**< @brief Pop value from stack */
+    BBZVM_INSTR_NOP = 0, /**< @brief No operation */ // =0
+    BBZVM_INSTR_DONE,    /**< @brief End of the program */ // =1
+    BBZVM_INSTR_PUSHNIL, /**< @brief Push nil onto stack */ // =2
+    BBZVM_INSTR_DUP,     /**< @brief Duplicate stack top */ // =3
+    BBZVM_INSTR_POP,     /**< @brief Pop value from stack */ // =4
     BBZVM_INSTR_RET0,    /**< @brief Returns from closure call
-                           * @see bbzvm_ret0() */
+                           * @see bbzvm_ret0() */ // =5
     BBZVM_INSTR_RET1,    /**< @brief Returns from closure call
-                           * @see bbzvm_ret1() */
-    BBZVM_INSTR_ADD,     /**< @brief Push stack(#0) + stack(#1), pop operands*/
-    BBZVM_INSTR_SUB,     /**< @brief Push stack(#0) - stack(#1), pop operands*/
-    BBZVM_INSTR_MUL,     /**< @brief Push stack(#0) * stack(#1), pop operands*/
-    BBZVM_INSTR_DIV,     /**< @brief Push stack(#0) / stack(#1), pop operands*/
-    BBZVM_INSTR_MOD,     /**< @brief Push stack(#0) % stack(#1), pop operands*/
-    BBZVM_INSTR_POW,     /**< @brief Push stack(#0) ^ stack(#1), pop operands*/
-    BBZVM_INSTR_UNM,     /**< @brief Push -stack(#0), pop operand */
-    BBZVM_INSTR_AND,     /**< @brief Push stack(#0) & stack(#1), pop operands*/
-    BBZVM_INSTR_OR,      /**< @brief Push stack(#0) | stack(#1), pop operands*/
-    BBZVM_INSTR_NOT,     /**< @brief Push !stack(#0), pop operand */
+                           * @see bbzvm_ret1() */ // =6
+    BBZVM_INSTR_ADD,     /**< @brief Push stack(#0) + stack(#1), pop operands*/ // =7
+    BBZVM_INSTR_SUB,     /**< @brief Push stack(#0) - stack(#1), pop operands*/ // =8
+    BBZVM_INSTR_MUL,     /**< @brief Push stack(#0) * stack(#1), pop operands*/ // =9
+    BBZVM_INSTR_DIV,     /**< @brief Push stack(#0) / stack(#1), pop operands*/ // =10
+    BBZVM_INSTR_MOD,     /**< @brief Push stack(#0) % stack(#1), pop operands*/ // =11
+    BBZVM_INSTR_POW,     /**< @brief Push stack(#0) ^ stack(#1), pop operands*/ // =12
+    BBZVM_INSTR_UNM,     /**< @brief Push -stack(#0), pop operand */ // =13
+    BBZVM_INSTR_AND,     /**< @brief Push stack(#0) & stack(#1), pop operands*/ // =14
+    BBZVM_INSTR_OR,      /**< @brief Push stack(#0) | stack(#1), pop operands*/ // =15
+    BBZVM_INSTR_NOT,     /**< @brief Push !stack(#0), pop operand */ // =16
     BBZVM_INSTR_EQ,      /**< @brief Push stack(#0) == stack(#1),
-                           * pop operands*/
+                           * pop operands*/ // =17
     BBZVM_INSTR_NEQ,     /**< @brief Push stack(#0) != stack(#1),
-                           * pop operands*/
-    BBZVM_INSTR_GT,      /**< @brief Push stack(#0) > stack(#1), pop operands*/
+                           * pop operands*/ // =18
+    BBZVM_INSTR_GT,      /**< @brief Push stack(#0) > stack(#1), pop operands*/ // =19
     BBZVM_INSTR_GTE,     /**< @brief Push stack(#0) >= stack(#1),
-                           * pop operands*/
-    BBZVM_INSTR_LT,      /**< @brief Push stack(#0) < stack(#1), pop operands*/
+                           * pop operands*/ // =20
+    BBZVM_INSTR_LT,      /**< @brief Push stack(#0) < stack(#1), pop operands*/ // =21
     BBZVM_INSTR_LTE,     /**< @brief @brief/ Push stack(#0) <= stack(#1),
-                           * pop operands */
+                           * pop operands */ // =22
     BBZVM_INSTR_GLOAD,   /**< @brief Push global variable corresponding to
-                           * string at stack #0, pop operand */
+                           * string at stack #0, pop operand */ // =23
     BBZVM_INSTR_GSTORE,  /**< @brief Store value at stack #0 into global
-                           * variable at stack #1, pop operands */
-    BBZVM_INSTR_PUSHT,   /**< @brief Push empty table */
+                           * variable at stack #1, pop operands */ // =24
+    BBZVM_INSTR_PUSHT,   /**< @brief Push empty table */ // =25
     BBZVM_INSTR_TPUT,    /**< @brief Put key (stack(#1)), value (stack #0) in
-                           * table (stack #2), pop operands */
+                           * table (stack #2), pop operands */ // =26
     BBZVM_INSTR_TGET,    /**< @brief Push value for key (stack(#0)) in
-                           * table (stack #1), pop key */
+                           * table (stack #1), pop key */ // =27
     BBZVM_INSTR_CALLC,   /**< @brief Calls the closure on top of the stack as
-                           * a normal closure */
+                           * a normal closure */ // =28
     BBZVM_INSTR_CALLS,   /**< @brief Calls the closure on top of the stack as
-                           * a swarm closure */
+                           * a swarm closure */ // =29
     /*
      * Opcodes with argument
      */
     /* Float argument */
-    BBZVM_INSTR_PUSHF,   /**< @brief Push float constant onto stack */
+    BBZVM_INSTR_PUSHF,   /**< @brief Push float constant onto stack */ // =30
     /* Integer argument */
-    BBZVM_INSTR_PUSHI,   /**< @brief Push integer constant onto stack */
-    BBZVM_INSTR_PUSHS,   /**< @brief Push string constant onto stack */
-    BBZVM_INSTR_PUSHCN,  /**< @brief Push native closure onto stack */
-    BBZVM_INSTR_PUSHCC,  /**< @brief Push c-function closure onto stack */
-    BBZVM_INSTR_PUSHL,   /**< @brief Push native closure lambda onto stack */
-    BBZVM_INSTR_LLOAD,   /**< @brief Push local variable at given position */
+    BBZVM_INSTR_PUSHI,   /**< @brief Push integer constant onto stack */ // =31
+    BBZVM_INSTR_PUSHS,   /**< @brief Push string constant onto stack */ // =32
+    BBZVM_INSTR_PUSHCN,  /**< @brief Push native closure onto stack */ // =33
+    BBZVM_INSTR_PUSHCC,  /**< @brief Push c-function closure onto stack */ // =34
+    BBZVM_INSTR_PUSHL,   /**< @brief Push native closure lambda onto stack */ // =35
+    BBZVM_INSTR_LLOAD,   /**< @brief Push local variable at given position */ // =36
     BBZVM_INSTR_LSTORE,  /**< @brief Store stack-top value into local variable
-                           * at given position, pop operand */
-    BBZVM_INSTR_JUMP,    /**< @brief Set PC to argument */
+                           * at given position, pop operand */ // =37
+    BBZVM_INSTR_JUMP,    /**< @brief Set PC to argument */ // =38
     BBZVM_INSTR_JUMPZ,   /**< @brief Set PC to argument if stack top is zero,
-                           * pop operand */
+                           * pop operand */ // =39
     BBZVM_INSTR_JUMPNZ,  /**< @brief Set PC to argument if stack top is
-                           * not zero, pop operand */
+                           * not zero, pop operand */ // =40
     BBZVM_INSTR_COUNT    /**< @brief Used to count how many instructions
-                           * have been defined */
+                           * have been defined */ // =41
 } bbzvm_instr;
 
 /**

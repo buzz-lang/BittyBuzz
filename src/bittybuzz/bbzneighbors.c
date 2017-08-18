@@ -149,7 +149,7 @@ void bbzneighbors_broadcast() {
     bbzvm_assert_lnum(2);
 
     // Get args and push a new broadcast message.
-    bbzoutmsg_queue_append_broadcast(bbzvm_lsym_at(1), bbzvm_lsym_at(2));
+    bbzoutmsg_queue_append_broadcast(bbzvm_locals_at(1), bbzvm_locals_at(2));
 
     bbzvm_ret0();
 }
@@ -161,9 +161,9 @@ void bbzneighbors_listen() {
     bbzvm_assert_lnum(2);
 
     // Get args
-    bbzheap_idx_t topic = bbzvm_lsym_at(1);
+    bbzheap_idx_t topic = bbzvm_locals_at(1);
     bbzvm_assert_type(topic, BBZTYPE_STRING);
-    bbzheap_idx_t c = bbzvm_lsym_at(2);
+    bbzheap_idx_t c = bbzvm_locals_at(2);
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Set listener
@@ -179,7 +179,7 @@ void bbzneighbors_ignore() {
     bbzvm_assert_lnum(1);
 
     // Get args
-    bbzheap_idx_t topic = bbzvm_lsym_at(1);
+    bbzheap_idx_t topic = bbzvm_locals_at(1);
     bbzvm_assert_type(topic, BBZTYPE_STRING);
 
     // Remove listener
@@ -217,7 +217,7 @@ void bbzneighbors_foreach() {
     bbzvm_assert_lnum(1);
 
     // Get closure
-    bbzheap_idx_t c = bbzvm_lsym_at(1);
+    bbzheap_idx_t c = bbzvm_locals_at(1);
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Perform foreach
@@ -295,7 +295,7 @@ static void neighbors_map_base(put_elem_funp put_elem) {
     bbzvm_assert_lnum(1);
 
     // Get closure
-    bbzheap_idx_t c = bbzvm_lsym_at(1);
+    bbzheap_idx_t c = bbzvm_locals_at(1);
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Make return table
@@ -390,7 +390,7 @@ void bbzneighbors_reduce() {
     bbzvm_assert_lnum(2);
 
     // Get closure
-    bbzheap_idx_t c = bbzvm_lsym_at(1);
+    bbzheap_idx_t c = bbzvm_locals_at(1);
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Push accumulator
@@ -509,8 +509,8 @@ void bbzneighbors_get() {
     bbzvm_assert_lnum(1);
 
     // Get args.
-//    bbzheap_idx_t robot = bbzvm_lsym_at(1);
-    bbzvm_assert_type(bbzvm_lsym_at(1), BBZTYPE_INT);
+//    bbzheap_idx_t robot = bbzvm_locals_at(1);
+    bbzvm_assert_type(bbzvm_locals_at(1), BBZTYPE_INT);
 
     // Get the sub-table of the table we are using 'get' on.
     bbzvm_lload(0); // Self table
@@ -646,7 +646,7 @@ void bbzneighbors_get() {
     bbzvm_assert_lnum(1);
 
     // Get passed robot ID.
-    bbzheap_idx_t robot = bbzvm_lsym_at(1);
+    bbzheap_idx_t robot = bbzvm_locals_at(1);
     bbzvm_assert_type(robot, BBZTYPE_INT);
 
     // Perform foreach
@@ -670,7 +670,7 @@ void bbzneighbors_count() {
     bbzvm_assert_lnum(0);
 
     // Push neighbor count.
-    if (bbztype_cmp(bbzheap_obj_at(bbzvm_lsym_at(0)),
+    if (bbztype_cmp(bbzheap_obj_at(bbzvm_locals_at(0)),
                     bbzheap_obj_at(vm->neighbors.hpos)) == 0) {
         //
         // 'neighbors' table ; uses optimized C implementation.
@@ -696,7 +696,7 @@ void bbzneighbors_count() {
 
 static void neighborlike_foreach(bbztable_elem_funp elem_fun, void* params) {
     // Get the table we are using the algorithm on.
-    bbzheap_idx_t self = bbzvm_lsym_at(0);
+    bbzheap_idx_t self = bbzvm_locals_at(0);
 
     // Perform the right foreach.
     if (bbztype_cmp(bbzheap_obj_at(self),
