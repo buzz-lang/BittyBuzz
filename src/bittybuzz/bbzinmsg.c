@@ -63,7 +63,6 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
         // If not full, push the message at the end of the queue.
         *((bbzmsg_t*)bbzringbuf_rawat(&vm->inmsgs.queue, bbzringbuf_makeslot(&vm->inmsgs.queue))) = *m;
     }
-    // TODO Do we need to sort the incomming list?
     bbzmsg_sort_priority(&vm->inmsgs.queue);
 }
 

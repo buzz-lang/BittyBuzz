@@ -45,13 +45,13 @@ typedef struct PACKED bbzmsg_broadcast_t {
  * @brief Swarm message data
  */
 typedef struct PACKED bbzmsg_swarm_t {
-#ifndef BBZ_DISABLE_SWARMS
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
     bbzmsg_payload_type_t type; /**< @brief The message type */
     bbzrobot_id_t rid; /**< @brief A robot id */
     bbzlamport_t lamport; /**< @brief TODO */
     bbzswarmlist_t swarms; /**< @brief TODO */
     uint8_t dist; /**< @brief Distance measurement. */
-#endif
+#endif // !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
 } bbzmsg_swarm_t;
 
 /**

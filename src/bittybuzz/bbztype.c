@@ -69,7 +69,6 @@ int8_t bbztype_cmp(const bbzobj_t* a,
         if(x > y) return  1;
         return 0;
     }
-    /* Other cases are TODO */
     return -1;
 }
 

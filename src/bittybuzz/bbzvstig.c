@@ -36,8 +36,6 @@ void bbzvstig_create() {
 
     // Create a table, and register some fields in it.
     bbzvm_pusht();
-    // TODO When creating a second vstig table, we might want the first one
-    //      to have its id changed too.
     bbztable_add_data(__BBZSTRID_id, bbzvm_locals_at(1));
     bbztable_add_function(__BBZSTRID_put,  bbzvstig_put);
     bbztable_add_function(__BBZSTRID_get,  bbzvstig_get);
