@@ -85,7 +85,6 @@ extern "C" {
      * @param[in] d The position of the dynamic array's object in the heap.
      * @param[in] idx The index of the element to get.
      * @return 1 for success, 0 for failure (index out of range OR empty array)
-     * @todo FIXME
      */
     uint8_t bbzdarray_remove(bbzheap_idx_t d,
                              uint16_t idx);

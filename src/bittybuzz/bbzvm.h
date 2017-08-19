@@ -72,21 +72,13 @@ extern "C" {
         bbzheap_idx_t nil;         /**< @brief Singleton bbznil_t */
         bbzheap_idx_t dflt_actrec; /**< @brief Singleton bbzdarray_t for the default activations record */
         bbzheap_idx_t flist;       /**< @brief Registered functions */
-        /* List of known swarms */
-        // TODO
-        /* List of known swarms */
-        // TODO
         bbzswarm_t swarm;          /**< @brief Swarm data */
-        /* Counter for swarm membership broadcasting */
-        // TODO
         bbzinmsg_queue_t inmsgs;   /**< @brief Input messages FIFO */
         bbzoutmsg_queue_t outmsgs; /**< @brief Output messages FIFO */
         bbzvstig_t vstig;          /**< @brief Virtual stigmergy single instance. */
         bbzneighbors_t neighbors;  /**< @brief Neighbor data. */
         bbzvm_state state;         /**< @brief Current VM state */
         bbzvm_error error;         /**< @brief Current VM error */
-        /* Current VM error message */
-        // TODO ... or not TODO? That is the question...
         bbzrobot_id_t robot;       /**< @brief This robot's id */
 #ifdef DEBUG
         bbzpc_t dbg_pc;            /**< @brief PC value used for debugging purpose. */
