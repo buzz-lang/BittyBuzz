@@ -27,8 +27,8 @@ For the Kilobot
 ---------------
 
 To compile BittyBuzz to an .hex file that can be used with the
-Kilobot, you need _avr-gcc_ and related tools installed under
-`/usr/lib/avr/`.
+Kilobot, you need `avr-gcc` and related tools. `avr-gcc` is expected to be
+installed under `/usr/lib/avr/`.
 
 Type these commands:
 
@@ -41,10 +41,23 @@ Type these commands:
 The configuration options available for this compilation type are similar
 to those of the PC compilation.
 
-Writing your own behaviors
---------------------------
+Generating documentation
+========================
 
-**For kilobots**
+A good place to get started with BittyBuzz is the source code documentation.
+One may optionaly create such Doxygen-generated documentation of BittyBuzz.
+This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done via:
+
+    $ make doc
+
+The documentation will be subsequently available in HTML and LaTeX formats
+under `<build_dir>/doc`, for example, `build/doc`.
+
+Writing your own behaviors
+==========================
+
+For kilobots
+------------
 
 Currently, BittyBuzz does not support global installation. Behaviors must thus be
 implemented under `src/kilobot/behaviors` directly.
@@ -65,19 +78,6 @@ This file can be sent to the kilobots using the
 
 _Important:_ After adding new files, be sure to run `cmake ../src` inside
 your kilobot build directory for CMake to take them into account.
-
-
-Generating documentation
-------------------------
-
-A good place to start understanding BittyBuzz is the source code documentation.
-One may optionaly create such Doxygen-generated documentation of BittyBuzz.
-This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done via:
-
-    $ make doc
-
-The documentation will be subsequently available in HTML and LaTeX formats
-under `<build_dir>/doc`, for example, `build/doc`.
 
 Options
 -------
