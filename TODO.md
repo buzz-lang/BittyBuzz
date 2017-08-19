@@ -20,9 +20,6 @@ the names of the closures registered from the kilobot side should be
 concatenated to user's BST file. That's a small change that would make
 creating a new behavior less daunting. Ideally, users should be able to
 simply write a Buzz script and have it generated into a hex file.
-- Change the 'Options' section in README.md in order to use a table rather
-than a long list of options. The table should also have a column telling
-whhether this option this important or not.
 - Allow a user to choose what configuration values to use for each C script.
 Not sure how to implement this exactly.
 - Some `bbz<type>_new` and `bbz<type>_get` functions were implemented

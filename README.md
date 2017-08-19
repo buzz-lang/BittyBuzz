@@ -68,7 +68,7 @@ placer under `src/kilobot/behaviors/buzz_scripts`. You should also place a
 Buzz String Table (`.bst`) file (which allows BittyBuzz to generate a
 string ID corresponding to each string) next to your Buzz script, which
 should contain any string used within the C code and that does not appear
-in the Buzz script.
+in the Buzz script. Look at existing files if you are unsure.
 
 At this point, you may run `make` inside your kilobot build directory to
 generate a HEX file that can be sent to the kilobots. You will find it
