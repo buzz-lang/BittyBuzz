@@ -1,4 +1,10 @@
 /**
+ * @mainpage BittyBuzz
+ * @author MIST Lab <info@mistlab.ca>
+ * @see http://the.swarming.buzz/
+ */
+
+/**
  * @file bbzvm.h
  * @brief Definition of the BittyBuzz Virtual Machine,
  *  as well as of other types required by it.
