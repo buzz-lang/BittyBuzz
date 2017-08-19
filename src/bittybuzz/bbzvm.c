@@ -38,7 +38,7 @@ void bbzvm_process_inmsgs() {
 void bbzvm_process_outmsgs() {
 #ifndef BBZ_DISABLE_NEIGHBORS
     if (!(vm->neighbors.clear_counter--)) {
-        vm->neighbors.clear_counter = BBZNEIGHBORS_CLEAR_PERIOD;
+        vm->neighbors.clear_counter = BBZNEIGHBORS_CLR_PERIOD;
         // Execute the neighbors' data garbage-collector.
         bbzneighbors_data_gc();
     }

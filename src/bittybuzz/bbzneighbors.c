@@ -89,7 +89,7 @@ static void neighbors_construct(bbzheap_idx_t n, bbzheap_idx_t l) {
     vm->neighbors.listeners = l;
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.hpos));
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->neighbors.listeners));
-    vm->neighbors.clear_counter = BBZNEIGHBORS_CLEAR_PERIOD;
+    vm->neighbors.clear_counter = BBZNEIGHBORS_CLR_PERIOD;
 #ifdef BBZ_XTREME_MEMORY
     bbzringbuf_construct(&vm->neighbors.rb, (uint8_t *) vm->neighbors.data,
                          sizeof(bbzneighbors_elem_t),
@@ -496,7 +496,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     bbzvm_tget();
     bbzvm_pushi(data->robot);
     push_neighbor_data_table(data);
-    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_TIME) {
         bbzvm_assert_exec(bbztable_set(bbzvm_stack_at(0), bbzint_new(0), bbzint_new(0)), BBZVM_ERROR_MEM);
     }
     bbzvm_tput();
@@ -593,7 +593,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
             entry->distance  = data->distance;
             entry->azimuth   = data->azimuth;
             entry->elevation = data->elevation;
-            if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+            if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_TIME) {
                 bbzneighbors_data_mark(*entry);
             }
             // Put the message at the end of the LIFO buffer, which makes it
@@ -608,7 +608,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
     entry->distance  = data->distance;
     entry->azimuth   = data->azimuth;
     entry->elevation = data->elevation;
-    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_THRESHOLD) {
+    if (vm->neighbors.clear_counter < BBZNEIGHBORS_MARK_TIME) {
         bbzneighbors_data_mark(*entry);
     }
 }

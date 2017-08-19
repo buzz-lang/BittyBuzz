@@ -252,7 +252,7 @@ TEST(data_gc) {
     bbzneighbors_add(&elem2);
     REQUIRE(data_gc_count == 1);
 
-    vm->neighbors.clear_counter = BBZNEIGHBORS_MARK_THRESHOLD-1;
+    vm->neighbors.clear_counter = BBZNEIGHBORS_MARK_TIME-1;
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
     bbzneighbors_add(&elem);

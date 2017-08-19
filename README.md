@@ -76,33 +76,41 @@ This requires [Doxygen](http://www.stack.nl/~dimitri/doxygen/) and can be done v
 
     $ make doc
 
-The documentation will be subsequently available in HTML and LaTeX formats under `<build_dir>/doc`, for example, `build/doc`.
+The documentation will be subsequently available in HTML and LaTeX formats
+under `<build_dir>/doc`, for example, `build/doc`.
 
 Options
 -------
 
-It is possible to specify a custom value for a range of configuration values. Behaviors on low-resource robots often require parameter-tweaking. However, we
+It is possible to specify a custom value for a range of configuration values.
+Behaviors on low-resource robots often require parameter-tweaking. However, we
 recommend against changing these values unless it is necessary.
 
-- `BBZHEAP_SIZE` : Size of the heap (in bytes) [Default: 1088].
-- `BBZHEAP_ELEMS_PER_TSEG` : Number of table entries per table segment [Default: 5].
-- `BBZSTACK_SIZE` : Size of the VM's stack (in number of objects) [Default: 96].
-- `BBZVSTIG_CAP` : Capacity of the virtual stigmergy (in number of entries) [Default: 3].
-- `BBZNEIGHBORS_CAP` : Capacity of the neighbors structure (in number of neighbors) [Default: 15, Max: 255]. Used only when `BBZ_XTREME_MEMORY` is ON.
-- `BBZINMSG_QUEUE_CAP` : Capacity of the incoming message queue [Default: 10].
-- `BBZOUTMSG_QUEUE_CAP` : Capacity of the outgoing message queue [Default: 10].
-- `BBZHEAP_RSV_ACTREC_MAX` : Number of table objects reserved on the heap for lambdas'
-activation record [Default: 28, Max: 254].
-- `BBZLAMPORT_THRESHOLD` : Maximum difference for between two (2) lamport clocks for one to be considered newer than the other [Default: 50].
-- `BBZHEAP_GCMARK_DEPTH` : Max recursion depth for the heap's Garbage Collector marking function [Default: 8].
-- `BBZMSG_IN_PROC_MAX` : Max number of incomming messages processed per time step [Default: 10].
-- `BBZ_XTREME_MEMORY` : Whether to use high memory optimizations [Default: ON for kilobots otherwise OFF, Values: {ON, OFF}].
-- `BBZ_USE_PRIORITY_SORT` : Whether to use priority sort on out-messages queue [Default: OFF, Values: {ON, OFF}].
-- `BBZ_USE_FLOAT` : Whether to use float type [Default: OFF, Values: {ON, OFF}].
-- `BBZ_DISABLE_NEIGHBORS` : Whether to disable usage of neighbors' data structure and messages [Default: OFF, Values: {ON, OFF}].
-- `BBZ_DISABLE_VSTIGS` : Whether to disable usage of virtual stigmergies' data structure and messages [Default: OFF, Values: {ON, OFF}].
-- `BBZ_DISABLE_SWARMS` : Whether to disable usage of swarms' data structure and messages [Default: OFF, Values: {ON, OFF}].
-- `BBZ_DISABLE_MESSAGES` : Whether to disable usage and transfer of any kind of Buzz message [Default: OFF, Values: {ON, OFF}].
+The table below describes all configurable values and classifies each one by
+the likelihood that one will require changing it.
+
+|          Option           |                        Description                        |          Adjustment likelihood           |  PC  | Kilobot |
+|---------------------------|-----------------------------------------------------------|:----------------------------------------:|:----:|:-------:|
+| `BBZHEAP_SIZE`            | Size of the heap (B)                                      | <span style="color:#800">High</span>     | 3264 | 1088    |
+| `BBZHEAP_ELEMS_PER_TSEG`  | Num. entries per table segment                            | <span style="color:#880">Moderate</span> | 5    | 5       |
+| `BBZSTACK_SIZE`           | Size of the stack (num. objects)                          | <span style="color:#800">High</span>     | 96   | 96      |
+| `BBZVSTIG_CAP`            | Capacity of the `stigmergy` structure (num. entries)      | <span style="color:#800">High</span>     | 3    | 3       |
+| `BBZNEIGHBORS_CAP`        | Capacity of the `neighbors` structure (num. neighbors)    | <span style="color:#080">Low</span>      | 15   | 15      |
+| `BBZINMSG_QUEUE_CAP`      | Capacity of the incoming message queue (num. msgs)        | <span style="color:#080">Low</span>      | 10   | 10      |
+| `BBZOUTMSG_QUEUE_CAP`     | Capacity of the outgoing message queue (num. msgs)        | <span style="color:#080">Low</span>      | 10   | 10      |
+| `BBZHEAP_RSV_ACTREC_MAX`  | Num. objects on the heap reserved for activation records  | <span style="color:#880">Moderate</span> | 28   | 28      |
+| `BBZLAMPORT_THRESHOLD`    | Length of Lamport clocks' accepting zone                  | <span style="color:#080">Low</span>      | 50   | 50      |
+| `BBZHEAP_GCMARK_DEPTH`    | Garbage collector max recursion depth                     | <span style="color:#080">Low</span>      | 8    | 8       |
+| `BBZMSG_IN_PROC_MAX`      | Max. num. of incoming messages processed per timestep     | <span style="color:#880">Moderate</span> | 10   | 10      |
+| `BBZNEIGHBORS_CLR_PERIOD` | Num. timesteps between neighbor clears                    | <span style="color:#080">Low</span>      | 10   | 10      |
+| `BBZNEIGHBORS_MARK_TIME`  | Num. timesteps before clear we spend marking neighbors    | <span style="color:#080">Low</span>      | 4    | 4       |
+| `BBZ_XTREME_MEMORY`       | Whether to reduce RAM at the cost of Flash                | <span style="color:#880">Moderate</span> | OFF  | ON      |
+| `BBZ_USE_PRIORITY_SORT`   | Whether to use priority sort on outgoing message queue    | <span style="color:#080">Low</span>      | OFF  | OFF     |
+| `BBZ_USE_FLOAT`           | Whether to use float type                                 | <span style="color:#080">Low</span>      | OFF  | OFF     |
+| `BBZ_DISABLE_NEIGHBORS`   | Whether to disable the `neighbors` structure              | <span style="color:#800">High</span>     | OFF  | OFF     |
+| `BBZ_DISABLE_VSTIGS`      | Whether to disable the `stigmergy` structure              | <span style="color:#800">High</span>     | OFF  | OFF     |
+| `BBZ_DISABLE_SWARMS`      | Whether to disable the `swarms` structure                 | <span style="color:#800">High</span>     | ON   | ON      |
+| `BBZ_DISABLE_MESSAGES`    | Whether to disable Buzz messages                          | <span style="color:#880">Moderate</span> | OFF  | OFF     |
 
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 
