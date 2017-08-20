@@ -28,7 +28,7 @@ For the Kilobot
 
 To compile BittyBuzz to an .hex file that can be used with the
 Kilobot, you need `avr-gcc` and related tools. `avr-gcc` is expected to be
-installed under `/usr/lib/avr/`.
+installed under `/usr/lib/avr/` so that CMake may find its header files.
 
 Type these commands:
 
@@ -37,9 +37,6 @@ Type these commands:
     $ cd build_kilobot
     $ cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Kilobot.cmake ../src/
     $ make
-
-The configuration options available for this compilation type are similar
-to those of the PC compilation.
 
 Generating documentation
 ========================
