@@ -37,7 +37,6 @@ typedef struct PACKED bbzmsg_broadcast_t {
     bbzrobot_id_t rid; /**< @brief A robot id */
     uint16_t topic; /**< @brief The topic of the broadcast. @note It's a string ID */
     bbzobj_t value; /**< @brief The broadcasted value. */
-    uint8_t  dist;  /**< @brief The distance measurement. */
 #endif
 } bbzmsg_broadcast_t;
 
@@ -50,7 +49,6 @@ typedef struct PACKED bbzmsg_swarm_t {
     bbzrobot_id_t rid; /**< @brief A robot id */
     bbzlamport_t lamport; /**< @brief TODO */
     bbzswarmlist_t swarms; /**< @brief TODO */
-    uint8_t dist; /**< @brief Distance measurement. */
 #endif // !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
 } bbzmsg_swarm_t;
 

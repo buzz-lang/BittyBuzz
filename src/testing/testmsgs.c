@@ -170,7 +170,6 @@ TEST(m_in_append) {
     bbzmsg_serialize_u16(&payload2, 42);
     bbzmsg_serialize_u16(&payload2, __BBZSTRID_id);
     bbzmsg_serialize_obj(&payload2, &obj1);
-    bbzmsg_serialize_u8 (&payload2, 100);
 
     bbzmsg_serialize_u8 (&payload3, BBZMSG_VSTIG_PUT);
     bbzmsg_serialize_u16(&payload3, 42);
@@ -229,7 +228,6 @@ TEST(m_in_queue_first) {
     bbzmsg_serialize_u16(&payload1, 42);
     bbzmsg_serialize_u16(&payload1, __BBZSTRID_count);
     bbzmsg_serialize_obj(&payload1, &obj1);
-    bbzmsg_serialize_u8 (&payload1, 100);
     bbzinmsg_queue_append(&payload1);
 
     bbzmsg_t* msg = bbzinmsg_queue_extract();
