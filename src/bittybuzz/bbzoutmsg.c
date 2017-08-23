@@ -56,7 +56,7 @@ void bbzoutmsg_queue_append_broadcast(bbzheap_idx_t topic, bbzheap_idx_t value) 
 /****************************************/
 /****************************************/
 
-#ifndef BBZ_DISABLE_SWARMS
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
 void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
                                   bbzswarmlist_t swarms,
                                   bbzlamport_t lamport) {
@@ -68,7 +68,7 @@ void bbzoutmsg_queue_append_swarm(bbzrobot_id_t robot,
     m->sw.swarms = swarms;
     bbzmsg_sort_priority(&vm->outmsgs.queue);
 }
-#endif // !BBZ_DISABLE_SWARMS
+#endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 /****************************************/
 /****************************************/
@@ -120,13 +120,13 @@ void bbzoutmsg_queue_first(bbzmsg_payload_t* buf) {
             return;
 #endif // !BBZ_DISABLE_VSTIGS
         case BBZMSG_SWARM:
-#ifndef BBZ_DISABLE_SWARMS
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
             bbzmsg_serialize_u16(buf, msg->sw.lamport);
             bbzmsg_serialize_u8(buf, msg->sw.swarms);
             break;
-#else // !BBZ_DISABLE_SWARMS
+#else // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_SWARMLIST_BROADCASTS
             return;
-#endif // !BBZ_DISABLE_SWARMS
+#endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_SWARMLIST_BROADCASTS
         default:
             break;
     }

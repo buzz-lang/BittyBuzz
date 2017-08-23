@@ -39,15 +39,15 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             return;
 #endif
         case BBZMSG_SWARM:
-#ifndef BBZ_DISABLE_SWARMS
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
             bbzmsg_deserialize_u16(&m->sw.lamport, payload, &pos);
             if (pos < 0) return;
             bbzmsg_deserialize_u8(&m->sw.swarms, payload, &pos);
             if (pos < 0) return;
             break;
-#else
+#else // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_SWARMLIST_BROADCASTS
             return;
-#endif
+#endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_SWARMLIST_BROADCASTS
         default:
             // Unknown type of message, the message is dropped.
             return;

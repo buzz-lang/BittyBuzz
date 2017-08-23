@@ -77,7 +77,7 @@ extern "C" {
         bbzheap_t heap;            /**< @brief Heap content */
         bbzheap_idx_t nil;         /**< @brief Singleton bbznil_t */
         bbzheap_idx_t dflt_actrec; /**< @brief Singleton bbzdarray_t for the default activations record */
-        bbzheap_idx_t flist;       /**< @brief Registered functions */
+        bbzheap_idx_t flist;       /**< @brief Registered lambda functions */
         bbzswarm_t swarm;          /**< @brief Swarm data */
         bbzinmsg_queue_t inmsgs;   /**< @brief Input messages FIFO */
         bbzoutmsg_queue_t outmsgs; /**< @brief Output messages FIFO */

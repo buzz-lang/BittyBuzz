@@ -17,9 +17,7 @@ function init() {
       function(value_id, value, robot_id) {
         var n = neighbors.get(robot_id)
         if (n != nil and value != nil) {
-          mydist = math.min(
-                     mydist,
-                     n.distance + value)
+          mydist = math.min(mydist, n.distance + value)
         }
       })
   }
@@ -56,8 +54,5 @@ function step() {
   if(iteration % 10 == 0 and mydist < 600) {
     neighbors.broadcast("dist_to_source", mydist)
   }
-#  if(id != 7 and mydist < 600) { # iteration % 8 == 0 and
-#    mydist = mydist + 5
-#  }
   iteration = iteration + 1
 }
