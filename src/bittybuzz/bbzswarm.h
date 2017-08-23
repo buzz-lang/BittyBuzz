@@ -333,6 +333,11 @@ void bbzswarm_in();
 void bbzswarm_select();
 
 /**
+ * @brief Buzz C closure which conditionally removes a robot from a swarm.
+ */
+void bbzswarm_unselect();
+
+/**
  * @brief Buzz C closure which executes a closure if the robot belongs to
  * a swarm.
  */
@@ -357,6 +362,7 @@ void bbzswarm_dummyret();
 #define bbzswarm_leave()        bbzswarm_dummy()
 #define bbzswarm_in()           bbzswarm_dummyret()
 #define bbzswarm_select()       bbzswarm_dummy()
+#define bbzswarm_unselect()     bbzswarm_dummy()
 #define bbzswarm_exec()         bbzswarm_dummy()
 #endif // !BBZ_DISABLE_SWARMS
 

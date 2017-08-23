@@ -5,9 +5,9 @@
 #include <bittybuzz/bbzswarm.h>
 
 #ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
-#define SUBSWARM_TBL_SIZE 7 // 6 closures + 'id'
+#define SUBSWARM_TBL_SIZE 8 // 6 closures + 'id'
 #else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
-#define SUBSWARM_TBL_SIZE 6 // 5 closures + 'id'
+#define SUBSWARM_TBL_SIZE 7 // 5 closures + 'id'
 #endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 
 #define TEST_END ((uint16_t)~0)
@@ -478,7 +478,7 @@ TEST(others) {
     bbzvm_pop();
 
     // Add subswarm memberships.
-    bbzswarm_addmember(0, 0);
+    bbzswarm_addmember(RBT, 0);
     bbzswarm_addmember(1, 1);
     bbzswarm_rmmember (1, 1);
 
@@ -629,7 +629,7 @@ TEST(in) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     // Add some subswarm memberships.
-    bbzswarm_addmember(0, 0);
+    bbzswarm_addmember(RBT, 0);
 #ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbzswarm_addmember(1, 0);
 #endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
@@ -666,7 +666,7 @@ TEST(in) {
 /****************************************/
 /****************************************/
 
-TEST(select) {
+TEST(select_unselect) {
     bbzvm_t vmObj;
     init_test(&vmObj);
 
@@ -677,7 +677,8 @@ TEST(select) {
 
     // Get closures
     bbzvm_push(s0);
-    const bbzheap_idx_t SELECT0 = bbztable_get_subfield(__BBZSTRID_select);
+    const bbzheap_idx_t SELECT0   = bbztable_get_subfield(__BBZSTRID_select);
+    const bbzheap_idx_t UNSELECT0 = bbztable_get_subfield(__BBZSTRID_unselect);
     bbzvm_pop();
 
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -689,7 +690,7 @@ TEST(select) {
         TRUE_OBJ  = bbzvm_stack_at(1),
         FALSE_OBJ = bbzvm_stack_at(0);
 
-    // Check a 'true' value.
+    // Check 'select'.
     {
         bbzheap_idx_t params[] = {TRUE_OBJ, FALSE_OBJ, vm->nil, TEST_END};
         uint8_t expected_ret[] = {       1,         0,        0};
@@ -701,7 +702,27 @@ TEST(select) {
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
             uint8_t ret = bbzswarm_isrobotin(0, 0) != 0;
             ASSERT_EQUAL(ret, expected_ret[i]);
-            bbzswarm_rmmember(0, 0);
+            bbzswarm_rmmember(RBT, 0);
+
+            ++i;
+        }
+    }
+
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
+
+    // Check 'unselect'.
+    {
+        bbzheap_idx_t params[] = {TRUE_OBJ, FALSE_OBJ, vm->nil, TEST_END};
+        uint8_t expected_ret[] = {       0,         1,        1};
+        uint16_t i = 0;
+        while(params[i] != TEST_END) {
+            bbzvm_push(UNSELECT0);
+            bbzvm_push(params[i]);
+            bbzvm_closure_call(1); // 's0.unselect(<param>)'
+            REQUIRE(vm->state != BBZVM_STATE_ERROR);
+            uint8_t ret = bbzswarm_isrobotin(0, 0) != 0;
+            ASSERT_EQUAL(ret, expected_ret[i]);
+            bbzswarm_addmember(RBT, 0);
 
             ++i;
         }
@@ -711,7 +732,8 @@ TEST(select) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
-        test_wrong_num_params(SELECT0, 1, 1);
+        test_wrong_num_params(SELECT0,   1, 1);
+        test_wrong_num_params(UNSELECT0, 1, 1);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
 }
@@ -831,6 +853,6 @@ TEST_LIST {
     ADD_TEST(id);
     ADD_TEST(join_leave);
     ADD_TEST(in);
-    ADD_TEST(select);
+    ADD_TEST(select_unselect);
     ADD_TEST(exec);
 }

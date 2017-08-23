@@ -98,6 +98,7 @@ static void make_table(bbzswarm_id_t swarm) {
     bbztable_add_function(__BBZSTRID_leave,  bbzswarm_leave);
     bbztable_add_function(__BBZSTRID_in,     bbzswarm_in);
     bbztable_add_function(__BBZSTRID_select, bbzswarm_select);
+    bbztable_add_function(__BBZSTRID_unselect, bbzswarm_unselect);
     bbztable_add_function(__BBZSTRID_exec,   bbzswarm_exec);
 #ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
     bbztable_add_function(__BBZSTRID_others, bbzswarm_others);
@@ -334,20 +335,41 @@ void bbzswarm_in() {
 /****************************************/
 /****************************************/
 
-void bbzswarm_select() {
-    bbzvm_assert_lnum(1);
-
+/**
+ * @brief Base for bbzswarm_select and bbzswarm_unselect.
+ * @param[in] select Nonzero if selecting, 0 if unselecting.
+ */
+static void swarm_select_unselect(uint8_t select) {
     uint8_t should_join = bbztype_tobool(bbzheap_obj_at(bbzvm_locals_at(1)));
     if (should_join) {
-        bbzvm_lload(0); // Push table we are calling 'select' on.
+        bbzvm_lload(0); // Push table we are calling '(un)select' on.
         bbzswarm_id_t swarm = get_id();
         swarmlist_entry_t entry = swarmlist_entry_fromswarm(swarm);
         swarmlist_entry_t existing = swarmlist_get(vm->robot);
-        existing.swarmlist |= entry.swarmlist; // Copy into existing entry to preserve
-                                               // the Lamport clock, if applicable.
+        if (select) {
+            existing.swarmlist |= entry.swarmlist; // Copy into existing entry to preserve
+                                                   // the Lamport clock, if applicable.
+        }
+        else {
+            existing.swarmlist &= ~entry.swarmlist; // Copy into existing entry to preserve
+                                                    // the Lamport clock, if applicable.
+        }
         swarmlist_set(vm->robot, existing);
     }
+}
 
+void bbzswarm_select() {
+    bbzvm_assert_lnum(1);
+    swarm_select_unselect(1);
+    bbzvm_ret0();
+}
+
+/****************************************/
+/****************************************/
+
+void bbzswarm_unselect() {
+    bbzvm_assert_lnum(1);
+    swarm_select_unselect(0);
     bbzvm_ret0();
 }
 
