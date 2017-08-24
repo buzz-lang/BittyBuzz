@@ -34,7 +34,8 @@ exactly one VM. For kilobots, this doesn't matter because the kilobot
 extension or ARGoS uses separate processes, but if someone implements a
 controller for a robot for which this is not the case, the controller
 developper can merely 'swap' VM pointer when changing which robot we are
-controlling, or something like that).
+controlling, or something like that). For debugging, you can use `simulavr`
+along with the remote target feature of `avr-gdb`.
 - Redo the heap tests so that they use our testing macro (REQUIRE, ASSERT,
 ASSERT_EQUAL). Currently, the test will look like it passes even if it
 doesn't.
