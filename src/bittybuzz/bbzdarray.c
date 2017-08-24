@@ -8,6 +8,7 @@ uint8_t bbzdarray_new(bbzheap_idx_t* d) {
     if (!bbzheap_obj_alloc(BBZTYPE_TABLE, d)) return 0;
     /* Set the bit that tells it's a dynamic array */
     bbzheap_obj_at(*d)->t.mdata |= BBZTABLE_DARRAY_MASK;
+    bbzheap_obj_at(*d)->t.mdata &= ~BBZTABLE_DARRAY_HAS_SELF_MASK;
     return 1;
 }
 
@@ -361,6 +362,7 @@ uint8_t bbzdarray_lambda_alloc(bbzheap_idx_t d, uint8_t* l) {
             bbztype_cast(*x, BBZTYPE_TABLE);
             /* Set the bit that tells it's a dynamic array */
             x->t.mdata |= BBZTABLE_DARRAY_MASK;
+            x->t.mdata &= ~BBZTABLE_DARRAY_HAS_SELF_MASK;
             /* Set result */
             *l = i;
             /* Allocate an array segment */

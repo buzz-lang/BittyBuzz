@@ -392,6 +392,7 @@ void bbzswarm_exec() {
         bbzdarray_push(vm->swarm.swarmstack, swarm_obj);
 
         // Call closure
+        bbzvm_lload(0); // Push self table
         bbzvm_lload(1); // Push closure
         bbzvm_closure_call(0);
 

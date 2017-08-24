@@ -19,6 +19,7 @@ TEST(vstig_create) {
     bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->vstig.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_create);
     bbzvm_tget();
     bbzvm_pushi(0);
@@ -41,11 +42,13 @@ TEST(vstig_put) {
     bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->vstig.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_create);
     bbzvm_tget();
     bbzvm_pushi(0);
     bbzvm_closure_call(1);
 
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_put);
     bbzvm_tget();
     bbzvm_pushs(__BBZSTRID_data);
@@ -68,12 +71,14 @@ TEST(vstig_get) {
     bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->vstig.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_create);
     bbzvm_tget();
     bbzvm_pushi(0);
     bbzvm_closure_call(1);
     bbzheap_idx_t vs = bbzvm_stack_at(0);
 
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_put);
     bbzvm_tget();
     bbzvm_pushs(__BBZSTRID_data);
@@ -81,6 +86,7 @@ TEST(vstig_get) {
     bbzvm_closure_call(2);
 
     bbzvm_push(vs);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_get);
     bbzvm_tget();
     bbzvm_pushs(__BBZSTRID_data);
@@ -99,19 +105,21 @@ TEST(vstig_size) {
     bbzvm_set_bcode(bcodefetcher, 4);
 
     bbzvm_push(vm->vstig.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_create);
     bbzvm_tget();
     bbzvm_pushi(0);
     bbzvm_closure_call(1);
     bbzvm_dup(); // Keep on the stack for future use
 
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_put);
     bbzvm_tget();
     bbzvm_pushs(__BBZSTRID_data);
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
 
-    // We use the duplicated table here
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_size);
     bbzvm_tget();
     bbzvm_closure_call(0);

@@ -14,10 +14,10 @@
 #define GSYMS_COUNT_DEFAULT 1
 #ifndef BBZ_DISABLE_SWARMS
 #ifndef BBZ_DISABLE_SWARMLIST_BROADCASTS
-#define FLIST_COUNT_SWARMS 5
+#define FLIST_COUNT_SWARMS 0
 #define GSYMS_COUNT_SWARMS 1
 #else // !BBZ_DISABLE_SWARMLIST_BROADCASTS
-#define FLIST_COUNT_SWARMS 2
+#define FLIST_COUNT_SWARMS 0
 #define GSYMS_COUNT_SWARMS 1
 #endif // !BBZ_DISABLE_SWARMLIST_BROADCASTS
 #else // !BBZ_DISABLE_SWARMS
@@ -25,14 +25,14 @@
 #define GSYMS_COUNT_SWARMS 0
 #endif // !BBZ_DISABLE_SWARMS
 #ifndef BBZ_DISABLE_NEIGHBORS
-#define FLIST_COUNT_NEIGHBORS 8
+#define FLIST_COUNT_NEIGHBORS 0
 #define GSYMS_COUNT_NEIGHBORS 1
 #else // !BBZ_DISABLE_NEIGHBORS
 #define FLIST_COUNT_NEIGHBORS 0
 #define GSYMS_COUNT_NEIGHBORS 0
 #endif // !BBZ_DISABLE_NEIGHBORS
 #ifndef BBZ_DISABLE_VSTIGS
-#define FLIST_COUNT_VSTIGS 1
+#define FLIST_COUNT_VSTIGS 0
 #define GSYMS_COUNT_VSTIGS 1
 #else // !BBZ_DISABLE_VSTIGS
 #define FLIST_COUNT_VSTIGS 0
@@ -151,7 +151,7 @@ void logfunc() {
         bbzobj_t* o = bbzheap_obj_at(bbzvm_stack_at(i));
         switch(bbztype(*o)) {
             case BBZTYPE_NIL:
-                printf("nil");
+                printf("[nil]");
                 break;
             case BBZTYPE_INT:
                 printf("%d", o->i.value);
@@ -160,13 +160,13 @@ void logfunc() {
                 printf("%f", bbzfloat_tofloat(o->f.value));
                 break;
             case BBZTYPE_TABLE:
-                printf("[t]%" PRIu16, o->t.value);
+                printf("[t:%d]%" PRIu16, bbztable_size(bbzvm_stack_at(i)), o->t.value);
                 break;
             case BBZTYPE_USERDATA:
                 printf("[u]%" PRIXPTR, o->u.value);
                 break;
             case BBZTYPE_STRING:
-                //printf("[s]%d", (o->s.value));
+                printf("[s]%d", (o->s.value));
                 break;
             case BBZTYPE_CLOSURE:
                 if (bbztype_isclosurelambda(*o))
@@ -177,7 +177,7 @@ void logfunc() {
             default:
                 break;
         }
-        if (bbztype(*o) != BBZTYPE_STRING) printf("; ");
+        if (i < argn - 1) printf("; ");
     }
     printf("\n");
 }
@@ -682,6 +682,7 @@ TEST(vm_closures) {
     c = bbzvm_stack_at(0);
     bbzvm_pop();
     REQUIRE(bbztype_isclosure(*bbzheap_obj_at(c)));
+    bbzvm_pushnil(); // Push self table
     bbzvm_pushi(123);
     bbzvm_function_call(BBZVM_SYMID_PRINT, 1);
     ASSERT(vm->state != BBZVM_STATE_ERROR);

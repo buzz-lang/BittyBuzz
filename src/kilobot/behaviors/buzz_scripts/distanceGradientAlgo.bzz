@@ -15,7 +15,7 @@ function init() {
     # Listen to other robots' distances
     neighbors.listen("dist_to_source",
       function(value_id, value, robot_id) {
-        var n = neighbors.get(robot_id)
+        var n = neighbors.get(robot_id) # FIXME Sometimes the value returned is nil
         if (n != nil and value != nil) {
           mydist = math.min(mydist, n.distance + value)
         }

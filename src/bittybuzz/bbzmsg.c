@@ -88,6 +88,7 @@ void bbzmsg_process_broadcast(bbzmsg_t* msg) {
     bbzheap_idx_t l;
     if (!bbztable_get(vm->neighbors.listeners, topic, &l)) return;
     // Call the listener
+    bbzvm_pushnil(); // Push self table
     bbzvm_push(l);
     bbzvm_push(topic);
     bbzvm_pushu(0);
@@ -151,6 +152,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                 // Check if there is a callback closure.
                 if (bbztable_get(vm->vstig.hpos, bbzstring_get(__BBZSTRID___INTERNAL_1_DO_NOT_USE__),
                                  &tmp)) {
+                    bbzvm_pushnil(); // Push self table
                     bbzvm_push(tmp);
                     bbzvm_pushs(msg->vs.key);
                     // push the local data
@@ -191,6 +193,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                         tmp = vm->nil;
                         if (bbztable_get(vm->vstig.hpos,
                                          bbzstring_get(__BBZSTRID___INTERNAL_2_DO_NOT_USE__), &tmp)) {
+                            bbzvm_pushnil(); // Push self table
                             bbzvm_push(tmp);
                             bbzvm_pushs(msg->vs.key);
                             bbzvm_push(rd);

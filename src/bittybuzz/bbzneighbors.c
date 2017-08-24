@@ -202,6 +202,7 @@ static void neighbor_foreach_fun(bbzheap_idx_t key,
                                  bbzheap_idx_t value,
                                  void *params) {
     // Push closure and args
+    bbzvm_lload(0); // Push self table
     bbzvm_push(*(bbzheap_idx_t*)params);
     bbzvm_push(key);
     bbzvm_push(value);
@@ -268,6 +269,7 @@ static void neighbor_map_base(bbzheap_idx_t key,
     uint16_t ss = bbzvm_stack_size();
 
     // Call closure
+    bbzvm_lload(0); // Push self table
     bbzvm_push(nm->c);
     bbzvm_push(key);
     bbzvm_push(value);
@@ -371,6 +373,7 @@ static void neighbor_reduce(bbzheap_idx_t key,
     uint16_t ss = bbzvm_stack_size();
 
     // Call closure
+    bbzvm_lload(0); // Push self table
     bbzvm_push(c);
     bbzvm_push(key);
     bbzvm_push(value);

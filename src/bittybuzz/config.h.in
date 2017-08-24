@@ -120,6 +120,12 @@
 #cmakedefine BBZ_DISABLE_MESSAGES
 
 /**
+ * @brief Whether to disable Python behaviors of closures.
+ * @brief Make closures behave like in JavaScript.
+ */
+#cmakedefine BBZ_DISABLE_PY_BEHAV
+
+/**
  * @brief Whether we disable the broadcasting of our swarmlist to
  * neighboring robots.
  * @todo Currently, BittyBuzz requires this feature to be disabled.

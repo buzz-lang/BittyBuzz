@@ -7,7 +7,7 @@
 
 bbzvm_t vmObj;
 
-#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES)
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
 TEST(m_serialize8) {
     uint8_t buf[4];
     bbzringbuf_t rb;
@@ -240,7 +240,7 @@ TEST(m_in_queue_first) {
 #endif // !BBZ_DISABLE_SWARMS && !BBZ_DISABLE_NEIGHBORS && !BBZ_DISABLE_VSTIGS && !BBZ_DISABLE_MESSAGES
 
 TEST_LIST {
-#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES)
+#if !defined(BBZ_DISABLE_SWARMS) && !defined(BBZ_DISABLE_NEIGHBORS) && !defined(BBZ_DISABLE_VSTIGS) && !defined(BBZ_DISABLE_MESSAGES) && !defined(BBZ_DISABLE_SWARMLIST_BROADCASTS)
     ADD_TEST(m_serialize8);
     ADD_TEST(m_deserialize8);
     ADD_TEST(m_serialize16);

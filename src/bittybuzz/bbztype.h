@@ -68,6 +68,12 @@ extern "C" {
 #define BBZTABLE_DARRAY_MASK ((uint8_t)(1 << BBZTYPE_TYPEDEP_FLAG1_IDX))
 
 /**
+ * @brief Mask for the flag that tells whether the darray has a self-table or not.
+ * @note This is only for darrays that are used as an activation record.
+ */
+#define BBZTABLE_DARRAY_HAS_SELF_MASK ((uint8_t)(1 << BBZTYPE_TYPEDEP_FLAG2_IDX))
+
+/**
  * @brief Mask for the object's heap "validity" flag (if it is used or not)
  */
 #define BBZHEAP_OBJ_MASK_VALID ((uint8_t)(1 << BBZTYPE_OBJ_VALID_FLAG_IDX))
@@ -317,6 +323,31 @@ uint8_t bbztype_tobool(const bbzobj_t* o) {
  * @param[in] obj The object.
  */
 #define bbztype_isdarray(obj) (bbztype_istable(obj) && ((obj).mdata & BBZTABLE_DARRAY_MASK))
+
+/**
+ * @brief Returns non-zero if the darray has a self-table, 0 otherwise.
+ * @note This is only for darrays that are used as an activation record.
+ * @param[in] obj The object.
+ */
+#ifndef BBZ_DISABLE_PY_BEHAV
+#define bbztype_darray_hasself(obj) ((obj).mdata & BBZTABLE_DARRAY_HAS_SELF_MASK)
+#else // !BBZ_DISABLE_PY_BEHAV
+#define bbztype_darray_hasself(obj) (0)
+#endif // !BBZ_DISABLE_PY_BEHAV
+
+/**
+ * @brief Mark a darray as having a self-table.
+ * @note This is only for darrays that are used as an activation record.
+ * @param[in,out] obj The darray object to mark.
+ */
+#define bbztype_darray_markself(obj) {(obj).mdata |= BBZTABLE_DARRAY_HAS_SELF_MASK;}
+
+/**
+ * @brief Unmark a darray as having a self-table.
+ * @note This is only for darrays that are used as an activation record.
+ * @param[in,out] obj The darray object to unmark.
+ */
+#define bbztype_darray_unmarkself(obj) {(obj).mdata &= ~BBZTABLE_DARRAY_HAS_SELF_MASK;}
 
 /**
  * @brief Returns 1 if an object is closure, 0 otherwise.

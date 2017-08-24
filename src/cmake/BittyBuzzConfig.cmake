@@ -27,10 +27,11 @@ config_value(BBZNEIGHBORS_MARK_TIME 4)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
 option(BBZ_USE_PRIORITY_SORT "Whether to use priority sort on out-messages queue." OFF)
 option(BBZ_USE_FLOAT "Whether to use float type." OFF)
-option(BBZ_DISABLE_NEIGHBORS "Whether to disable usage of neighbors' data structure and messages." ON)
-option(BBZ_DISABLE_VSTIGS "Whether to disable usage of virtual stigmergies' data structure and messages." ON)
+option(BBZ_DISABLE_NEIGHBORS "Whether to disable usage of neighbors' data structure and messages." OFF)
+option(BBZ_DISABLE_VSTIGS "Whether to disable usage of virtual stigmergies' data structure and messages." OFF)
 option(BBZ_DISABLE_SWARMS "Whether to disable usage of swarms' data structure and messages." OFF) # TODO Swarms take too much RAM because there are so many closure activation records
 option(BBZ_DISABLE_MESSAGES "Whether to disable usage and transfer of any kind of Buzz message." OFF)
+option(BBZ_DISABLE_PY_BEHAV "Whether to disable Python behaviors of closures (make closure behave like in JavaScript)." OFF)
 
 # TODO Currently, there is no implementation of swarmlist broadcasts because
 # neighbors.kin and neighbors.nonkin, which are the only closures that would

@@ -250,7 +250,7 @@ void bbzheap_print() {
                     break;
                 case BBZTYPE_CLOSURE:
                     if (bbztype_isclosurenative(*bbzheap_obj_at(i))) printf("[n]");
-                    if (bbztype_isclosurelambda(*bbzheap_obj_at(i))) printf("[l]");
+                    if (bbztype_isclosurelambda(*bbzheap_obj_at(i))) printf("[l] {%d;%d}", (int)(intptr_t)bbzheap_obj_at(i)->l.value.actrec, (int)(intptr_t)bbzheap_obj_at(i)->l.value.ref);
                     else
                         printf(" %d", (int)(intptr_t)bbzheap_obj_at(i)->c.value);
                     break;
@@ -282,6 +282,7 @@ void bbzheap_print() {
     }
     int usage = (objnum * sizeof(bbzobj_t)) + (tsegnum * sizeof(bbzheap_tseg_t));
     printf("Heap usage (B): %04d/%04d (%.1f%%)\n", usage, BBZHEAP_SIZE, ((double)usage/BBZHEAP_SIZE)*100.0);
+    printf("Heap usage (B) for 16-bit pointers: %04d\n", (int)(objnum * 3 + (tsegnum * sizeof(bbzheap_tseg_t))));
     int uspace = ((vm->heap.ltseg)-(vm->heap.rtobj));
     printf("Unclaimed space (B): %d (=%d object(s) or %d segment(s))\n",
            uspace,

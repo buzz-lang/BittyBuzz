@@ -27,6 +27,7 @@ TEST(broadcast) {
     bbzvm_construct(0);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_broadcast);
     bbzvm_tget();
     bbzvm_pushs(0);
@@ -50,6 +51,7 @@ TEST(listen) {
     bbzvm_construct(0);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_listen);
     bbzvm_tget();
     bbzvm_pushs(0);
@@ -65,6 +67,7 @@ TEST(ignore) {
     bbzvm_construct(0);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_listen);
     bbzvm_tget();
     bbzvm_pushs(0);
@@ -73,6 +76,7 @@ TEST(ignore) {
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_ignore);
     bbzvm_tget();
     bbzvm_pushs(0);
@@ -95,6 +99,7 @@ TEST(get) {
     bbzneighbors_add(&elem);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup();
     bbzvm_pushs(__BBZSTRID_get);
     bbzvm_tget();
     bbzvm_pushi(1);
@@ -123,6 +128,7 @@ TEST(foreach) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_foreach);
     bbzvm_tget();
     bbzvm_pushcc(foreach_fun);
@@ -151,6 +157,7 @@ TEST(map) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_map);
     bbzvm_tget();
     bbzvm_pushcc(map_fun);
@@ -179,6 +186,7 @@ TEST(reduce) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup();
     bbzvm_pushs(__BBZSTRID_reduce);
     bbzvm_tget();
     bbzvm_pushcc(reduce_fun);
@@ -210,6 +218,7 @@ TEST(filter) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_map);
     bbzvm_tget();
     bbzvm_pushcc(filter_fun);
@@ -229,6 +238,7 @@ TEST(count) {
     bbzneighbors_add(&elem2);
 
     bbzvm_push(vm->neighbors.hpos);
+    bbzvm_dup();
     bbzvm_pushs(__BBZSTRID_count);
     bbzvm_tget();
     bbzvm_closure_call(0);

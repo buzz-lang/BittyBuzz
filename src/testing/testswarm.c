@@ -1,4 +1,4 @@
-#define NUM_TEST_CASES 12
+#define NUM_TEST_CASES 13
 #define TEST_MODULE swarm
 #include "testingconfig.h"
 
@@ -12,6 +12,39 @@
 
 #define TEST_END ((uint16_t)~0)
 #define RBT 0 /**< @brief Current robot */
+
+FILE* fbcode;
+int16_t fsize;
+uint8_t buf[4];
+
+/**
+ * @brief Fetches bytecode from a FILE.
+ * @param[in] offset Offset of the bytes to fetch.
+ * @param[in] size Size of the data to fetch.
+ * @return A pointer to the data fetched.
+ */
+const uint8_t* testBcode(bbzpc_t offset, uint8_t size) {
+    if (offset + size - 2 >= fsize) {
+        fprintf(stderr, "Trying to read outside of bytecode. Offset: %"
+                PRIu16 ", size: %" PRIu8 ".", offset, size);
+    }
+    else {
+        switch(size) {
+            case sizeof(uint8_t):  // Fallthrough
+            case sizeof(uint16_t): // Fallthrough
+            case sizeof(uint32_t): {
+                fseek(fbcode, offset, SEEK_SET);
+                RM_UNUSED_RETVAL_WARN(fread(buf, size, 1, fbcode));
+                break;
+            }
+            default: {
+                fprintf(stderr, "Bad bytecode size: %" PRIu8 ".", size);
+                break;
+            }
+        }
+    }
+    return buf;
+}
 
 /**
  * @brief Resets the VM's state and error.
@@ -30,10 +63,13 @@ void error_receiver(bbzvm_error errcode) {
  * well as one argument more than max.
  */
 void test_wrong_num_params(bbzheap_idx_t closure, uint16_t min_num, uint16_t max_num) {
+    bbzheap_idx_t selfTable = bbzvm_stack_at(0);
+    bbzvm_pop();
     uint16_t num_params[2] = {min_num - 1, max_num + 1};
     uint8_t should_try[2]  = {min_num > 0, max_num < UINT16_MAX};
     for (uint8_t i = 0; i < 2; ++i) {
         if (should_try[i]) {
+            bbzvm_push(selfTable);
             bbzvm_push(closure);
             for (uint16_t j = 0; j < num_params[i]; ++j) {
                 bbzvm_pushi(0);
@@ -53,8 +89,11 @@ void test_wrong_num_params(bbzheap_idx_t closure, uint16_t min_num, uint16_t max
  * @details This checks for -1 as 8 swarm IDs.
  */
 void test_wrong_swarm_ids(bbzheap_idx_t closure) {
+    bbzheap_idx_t selfTable = bbzvm_stack_at(0);
+    bbzvm_pop();
     int16_t swarm_ids[2] = {-1, 8*sizeof(bbzswarmlist_t)};
     for (uint8_t i = 0; i < 2; ++i) {
+        bbzvm_push(selfTable); // Push self table
         bbzvm_push(closure);
         bbzvm_pushi(swarm_ids[i]);
         bbzvm_closure_call(1);
@@ -81,6 +120,7 @@ bbzheap_idx_t get_swarm_subfield(uint16_t strid) {
  * @return The created subswarm
  */
 bbzheap_idx_t create_subswarm_structure(bbzswarm_id_t swarm) {
+    bbzvm_push(vm->swarm.hpos); // Push self table
     bbzvm_push(get_swarm_subfield(__BBZSTRID_create));
     bbzvm_pushi(swarm);
     bbzvm_closure_call(1); // 'swarm.create(<id>)'
@@ -275,6 +315,7 @@ TEST(create) {
 
     // Create a swarm.
     const bbzheap_idx_t CREATE = get_swarm_subfield(__BBZSTRID_create);
+    bbzvm_push(vm->swarm.hpos); // Push self table
     bbzvm_push(CREATE);
     bbzvm_pushi(0); // Swarm ID
     bbzvm_closure_call(1); // swarm.create(0)
@@ -296,9 +337,11 @@ TEST(create) {
     bbzvm_error_receiver_fun old_err_rcvr = vm->error_receiver_fun;
     bbzvm_set_error_receiver(error_receiver);
     // Check if <0 and >7 swarm IDs fail.
+    bbzvm_push(vm->swarm.hpos); // Push self table
     test_wrong_swarm_ids(CREATE);
 
     // Check if wrong number of parameters fails
+    bbzvm_push(vm->swarm.hpos); // Push self table
     test_wrong_num_params(CREATE, 1, 1);
     bbzvm_set_error_receiver(old_err_rcvr);
 }
@@ -410,6 +453,7 @@ TEST(id) {
 
     // Check without argument
     {
+        bbzvm_push(vm->swarm.hpos); // Push self table
         bbzvm_push(ID);
         bbzvm_closure_call(0); // 'swarm.id()'
         REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -421,6 +465,7 @@ TEST(id) {
     // Check with argument
     {
         for (uint8_t i = 0; i <= NUM_PUSHES - 1; ++i) {
+            bbzvm_push(vm->swarm.hpos); // Push self table
             bbzvm_push(ID);
             bbzvm_pushi(i);
             bbzvm_closure_call(1); // 'swarm.id(i)'
@@ -437,6 +482,7 @@ TEST(id) {
     {
         int16_t args[2] = {-1, NUM_PUSHES};
         for (uint8_t i = 0; i < 2; ++i) {
+            bbzvm_push(vm->swarm.hpos); // Push self table
             bbzvm_push(ID);
             bbzvm_pushi(args[i]);
             bbzvm_closure_call(1); // 'swarm.id(i)'
@@ -447,6 +493,7 @@ TEST(id) {
 
     // Check if wrong number of arguments fails.
     {
+        bbzvm_push(vm->swarm.hpos); // Push self table
         test_wrong_num_params(ID, 0, 1);
     }
 
@@ -556,12 +603,15 @@ TEST(join_leave) {
     // -------------
 
     // Add some subswarm memberships.
+    bbzvm_push(s0); // Push self table
     bbzvm_push(JOIN0);
     bbzvm_closure_call(0); // 's0.join()'
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    bbzvm_push(s1); // Push self table
     bbzvm_push(JOIN1);
     bbzvm_closure_call(0); // 's1.join()'
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    bbzvm_push(s1); // Push self table
     bbzvm_push(JOIN1);
     bbzvm_closure_call(0); // 's1.join()'
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -577,6 +627,7 @@ TEST(join_leave) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(JOIN0, 0, 0);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
@@ -586,6 +637,7 @@ TEST(join_leave) {
     // --------------
 
     // Remove some subswarm memberships.
+    bbzvm_push(s0); // Push self table
     bbzvm_push(LEAVE0);
     bbzvm_closure_call(0); // 's0.leave()'
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -600,6 +652,7 @@ TEST(join_leave) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(LEAVE0, 0, 0);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
@@ -638,11 +691,13 @@ TEST(in) {
 
     // Check normal usage
     {
-        bbzheap_idx_t closures[] = {IN0, IN1, TEST_END};
-        uint8_t expected_ret[]   = {  1,   0};
+        bbzheap_idx_t closures[]   = {IN0, IN1, TEST_END};
+        bbzheap_idx_t selfTables[] = { s0,  s1};
+        uint8_t expected_ret[]     = {  1,   0};
 
         uint16_t i = 0;
         while(closures[i] != TEST_END) {
+            bbzvm_push(selfTables[i]); // Push self table
             bbzvm_push(closures[i]);
             bbzvm_closure_call(0); // s<i>.in()
             REQUIRE(vm->state != BBZVM_STATE_ERROR);
@@ -658,6 +713,7 @@ TEST(in) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(IN0, 0, 0);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
@@ -696,6 +752,7 @@ TEST(select_unselect) {
         uint8_t expected_ret[] = {       1,         0,        0};
         uint16_t i = 0;
         while(params[i] != TEST_END) {
+            bbzvm_push(s0); // Push self table
             bbzvm_push(SELECT0);
             bbzvm_push(params[i]);
             bbzvm_closure_call(1); // 's0.select(<param>)'
@@ -716,6 +773,7 @@ TEST(select_unselect) {
         uint8_t expected_ret[] = {       0,         1,        1};
         uint16_t i = 0;
         while(params[i] != TEST_END) {
+            bbzvm_push(s0); // Push self table
             bbzvm_push(UNSELECT0);
             bbzvm_push(params[i]);
             bbzvm_closure_call(1); // 's0.unselect(<param>)'
@@ -732,7 +790,9 @@ TEST(select_unselect) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(SELECT0,   1, 1);
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(UNSELECT0, 1, 1);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
@@ -767,6 +827,7 @@ void exec_function() {
         if (curr_recursion_depth == 1) {
             bbzdarray_get(vm->swarm.swarmstack, bbzdarray_size(vm->swarm.swarmstack) - 1, &swarmstack_value);
             ASSERT_EQUAL(bbzheap_obj_at(swarmstack_value)->i.value, 0);
+            bbzvm_lload(0); // Push self table
             bbzvm_push(exec1);
             bbzvm_push(exec_function_closure);
             bbzvm_closure_call(1); // 's1.exec(exec_function_closure)'
@@ -819,6 +880,7 @@ TEST(exec) {
     // Check normal usage
     {
         for (exec_curr_index = 0; exec_curr_index < NUM_CALLS; ++exec_curr_index) {
+            bbzvm_push(s0); // Push self table
             bbzvm_push(exec0);
             bbzvm_push(exec_function_closure);
             bbzvm_gc(); // Call garbage-collector
@@ -832,9 +894,64 @@ TEST(exec) {
     bbzvm_set_error_receiver(error_receiver);
     // Check if wrong number of parameters fails.
     {
+        bbzvm_push(s0); // Push self table
         test_wrong_num_params(exec0, 1, 1);
     }
     bbzvm_set_error_receiver(old_err_rcvr);
+}
+
+/****************************************/
+/****************************************/
+
+typedef enum bbzvm_symid {
+    BBZVM_SYMID_LED = _BBZSTRID_COUNT_,
+    BBZVM_SYMID_DELAY
+} bbzvm_symid;
+
+void dummy() {bbzvm_ret0();}
+void dummy_ret() {bbzvm_pushnil();bbzvm_ret1();}
+
+TEST(swarm_script) {
+    bbzvm_t vmObj;
+    init_test(&vmObj);
+
+    fbcode = fopen("resources/swarm.bbo", "rb");
+    REQUIRE(fbcode != NULL);
+    REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
+    fsize = ftell(fbcode);
+    REQUIRE(fsize > 0);
+    REQUIRE(fseek(fbcode, 0, SEEK_SET) >= 0);
+
+    // 2) Set the bytecode in the VM.
+    bbzvm_set_bcode(&testBcode, fsize);
+    bbzvm_function_register(BBZVM_SYMID_LED, dummy);
+    bbzvm_function_register(BBZVM_SYMID_DELAY, dummy);
+
+    bbzvm_pushnil(); // Push self table
+    bbzvm_pushs(__BBZSTRID_init);
+    bbzvm_gload();
+    REQUIRE(bbztype_isclosure(*bbzheap_obj_at(bbzvm_stack_at(0))));
+    bbzvm_closure_call(0);
+
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
+    while (vm->state == BBZVM_STATE_READY) bbzvm_step();
+
+    REQUIRE(vm->state == BBZVM_STATE_DONE);
+    vm->state = BBZVM_STATE_READY;
+
+    int i = 0;
+    while (vm->state == BBZVM_STATE_READY && i < 1000) {
+        bbzvm_pushnil(); // Push self table
+        bbzvm_pushs(__BBZSTRID_step);
+        bbzvm_gload();
+        REQUIRE(bbztype_isclosure(*bbzheap_obj_at(bbzvm_stack_at(0))));
+        bbzvm_closure_call(0);
+        ++i;
+    }
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
+
+    bbzvm_destruct();
+    fclose(fbcode);
 }
 
 /****************************************/
@@ -855,4 +972,5 @@ TEST_LIST {
     ADD_TEST(in);
     ADD_TEST(select_unselect);
     ADD_TEST(exec);
+    ADD_TEST(swarm_script);
 }

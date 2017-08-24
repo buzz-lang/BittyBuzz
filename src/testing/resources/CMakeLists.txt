@@ -22,10 +22,12 @@ function (generate_all_bbos)
             2_IfTest.bzz
             3_test1.bzz
             4_AllFeaturesTest.bzz
+            swarm.bzz
     )
     set(BST_SOURCES
             3_test1.bst
             4_AllFeaturesTest.bst
+            swarm.bst
     )
 
     foreach(buzz_source ${BUZZ_SOURCES})

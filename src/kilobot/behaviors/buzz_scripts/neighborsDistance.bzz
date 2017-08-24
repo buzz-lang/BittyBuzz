@@ -1,13 +1,9 @@
-neighbor = {}
 dist = -1
 
 function init() {
     neighbors.listen("Hello world!",
         function(vid, value, rid) {
-            neighbor = neighbors.get(rid)
-            if (neighbor != nil) {
-                dist = neighbor.distance
-            }
+            dist = neighbors.get(rid).distance
             if (dist < 0) {
                 led(0) # Off
             }

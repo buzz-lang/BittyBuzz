@@ -917,6 +917,13 @@ void bbzvm_callc() {
         bbzdarray_push(vm->lsyms, bbzvm_stack_at(i - (uint16_t)1));
     }
     vm->stackptr -= argn + 1; // Get rid of the closure's reference on the stack.
+    /* Recover and pop the self table */
+    if (!bbztype_isclosurelambda(*c) ||
+        c->l.value.actrec == BBZHEAP_CLOSURE_DFLT_ACTREC ||
+        !bbztype_darray_hasself(*bbzheap_obj_at(c->l.value.actrec))) {
+        bbzdarray_set(vm->lsyms, 0, bbzvm_stack_at(0));
+    }
+    bbzvm_pop();
     /* Push return address */
     bbzvm_pushi(vm->pc);
     bbzvm_assert_state();
@@ -1045,7 +1052,6 @@ void bbzvm_pushl(uint16_t addr) {
                 bbzdarray_lambda_alloc(vm->lsyms, &bbzheap_obj_at(o)->l.value.actrec),
                 BBZVM_ERROR_MEM);
     }
-    bbzdarray_set(bbzheap_obj_at(o)->l.value.actrec, 0, vm->nil);
 
     bbzvm_push(o);
 }
@@ -1066,7 +1072,10 @@ void bbzvm_tput() {
     bbzvm_assert_state();
 
     bbzobj_t* vObj = bbzheap_obj_at(v);
-    if(bbztype_isclosure(*vObj)) {
+    if (bbztype_isclosure(*vObj) &&
+        bbztype_isclosurelambda(*vObj) &&
+        vObj->l.value.actrec != BBZHEAP_CLOSURE_DFLT_ACTREC &&
+        !bbztype_darray_hasself(*bbzheap_obj_at(vObj->l.value.actrec))) {
         // Method call
         bbzheap_idx_t o, ar, o2;
         bbzvm_assert_mem_alloc(BBZTYPE_USERDATA, &o);
@@ -1094,6 +1103,7 @@ void bbzvm_tput() {
         bbzvm_assert_exec(
                 bbzdarray_lambda_alloc(ar, &bbzheap_obj_at(o)->l.value.actrec),
                 BBZVM_ERROR_MEM);
+        bbztype_darray_markself(*bbzheap_obj_at(bbzheap_obj_at(o)->l.value.actrec));
         bbzheap_obj_at(o)->l.value.ref = (uint8_t)o2;
         bbzvm_assert_exec(bbzdarray_set(bbzheap_obj_at(o)->l.value.actrec, 0, t), BBZVM_ERROR_FLIST);
         bbzvm_assert_exec(bbztable_set(t, k, o), BBZVM_ERROR_MEM);

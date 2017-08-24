@@ -231,6 +231,7 @@ void bbzkilo_func_call(uint16_t strid) {
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
     if(bbztable_get(kilo_vmObj.gsyms, l, &l)) {
+        bbzvm_pushnil(); // Push self table
         bbzvm_push(l);
         bbzvm_closure_call(0);
     }
