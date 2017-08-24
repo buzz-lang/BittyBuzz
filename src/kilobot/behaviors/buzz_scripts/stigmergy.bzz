@@ -1,0 +1,33 @@
+###############################################################################
+# NOTE This behavior requires the CMake BBZ_DISABLE_VSTIGS option to          #
+#      be OFF.                                                                #
+###############################################################################
+
+function init() {
+    stig = stigmergy.create(0)
+    stig.onconflict(function(key, ld, rd) {
+            return ld
+    })
+    if (id == 7) {
+        stig.put("1", 42)
+    }
+}
+
+i = 20
+function step() {
+    i = i + 1
+    if (id == 7 and i % 20 == 0) {
+        stig.put("1", 41 + ((i / 20) % 3))
+        led(7)
+    }
+    var val = stig.get("1")
+    if (val < 42) {
+        led(3)
+    }
+    else if (val > 42) {
+        led(6)
+    }
+    else {
+        led(2)
+    }
+}

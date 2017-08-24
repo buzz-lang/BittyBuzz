@@ -1,0 +1,18 @@
+//
+// Created by user1 on 17-05-31.
+//
+
+#ifndef BITTYBUZZ_CONFIG_H
+#define BITTYBUZZ_CONFIG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+#define BBZ_BOOTLOADER_ADDR @AVR_BOOTLOADER@
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif //BITTYBUZZ_CONFIG_H

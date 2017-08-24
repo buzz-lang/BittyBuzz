@@ -1,0 +1,6 @@
+if (UNIX)
+    include_directories(/usr/lib/avr/include)
+endif ()
+add_subdirectory(lib)
+include_directories(lib)
+add_subdirectory(behaviors)
