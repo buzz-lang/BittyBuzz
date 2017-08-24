@@ -106,7 +106,7 @@ the likelihood that one will require changing it.
 | `BBZ_USE_FLOAT`           | Whether to use float type                                 | <span style="color:#080">Low</span>      | OFF  | OFF     |
 | `BBZ_DISABLE_NEIGHBORS`   | Whether to disable the `neighbors` structure              | <span style="color:#800">High</span>     | OFF  | OFF     |
 | `BBZ_DISABLE_VSTIGS`      | Whether to disable the `stigmergy` structure              | <span style="color:#800">High</span>     | OFF  | OFF     |
-| `BBZ_DISABLE_SWARMS`      | Whether to disable the `swarms` structure                 | <span style="color:#800">High</span>     | ON   | ON      |
+| `BBZ_DISABLE_SWARMS`      | Whether to disable the `swarms` structure                 | <span style="color:#800">High</span>     | OFF  | OFF     |
 | `BBZ_DISABLE_MESSAGES`    | Whether to disable Buzz messages                          | <span style="color:#880">Moderate</span> | OFF  | OFF     |
 | `BBZ_DISABLE_PY_BEHAV`    | Whether to disable Python behaviors of closures           | <span style="color:#080">Low</span>      | OFF  | OFF     |
 
