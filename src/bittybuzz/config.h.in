@@ -1,14 +1,135 @@
-/*
- * Total size of heap in bytes.
+/**
+ * @file config.h
+ * @brief CMake main configuration file.
  */
-#define BBZHEAP_SIZE @HEAP_SIZE@
 
-/*
- * Elements per table segment.
- */
-#define BBZHEAP_ELEMS_PER_TSEG @HEAP_ELEMS_PER_TSEG@
+#ifndef CONFIG_H
+#define CONFIG_H
 
-/*
- * Name of the robot, in case we are crosscompiling.
+/**
+ * @brief Total size of heap in bytes.
  */
-#cmakedefine BBZ_ROBOT
+#define BBZHEAP_SIZE @BBZHEAP_SIZE@
+
+/**
+ * @brief Elements per table segment.
+ */
+#define BBZHEAP_ELEMS_PER_TSEG @BBZHEAP_ELEMS_PER_TSEG@
+
+/**
+ * @brief Size of the stack in bytes.
+ */
+#define BBZSTACK_SIZE @BBZSTACK_SIZE@
+
+/**
+ * @brief Index of end of the heap's space reserved for lambdas'
+ * activation record.
+ * @note The maximum value is 0xFE (254)
+ */
+#define BBZHEAP_RSV_ACTREC_MAX (uint16_t)@BBZHEAP_RSV_ACTREC_MAX@
+
+/**
+ * @brief Virtual stigmergy's capacity.
+ */
+#define BBZVSTIG_CAP @BBZVSTIG_CAP@
+
+/**
+ * @brief Maximum number of neighbors.
+ */
+#define BBZNEIGHBORS_CAP @BBZNEIGHBORS_CAP@
+
+/**
+ * @brief Whether we are crosscompiling.
+ */
+#cmakedefine BBZCROSSCOMPILING
+
+/**
+ * @brief Whether to use high memory optimizations.
+ */
+#cmakedefine BBZ_XTREME_MEMORY
+
+/**
+ * @brief Whether to use normal or priority queue for out-messages
+ */
+#cmakedefine BBZ_USE_PRIORITY_SORT
+
+/**
+ * @brief Capacity of the input message queue.
+ */
+#define BBZINMSG_QUEUE_CAP @BBZINMSG_QUEUE_CAP@
+
+/**
+ * @brief Capacity of the output message queue.
+ */
+#define BBZOUTMSG_QUEUE_CAP @BBZOUTMSG_QUEUE_CAP@
+
+/**
+ * @brief Lamport Clock Threashold (max accepting range).
+ */
+#define BBZLAMPORT_THRESHOLD @BBZLAMPORT_THRESHOLD@
+
+/**
+ * @brief Max recursion depth for the heap's
+ *        Garbage Collector marking function.
+ */
+#define BBZHEAP_GCMARK_DEPTH @BBZHEAP_GCMARK_DEPTH@
+
+/**
+ * @brief The maximum number of messages to process
+ * every instruction.
+ */
+#define BBZMSG_IN_PROC_MAX @BBZMSG_IN_PROC_MAX@
+
+/**
+ * @brief The period between two (2) neighbors' data garbage-collection.
+ */
+#define BBZNEIGHBORS_CLR_PERIOD @BBZNEIGHBORS_CLR_PERIOD@
+
+/**
+ * @brief The number of timestep before the neighbors' GC that we start to mark neighbors data.
+ */
+#define BBZNEIGHBORS_MARK_TIME @BBZNEIGHBORS_MARK_TIME@
+
+/**
+ * @brief Whether to compile in debug mode.
+ */
+#cmakedefine DEBUG
+
+// ==============================
+// =  FEATURE-DISABLING MACROS  =
+// ==============================
+
+/**
+ * @brief Whether to disable the neighbor structure.
+ */
+#cmakedefine BBZ_DISABLE_NEIGHBORS
+
+/**
+ * @brief Whether to disable the stigmergy structure.
+ */
+#cmakedefine BBZ_DISABLE_VSTIGS
+
+/**
+ * @brief Whether to disable the swarm structure.
+ */
+#cmakedefine BBZ_DISABLE_SWARMS
+
+/**
+ * @brief Whether to disable the use of messages in BittyBuzz.
+ */
+#cmakedefine BBZ_DISABLE_MESSAGES
+
+/**
+ * @brief Whether to disable Python behaviors of closures.
+ * @brief Make closures behave like in JavaScript.
+ */
+#cmakedefine BBZ_DISABLE_PY_BEHAV
+
+/**
+ * @brief Whether we disable the broadcasting of our swarmlist to
+ * neighboring robots.
+ * @todo Currently, BittyBuzz requires this feature to be disabled.
+ */
+#cmakedefine BBZ_DISABLE_SWARMLIST_BROADCASTS
+
+#endif // !CONFIG_H

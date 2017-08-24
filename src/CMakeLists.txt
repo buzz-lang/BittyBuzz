@@ -1,8 +1,18 @@
 project(bittybuzz)
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.3.2)
 
 #
-# Add these directories to the paths
+# Global options and variables
+#
+set(INCLUDE_FILES_CMAKE ${CMAKE_SOURCE_DIR}/cmake)
+
+#
+# Add new Build Types
+#
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzBuildTypes.cmake)
+
+#
+# Add directories to the paths
 #
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
@@ -10,17 +20,50 @@ link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
 #
 # Prepare config.h file, making sure parameters have been set
 #
-if("${HEAP_SIZE}" STREQUAL "")
-  message(FATAL_ERROR "You must specify a value for HEAP_SIZE (e.g., cmake -DHEAP_SIZE=1024 ...)")
-endif("${HEAP_SIZE}" STREQUAL "")
-if("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
-  message(FATAL_ERROR "You must specify a value for HEAP_ELEMS_PER_TSEG (e.g., cmake -DHEAP_ELEMS_PER_TSEG=5 ...)")
-endif("${HEAP_ELEMS_PER_TSEG}" STREQUAL "")
-configure_file(bittybuzz/config.h.in ${CMAKE_BINARY_DIR}/bittybuzz/config.h @ONLY)
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzConfig.cmake)
+
+if (BBZ_USE_FLOAT)
+    add_definitions(-DBBZ_USE_FLOAT=1)
+endif (BBZ_USE_FLOAT)
+
+#
+# Host compiler values
+#
+set(HOST_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-comment -fshort-enums" CACHE STRING "GCC flags for the host compiler.")
+find_program(HOST_C_COMPILER gcc)
+
+#
+# Add compiler-swapping macros
+#
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzCompilerMacros.cmake)
+
+#
+# Add .bo and .bbo generator functions
+#
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzGeneratorFunctions.cmake)
+
+#
+# Find Buzz programs
+#
+include(${INCLUDE_FILES_CMAKE}/BittyBuzzFindBuzzPrgms.cmake)
+
+#
+# Find Argos
+#
+#include(${INCLUDE_FILES_CMAKE}/BittyBuzzBuildChecks.cmake)
 
 #
 # Descend into the subdirectories
 #
 add_subdirectory(bittybuzz)
-#add_subdirectory(kilolib)
-add_subdirectory(testing)
+
+if (CMAKE_CROSSCOMPILING)
+    add_subdirectory(kilobot)
+endif()
+
+if (NOT CMAKE_CROSSCOMPILING)
+    include (CTest)
+    add_subdirectory(testing)
+endif()
+
+add_subdirectory(doc)
