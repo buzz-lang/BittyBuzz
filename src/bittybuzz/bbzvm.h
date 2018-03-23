@@ -718,6 +718,18 @@ extern "C" {
     #define bbzvm_assert_state(RET...)                                  \
         if(vm->state == BBZVM_STATE_ERROR) return RET
 
+#ifdef BBZ_BYTEWISE_ASSIGNMENT
+    #define bbzvm_assign(lvalue, rvalue) {                              \
+        if (sizeof(*(lvalue)) == sizeof(*(rvalue))) {                   \
+            for (uint8_t i = 0; i < sizeof(*(rvalue)); ++i) {           \
+                *(uint8_t*)((lvalue) + i) = *(uint8_t*)((rvalue) + i);  \
+            }                                                           \
+        }                                                               \
+    }
+#else
+    #define bbzvm_assign(lvalue, rvalue) {*(lvalue) = *(rvalue);}
+#endif
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

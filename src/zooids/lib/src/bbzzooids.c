@@ -113,7 +113,7 @@ void bbz_start(void (*setup)(void))
             if (vm->state != BBZVM_STATE_ERROR) {
                 bbzvm_process_inmsgs();
                 bbz_func_call(__BBZSTRID_step);
-                bbzvm_process_outmsgs();
+                //bbzvm_process_outmsgs();
             }
             //updateRobot();
         }
@@ -220,6 +220,7 @@ void bbz_err_receiver(bbzvm_error errcode)
 #endif
     ___led(RGB(2, 2, 2));
     ___led(RGB(2, 2, 2));
+    Reboot();
 }
 
 static uint8_t seed = 0xaa, accumulator = 0;

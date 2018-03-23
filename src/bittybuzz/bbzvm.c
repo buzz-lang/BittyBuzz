@@ -188,7 +188,7 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
 
 #define inc_pc() assert_pc(vm->pc); ++vm->pc;
 
-#define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg = *((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); vm->pc += sizeof(TYPE);
+#define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg; {TYPE* parg = ((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); bbzvm_assign(&arg, parg);} vm->pc += sizeof(TYPE);
 
 void bbzvm_gc() {
     bbzheap_gc(vm->stack, (uint16_t)bbzvm_stack_size());

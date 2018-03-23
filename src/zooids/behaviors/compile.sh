@@ -9,14 +9,16 @@ BIN_DIR="@CMAKE_BINARY_DIR@"
 PREFIX="@CMD_PREFIX@"
 CFLAGS="@CFLAGS@"
 LDFLAGS="@LDFLAGS@"
+LDSCRIPT="@LDSCRIPT@"
+LDLIBS="@LDLIBS@"
 BBZ_BASE_BST_FILE="@BBZ_BASE_BST_FILE@"
 
 BBZ_LIB_DIR=${BIN_DIR}/bittybuzz
 BBZ_LIB_INC=${SRC_DIR}/bittybuzz
 BBZ_LIB_NAME=bittybuzz-zooids
-KILOLIB_DIR=${BIN_DIR}/zooids/lib
-KILOLIB_INC=${SRC_DIR}/zooids/lib
-KILOLIB_NAME=bbzzooids-zooids
+ZOOIDLIB_DIR=${BIN_DIR}/zooids/lib
+ZOOIDLIB_INC=${SRC_DIR}/zooids/lib
+ZOOIDLIB_NAME=bbzzooids-zooids
 BO2BBO_PATH=${BIN_DIR}/bittybuzz/exec/bo2bbo
 KILO_SYMGEN_PATH=${BIN_DIR}/bittybuzz/exec/zooids_bcodegen
 
@@ -201,13 +203,13 @@ fi
 LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $BBZ_LIB_DIR/lib$BBZ_LIB_NAME.a)"
 
 LOGF "\tCheck for Zooids library... "
-if [ ! -f "$KILOLIB_DIR/lib$KILOLIB_NAME.a" ]; then
+if [ ! -f "$ZOOIDLIB_DIR/lib$ZOOIDLIB_NAME.a" ]; then
     LOG "Not Found";
-    echo >&2 "[$bbz_name] Error: Zooids library was not found in $(realpath --relative-to=${BIN_DIR}/.. $KILOLIB_DIR)."
+    echo >&2 "[$bbz_name] Error: Zooids library was not found in $(realpath --relative-to=${BIN_DIR}/.. $ZOOIDLIB_DIR)."
     echo >&2 "[$bbz_name] Please edit this file ($0) and place the path to the library.  Aborting.";
     exit 1;
 fi
-LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $KILOLIB_DIR/lib$KILOLIB_NAME.a)"
+LOG "Done $(realpath --relative-to=${BIN_DIR}/.. $ZOOIDLIB_DIR/lib$ZOOIDLIB_NAME.a)"
 
 # Checking dependencies done
 LOG "[$bbz_name] Checking dependencies Done."
@@ -243,11 +245,11 @@ BOOTLOADER_ADDR=28672
 BCODE_SIZE_ADDR=$((BOOTLOADER_ADDR - 2))
 BCODE_ADDR=$((BOOTLOADER_ADDR - BBO_SIZE_PLUS_2))
 LOG "[$bbz_name] Compiling and Linking c functions..."
-${CC} ${CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${LDFLAGS} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${CC} ${CFLAGS} -o ${GEN_DIR}/${bbz_name}.elf -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${ZOOIDLIB_DIR} -I${BBZ_LIB_INC} -I${ZOOIDLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${LDSCRIPT} ${LDFLAGS} -L${BBZ_LIB_DIR} -L${ZOOIDLIB_DIR} -l${BBZ_LIB_NAME} -l${ZOOIDLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map ${LDLIBS} >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating hex file..."
 ${OC} -O ihex -R .eeprom -R .fuse -R .lock -R .signature ${GEN_DIR}/${bbz_name}.elf ${GEN_DIR}/${bbz_name}.hex >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 LOG "[$bbz_name] Generating debug files... "
-${CC} ${CFLAGS/-Wl,-s/} -Wno-deprecated -g -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${KILOLIB_DIR} -I${BBZ_LIB_INC} -I${KILOLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${KILOLIB_DIR} -l${BBZ_LIB_NAME} -l${KILOLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
+${CC} ${CFLAGS/-Wl,-s/} -Wno-deprecated -g -o ${GEN_DIR}/${bbz_name}.elfdbg -I${SRC_DIR} -I${BIN_DIR} -I${GEN_DIR} -I${GEN_DIR} -I${BBZ_LIB_DIR} -I${ZOOIDLIB_DIR} -I${BBZ_LIB_INC} -I${ZOOIDLIB_INC} ${cfunction_file} ${sourceList[@]} ${GEN_SYMS_FILE} ${LDSCRIPT} ${LDFLAGS//-Wl,-s/} -L${BBZ_LIB_DIR} -L${ZOOIDLIB_DIR} -l${BBZ_LIB_NAME} -l${ZOOIDLIB_NAME} -Wl,-Map,${GEN_DIR}/${bbz_name}.map ${LDLIBS} >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${OC} --only-keep-debug ${GEN_DIR}/${bbz_name}.elfdbg ${GEN_DIR}/${bbz_name}.dbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${OC} --strip-debug ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }
 ${OC} --add-gnu-debuglink ${GEN_DIR}/${bbz_name}.dbg ${GEN_DIR}/${bbz_name}.elfdbg >> ${LOG_FILE} || { echo >&2 "${ERR_STR}"; exit 1; }

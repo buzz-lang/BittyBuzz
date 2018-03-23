@@ -49,16 +49,18 @@ uint8_t bbztable_set(bbzheap_idx_t t,
     int16_t seg = -1, slot = -1;
     /* Go through segments */
     while (1) {
+        bbzheap_idx_t key;
         /* Go through valid keys in the segment */
         for (uint8_t i = 0; i < BBZHEAP_ELEMS_PER_TSEG; ++i) {
-            if (!bbzheap_tseg_elem_isvalid(sd->keys[i])) {
+            bbzvm_assign(&key, sd->keys + i);
+            if (!bbzheap_tseg_elem_isvalid(key)) {
                 if (fseg < 0) {
                     /* First free slot found */
                     fseg = si;
                     fslot = i;
                 }
             }
-            else if (bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(sd->keys[i])),
+            else if (bbztype_cmp(bbzheap_obj_at(bbzheap_tseg_elem_get(key)),
                                 bbzheap_obj_at(k)) == 0) {
                 /* Key found */
                 seg = si;

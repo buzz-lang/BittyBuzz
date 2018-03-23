@@ -1,0 +1,32 @@
+{
+    "files.associations": {
+        "functions.h": "c",
+        "config.h": "c",
+        "motors.h": "c",
+        "utilities.h": "c",
+        "colors.h": "c",
+        "stdlib.h": "c",
+        "stm32f0xx_lp_modes.h": "c",
+        "lsm6ds3.h": "c",
+        "position_control.h": "c",
+        "sensors.h": "c",
+        "rf24.h": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "nrf24l01.h": "c",
+        "bbzkilobot_include.h": "c",
+        "array": "c",
+        "initializer_list": "c",
+        "utility": "c",
+        "bbz_include.h": "c",
+        "bbzmain.h": "c",
+        "bbzsymbols.h": "c",
+        "bbzutil.h": "c",
+        "slist": "c",
+        "stm32f0xx_hal.h": "c",
+        "thread": "c",
+        "functional": "c",
+        "*.ipp": "c"
+    }
+}

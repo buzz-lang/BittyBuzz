@@ -68,9 +68,12 @@ uint8_t bbzdarray_set(bbzheap_idx_t d,
         si = bbzheap_aseg_next_get(sd);
         sd = bbzheap_aseg_at(si);
     }
+    bbzheap_idx_t value;
+    bbzvm_assign(&value, sd->values + rem);
     if (i == qot &&
-        bbzheap_aseg_elem_isvalid(sd->values[rem])) {
-        bbzheap_aseg_elem_set(sd->values[rem], v);
+        bbzheap_aseg_elem_isvalid(value)) {
+        bbzheap_aseg_elem_set(v, v);
+        bbzvm_assign(sd->values + rem, &v);
         return 1;
     }
     return 0;
@@ -167,7 +170,8 @@ uint8_t bbzdarray_push(bbzheap_idx_t d,
     }
 
     /* Append value to segment */
-    bbzheap_aseg_elem_set(sd->values[si], v);
+    bbzheap_aseg_elem_set(v, v);
+    bbzvm_assign(sd->values + si, &v);
 
     return 1;
 }
