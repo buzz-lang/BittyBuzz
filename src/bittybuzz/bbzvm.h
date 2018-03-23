@@ -92,7 +92,7 @@ extern "C" {
 #endif
         int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */
         int16_t blockptr;          /**< @brief Block pointer (Index of the previous block pointer in the stack) */
-        bbzheap_idx_t stack[BBZSTACK_SIZE]; /**< @brief Current stack content */
+        bbzheap_idx_t stack[BBZSTACK_SIZE] __attribute__((aligned(2))); /**< @brief Current stack content */
     } bbzvm_t;
 
     /**

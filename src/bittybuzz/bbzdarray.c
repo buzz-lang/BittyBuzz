@@ -80,10 +80,10 @@ uint8_t bbzdarray_set(bbzheap_idx_t d,
 /****************************************/
 
 uint8_t bbzdarray_remove(bbzheap_idx_t d, uint16_t idx) {
-    bbzheap_aseg_t* v = NULL; // The value to remove
+    bbzheap_aseg_t* v = (bbzheap_aseg_t*)NULL; // The value to remove
     bbzheap_idx_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
-    bbzheap_aseg_t* prevsd = NULL; // To keep track of the previous segment
+    bbzheap_aseg_t* prevsd = (bbzheap_aseg_t*)NULL; // To keep track of the previous segment
     /* If the array is empty, return with Failure */
     if (!bbzheap_aseg_hasnext(sd) &&
         !bbzheap_aseg_elem_isvalid(sd->values[0])) {
@@ -178,7 +178,7 @@ uint8_t bbzdarray_push(bbzheap_idx_t d,
 uint8_t bbzdarray_pop(bbzheap_idx_t d) {
     bbzheap_idx_t si = bbzheap_obj_at(d)->t.value; // Segment index
     bbzheap_aseg_t* sd = bbzheap_aseg_at(si); // Segment data
-    bbzheap_aseg_t* prevsd = NULL; // To keep track of the previous segment
+    bbzheap_aseg_t* prevsd = (bbzheap_aseg_t*)NULL; // To keep track of the previous segment
     /* If the array is empty, return with Failure */
     if (!bbzheap_aseg_hasnext(sd) &&
         !bbzheap_aseg_elem_isvalid(sd->values[0])) {

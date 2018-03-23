@@ -7,7 +7,7 @@
 void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     int16_t pos = 0;
     bbzmsg_t* m = vm->inmsgs.buf+vm->inmsgs.queue.capacity;
-    m->base.type = 0;
+    m->base.type = (bbzmsg_payload_type_t)0;
     bbzmsg_deserialize_u8((uint8_t*)&m->base.type, payload, &pos);
     if (pos < 0) return;
     bbzmsg_deserialize_u16(&m->base.rid, payload, &pos);
