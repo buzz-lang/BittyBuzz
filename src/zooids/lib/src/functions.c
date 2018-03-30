@@ -137,7 +137,7 @@ void sleep() {
 void delay(uint16_t ms) {
   //delayMicroseconds(ms * 1000);
   for(volatile uint16_t j = 0; j < ms; ++j) {
-    for(volatile uint16_t i = 0; i < 2000; ++i);
+    for(volatile uint16_t i = 0; i < 700; ++i);
   }
 }
 

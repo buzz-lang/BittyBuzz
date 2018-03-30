@@ -67,13 +67,16 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
 
 void bbz_init(void)
 {
-    //initRobot();
+    /*/initRobot();/*/
     HAL_Init();
-    SystemClock_Config();
+#if !defined(DEBUG) || DEBUG == 0
+    //SystemClock_Config();
+#endif
 
     initRGBLed();
 
     initMotors();
+    //initPhotoDiodes();//*/
     //setGreenLed(5);
     //setMotor1(30);
     //setMotor2(30);
@@ -120,7 +123,9 @@ void bbz_start(void (*setup)(void))
     }
 }
 
-void set_color(uint8_t rgb) { setRGBLed((rgb&3) << 6, (rgb&0xc) << 4, (rgb&0x30) << 2); }
+void set_color(uint8_t rgb) {
+    setRGBLed((rgb&3) << 4, (rgb&0xc) << 2, (rgb&0x30));
+}
 static void ___led(uint8_t x)
 {
     set_color(x);
@@ -238,7 +243,7 @@ void rand_seed(uint8_t s)
     seed = s;
 }
 
-void set_motors(uint8_t m1, uint8_t m2)
+void set_motors(int8_t m1, int8_t m2)
 {
 #ifndef DEBUG
     setMotor1(m1);

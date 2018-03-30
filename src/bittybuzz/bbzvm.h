@@ -721,8 +721,8 @@ extern "C" {
 #ifdef BBZ_BYTEWISE_ASSIGNMENT
     #define bbzvm_assign(lvalue, rvalue) {                              \
         if (sizeof(*(lvalue)) == sizeof(*(rvalue))) {                   \
-            for (uint8_t i = 0; i < sizeof(*(rvalue)); ++i) {           \
-                *(uint8_t*)((lvalue) + i) = *(uint8_t*)((rvalue) + i);  \
+            for (uint8_t bbzvm_assign_i = 0; bbzvm_assign_i < sizeof(*(rvalue)); ++bbzvm_assign_i) {           \
+                *((uint8_t*)(lvalue) + bbzvm_assign_i) = *((uint8_t*)(rvalue) + bbzvm_assign_i);  \
             }                                                           \
         }                                                               \
     }

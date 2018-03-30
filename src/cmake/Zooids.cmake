@@ -73,6 +73,8 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 set(BBZ_ROBOT zooids)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
 option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte." ON)
+# set(BBZHEAP_SIZE 2048)
+# message("BBZHEAP_SIZE := ${BBZHEAP_SIZE}")
 
 #
 # CMake command to compile an executable

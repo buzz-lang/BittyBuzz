@@ -32,7 +32,7 @@ void bbz_err_receiver(bbzvm_error errcode);
 void set_color(uint8_t rgb);
 uint8_t rand_soft();
 void rand_seed(uint8_t s);
-void set_motors(uint8_t m1, uint8_t m2);
+void set_motors(int8_t m1, int8_t m2);
 void spinup_motors();
 
 #ifdef __cplusplus

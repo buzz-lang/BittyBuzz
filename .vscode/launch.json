@@ -32,6 +32,38 @@
                     "text": "monitor reset init"
                 }
             ]
+        },
+        {
+            "name": "(gdb) Stigmergy",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build_zooids/zooids/behaviors/stigmergy/stigmergy.elfdbg",
+            "args": [],
+            "miDebuggerPath": "/usr/bin/arm-none-eabi-gdb",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "file ${workspaceFolder}/build_zooids/zooids/behaviors/stigmergy/stigmergy.elfdbg"
+                },
+                {
+                    "text": "target extended-remote :4242"
+                },
+                {
+                    "text": "load"
+                },
+                {
+                    "text": "monitor reset init"
+                }
+            ]
         }
     ]
 }

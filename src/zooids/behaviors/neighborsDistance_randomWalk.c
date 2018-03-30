@@ -38,7 +38,7 @@ static uint8_t motor_state = 0;
 void bbz_forward() {
     if (motor_state != 0) {
         spinup_motors();
-        set_motors(40, 40);
+        set_motors(30, 30);
         motor_state = 0;
     }
     bbzvm_ret0();
@@ -47,7 +47,7 @@ void bbz_forward() {
 void bbz_right() {
     if (motor_state != 1) {
         spinup_motors();
-        set_motors(0, 40);
+        set_motors(-20, 20);
         motor_state = 1;
     }
     bbzvm_ret0();
@@ -56,7 +56,7 @@ void bbz_right() {
 void bbz_left() {
     if (motor_state != 2) {
         spinup_motors();
-        set_motors(40, 0);
+        set_motors(20, -20);
         motor_state = 2;
     }
     bbzvm_ret0();
@@ -71,7 +71,7 @@ void setup() {
     bbzvm_function_register(BBZSTRING_ID(left), bbz_left);
     rand_seed(rand_soft());
     spinup_motors();
-    set_motors(40, 40);
+    set_motors(20, 20);
 }
 
 int main() {
