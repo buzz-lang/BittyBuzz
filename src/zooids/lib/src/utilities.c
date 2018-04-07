@@ -10,7 +10,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* I2C handler declaration */
-I2C_HandleTypeDef I2cHandle;
+I2C_HandleTypeDef I2cHandle __attribute__((aligned(0x4)));
 /* SPI handler declaration */
 SPI_HandleTypeDef SpiHandle;
 /* Timer handler declaration */

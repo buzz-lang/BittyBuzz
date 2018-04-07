@@ -7,6 +7,7 @@
 function(generate_hex c_source bzz_source)
     get_filename_component(BZZ_BASENAME ${bzz_source} NAME_WE)
     set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}/${BZZ_BASENAME}")
+    make_directory(${GEN_DIR})
     set(BZZ_BASEPATH "${GEN_DIR}/${BZZ_BASENAME}")
     set(GENSYMS_FILE "${GEN_DIR}/bbzsymbols.h")
     set(LOG_FILE "${GEN_DIR}/log.txt")
@@ -22,24 +23,52 @@ function(generate_hex c_source bzz_source)
     set(ASM_FILE  ${BZZ_BASEPATH}.lst)
     set(ELFDBG_FILE  ${BZZ_BASEPATH}.elfdbg)
 
-    # .bzz -> .basm, ...
-    if (NOT ${ARGN} STREQUAL "")
-        add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
-                COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} -B ${ARGN} ${c_source}
-                DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} ${ARGN} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
-    else()
-        add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-                BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
-                COMMAND ${COMPILER_SCRIPT} -b ${bzz_source} ${c_source}
-                DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
-    endif()
+    set(ELF_TARGET ${BZZ_BASENAME}-${BBZ_ROBOT}.elf)
 
-    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${HEX_FILE} ${COMPILER_SCRIPT})
-    set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${HEX_FILE}" INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
-    add_dependencies(${BZZ_BASENAME} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
+    generate_bbo(${BZZ_BASENAME}_bbo ${GEN_DIR} ${bzz_source} ${ARGN})
+
+    add_custom_command(OUTPUT ${GENSYMS_FILE}
+        COMMAND ./zooids_bcodegen ${BO_FILE} ${GENSYMS_FILE}
+        DEPENDS zooids_bcodegen ${BO_FILE} ${BZZ_BASENAME}_bbo
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bittybuzz/exec)
+    
+    add_executable(${ELF_TARGET} EXCLUDE_FROM_ALL ${c_source} ${GENSYMS_FILE} "$<TARGET_OBJECTS:bbzzooids_objects>" )
+    set_target_properties(${ELF_TARGET}
+        PROPERTIES
+        COMPILE_FLAGS "${CFLAGS} -DRID=$(RESULT)"
+        LINK_FLAGS "${LDSCRIPT} ${LDFLAGS} -Wl,-Map=${MAP_FILE} ${LDLIBS}")
+    add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
+        COMMAND ${SIZE} ${ELF_TARGET}
+        COMMENT "Calculating ELF file size:")
+
+    add_custom_command(OUTPUT ${ASM_FILE}
+        COMMAND ${OBJDUMP} -d -S ${ELF_TARGET} > ${ASM_FILE}
+        DEPENDS ${ELF_TARGET})
+    # .elf -> .hex
+    add_custom_command(OUTPUT ${HEX_FILE}
+        COMMAND ${OBJCOPY} -Oihex ${ELF_TARGET} ${HEX_FILE}
+        COMMAND ${SIZE} ${HEX_FILE}
+        DEPENDS ${ELF_TARGET})
+
+    # # .bzz -> .basm, ...
+    # if (NOT ${ARGN} STREQUAL "")
+    #     add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
+    #             BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
+    #             COMMAND ${COMPILER_SCRIPT} -V -b ${bzz_source} -B ${ARGN} ${c_source} 
+    #             DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} ${ARGN} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
+    # else()
+    #     add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
+    #             BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
+    #             COMMAND ${COMPILER_SCRIPT} -V -b ${bzz_source} ${c_source}
+    #             DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
+    # endif()
+
+    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${HEX_FILE} ${ASM_FILE} ${ELF_TARGET}) #${COMPILER_SCRIPT}
+    set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${ELF_TARGET}" INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
+    add_dependencies(${BZZ_BASENAME} bbzzooids bittybuzz)
     include_directories(${BZZ_BASENAME} ${GEN_DIR})
     add_dependencies(behaviors ${BZZ_BASENAME})
+    zooids_target_link_libraries(${BZZ_BASENAME} bittybuzz)
 
     add_custom_target(upload_${BZZ_BASENAME}
         LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} erase && LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} --reset --format ihex write ${HEX_FILE}
@@ -70,6 +99,10 @@ endfunction()
 # ==========================================
 
 set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
+set(__TMP_CFLAGS "${CFLAGS}")
+set(CFLAGS "${CFLAGS} -DRID=$(printenv RESULT)")
 configure_file(compile.sh ${COMPILER_SCRIPT} @ONLY)
+set(CFLAGS "${__TMP_CFLAGS}")
+unset(__TMP_CFLAGS)
 
 generate_all_hex()

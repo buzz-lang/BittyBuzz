@@ -1,13 +1,9 @@
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/inc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/incL)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/srcL)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../drivers/STM32F0xx_HAL_Driver/Inc)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/incL)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/srcL)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../drivers/STM32F0xx_HAL_Driver/Inc)
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-config_value(ZOOIDS_ID 0)
-add_definitions(-DRID=${ZOOIDS_ID})
-message(INFO "ZOOIDS_ID: ${ZOOIDS_ID}")
 
 FUNCTION(PREPEND var prefix)
    SET(listVar "")
@@ -24,20 +20,20 @@ zooids_add_library(bbzzooids
         inc/bbzmain.h
         src/bbzzooids.c
         inc/bbzzooids.h
-        linker/startup_stm32f0xx.S
+        # linker/startup_stm32f0xx.S
         inc/colors.h
         src/colors.c
         inc/config.h
-        inc/eeprom.h
-        src/eeprom.c
+        # inc/eeprom.h
+        # src/eeprom.c
         inc/functions.h
         src/functions.c
         inc/led.h
         src/led.c
         inc/lsm6ds3.h
         src/lsm6ds3.c
-        inc/MadgwickAHRS.h
-        src/MadgwickAHRS.c
+        # inc/MadgwickAHRS.h
+        # src/MadgwickAHRS.c
         inc/motors.h
         src/motors.c
         inc/nRF24L01.h
@@ -73,5 +69,5 @@ zooids_add_library(bbzzooids
         ${ZOOIDS_SOURCES}
 )
 
-zooids_add_executable(blank src/bbzblank.c)
+zooids_add_executable(blank src/bbzblank.c $<TARGET_OBJECTS:bbzzooids_objects>)
 zooids_target_link_libraries(blank bbzzooids bittybuzz)

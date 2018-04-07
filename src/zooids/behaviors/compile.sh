@@ -47,6 +47,7 @@ while test $# -gt 0; do
             ;;
         -V|--verbose)
             verbose="1"
+            shift
             ;;
         -b)
             shift
@@ -126,7 +127,7 @@ LOGF "\tCheck for $PREFIX compiler... "
 if [ -z "$CC" ]; then
     hash $PREFIX-gcc 2>/dev/null || {
         LOG "Not Found";
-        echo >&2 "[$bbz_name] Error: avr-gcc is required but it's not installed.  Aborting.";
+        echo >&2 "[$bbz_name] Error: $PREFIX-gcc is required but it's not installed.  Aborting.";
         exit 1;
     }
     export CC=$PREFIX-gcc
@@ -137,7 +138,7 @@ LOGF "\tCheck for $PREFIX-objcopy... "
 if [ -z "$OC" ]; then
     hash $PREFIX-objcopy 2>/dev/null || {
         LOG "Not Found";
-        echo >&2 "[$bbz_name] Error: avr-objcopy is required but it's not installed.  Aborting.";
+        echo >&2 "[$bbz_name] Error: $PREFIX-objcopy is required but it's not installed.  Aborting.";
         exit 1;
     }
     export OC=$PREFIX-objcopy
@@ -148,7 +149,7 @@ LOGF "\tCheck for $PREFIX-objdump... "
 if [ -z "$OD" ]; then
     hash $PREFIX-objdump 2>/dev/null || {
         LOG "Not Found";
-        echo >&2 "[$bbz_name] Error: avr-objdump is required but it's not installed.  Aborting.";
+        echo >&2 "[$bbz_name] Error: $PREFIX-objdump is required but it's not installed.  Aborting.";
         exit 1;
     }
     export OD=$PREFIX-objdump

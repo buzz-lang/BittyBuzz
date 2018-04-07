@@ -67,16 +67,7 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
 
 void bbz_init(void)
 {
-    /*/initRobot();/*/
-    HAL_Init();
-#if !defined(DEBUG) || DEBUG == 0
-    //SystemClock_Config();
-#endif
-
-    initRGBLed();
-
-    initMotors();
-    //initPhotoDiodes();//*/
+    initRobot();
     //setGreenLed(5);
     //setMotor1(30);
     //setMotor2(30);

@@ -64,7 +64,7 @@ void initRobot() {
 
   initPhotoDiodes();
 
-  //while(calibrate(&motorValues) == false);
+  while(calibrate(&motorValues) == false);
   chargingStatus = (HAL_GPIO_ReadPin(CHARGING_STATUS_GPIO_PORT, CHARGING_STATUS_PIN) == LOW) ? CHARGING : CHARGED;
 }
 
@@ -135,10 +135,10 @@ void sleep() {
 }
 
 void delay(uint16_t ms) {
-  //delayMicroseconds(ms * 1000);
-  for(volatile uint16_t j = 0; j < ms; ++j) {
+  /**/delayMicroseconds(ms * 1000);
+  /*/for(volatile uint16_t j = 0; j < ms; ++j) {
     for(volatile uint16_t i = 0; i < 700; ++i);
-  }
+  }//*/
 }
 
 /*============================================================================
