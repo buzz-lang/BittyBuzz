@@ -17,6 +17,7 @@
 #include "sensors.h"
 #include "position_control.h"
 #include "memcpy_fast.h"
+#include "qfplib.h"
 
 typedef void (*message_rx_t)(Message *, uint16_t distance);
 typedef Message *(*message_tx_t)(void);

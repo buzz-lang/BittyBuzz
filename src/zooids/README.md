@@ -54,3 +54,7 @@ You can send any of the Buzz scripts to a Zooids by simply running the command
 `make upload_<script_name> RESULT=<robot_id>` . Replace `<script_name>` by the name
 of the Buzz script you want to upload and `<robot_id>` by the ID of the robot you
 want to upload the script to.
+
+EXAMPLE DE DEBUGGING
+PARLER DE L'ÉMULATEUR
+COMMENTER LE CODE (LES MODIFS & LE CMAKE AVEC LES OBJECT AU LIEU DES LIBRAIRIES)

@@ -44,14 +44,19 @@ bool initRadio()
 
             resetCommunicationWatchdog();
 
-            /*openReadingPipe(0, DEFAULT_ADDRESS);
-            openWritingPipe(DEFAULT_ADDRESS);
-            startListening();*/
-
             setRobotId(ROBOT_ID);
-            setRobotPipeAddress(DEFAULT_ADDRESS + ((ROBOT_ID + 1) * 2));
-            openCommunication();
+
+            /**/
+            openReadingPipe(0, DEFAULT_ADDRESS + 12);
+            openReadingPipe(1, 12+3);
             startListening();
+            openWritingPipe(DEFAULT_ADDRESS + 12);
+            /*/
+
+            setRobotPipeAddress(DEFAULT_ADDRESS + 12 + ROBOT_ID * 3);
+            //setRobotPipeAddress(DEFAULT_ADDRESS + ((ROBOT_ID + 1) * 2));
+            openCommunication();
+            startListening();//*/
 
             isRadioInitialized = true;
         }

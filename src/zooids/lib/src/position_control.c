@@ -1,4 +1,8 @@
 #include "position_control.h"
+#include "qfplib.h"
+
+#define cmpf(x, y) qfp_fcmp(x, y)
+#define absf(x) (cmpf(x, 0) < 0 ? qfp_fmul(x, -1.0f) : x)
 
 /*============================================================================
 Name    :   Calibrate
@@ -12,7 +16,7 @@ Notes   :
 bool calibrate(Motor *motorValues)
 {
     static int CalibrationStatus = Pause;
-    static int angleDesired = 0;
+    static float angleDesired = 0;
 
     static int lastCalStatus = 100;
     static int TimerTime = 0;
@@ -61,7 +65,7 @@ bool calibrate(Motor *motorValues)
               maximumc(&(motorValues->motor1), motorValues->preferredVelocity);
               maximumc(&(motorValues->motor2), motorValues->preferredVelocity);
               setMotor1(motorValues->motor1);
-              setMotor2(motorValues->motor2 * motorValues->motorGain);
+              setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues->motor2), motorValues->motorGain)));
           }
            
         }
@@ -102,10 +106,10 @@ bool calibrate(Motor *motorValues)
         }
         if(updateRobotPosition()){
 
-          float distance = sqrtf((float)((getRobotPosition()->x - initialPos2.x) * (getRobotPosition()->x - initialPos2.x)) * powf((.8128) / (953.0f - 70.0f), 2) +
-                               (float)((getRobotPosition()->y - initialPos2.y) * (getRobotPosition()->y - initialPos2.y)) * powf((0.508) / (790.0f - 232.0f), 2));
+          float distance = qfp_fsqrt(qfp_fadd(qfp_fmul(qfp_int2float((getRobotPosition()->x - initialPos2.x) * (getRobotPosition()->x - initialPos2.x)), powf((.8128) / (953.0f - 70.0f), 2)),
+                               qfp_fmul(qfp_int2float((getRobotPosition()->y - initialPos2.y) * (getRobotPosition()->y - initialPos2.y)), powf((0.508) / (790.0f - 232.0f), 2))));
 
-          if (distance > 0.01f){//> 0.01f){
+          if (cmpf(distance, 0.01f) > 0){//> 0.01f){
               CalibrationStatus = FoundMinVel;
           }
           else
@@ -126,8 +130,8 @@ bool calibrate(Motor *motorValues)
         if (HAL_GetTick() - TimerTime > 250)
         {
 
-            CalibrationStatus = Stop; //OrientPrefVel; 
-            //CalibrationStatus = StartPosition;
+            CalibrationStatus = Stop; //OrientPrefVel; //
+            // CalibrationStatus = StartPosition;
         }
         break;
     /****  FIND MIN VELOCITY END *****/
@@ -181,7 +185,7 @@ bool calibrate(Motor *motorValues)
             if(updateRobotPosition()){
               lastCalStatus = CalibrationStatus;
               aligned = false;
-              angleDesired = atan2f((500 - getRobotPosition()->y), (500 - getRobotPosition()->x)) * (180.0f / PI);
+              angleDesired = qfp_fatan2(qfp_int2float(500 - getRobotPosition()->y), qfp_fmul(qfp_int2float(500 - getRobotPosition()->x), (180.0f / PI)));
             }
         }
 
@@ -227,10 +231,10 @@ bool calibrate(Motor *motorValues)
         if (HAL_GetTick() - TimerTime > 100)
         {
             if(updateRobotPosition()){
-              float distance2 = sqrtf((float)((getRobotPosition()->x - initialPos2.x) * (getRobotPosition()->x - initialPos2.x)) * powf((.8128) / (953.0f - 70.0f), 2) +
-                                      (float)((getRobotPosition()->y - initialPos2.y) * (getRobotPosition()->y - initialPos2.y)) * powf((0.508) / (790.0f - 232.0f), 2));
+              float distance2 = qfp_fsqrt(qfp_fadd(qfp_fmul(qfp_int2float((getRobotPosition()->x - initialPos2.x) * (getRobotPosition()->x - initialPos2.x)), powf((.8128) / (953.0f - 70.0f), 2)),
+                                      qfp_fmul(qfp_int2float((getRobotPosition()->y - initialPos2.y) * (getRobotPosition()->y - initialPos2.y)), powf((0.508) / (790.0f - 232.0f), 2))));
 
-              if (distance2 > 0.11f){
+              if (cmpf(distance2, 0.11f) > 0){
                   CalibrationStatus = FoundPrefVel;
 
               }
@@ -263,7 +267,7 @@ bool calibrate(Motor *motorValues)
         {
             lastCalStatus = CalibrationStatus;
             aligned = false;
-            angleDesired = 0;
+            angleDesired = 0.0f;
         }
 
         if (aligned == false){
@@ -296,7 +300,7 @@ bool calibrate(Motor *motorValues)
         }
         //increaseVelocity(&velocity,motorValues,1);
         motorValues->motor1 = motorValues->preferredVelocity;//velocity;
-        motorValues->motor2 = (motorValues->preferredVelocity *(motorValues->motorGain));//velocity;
+        motorValues->motor2 = qfp_float2int(qfp_fmul(qfp_int2float(motorValues->preferredVelocity), (motorValues->motorGain)));//velocity;
         setMotor1(motorValues->motor1);
         setMotor2(motorValues->motor2);
         //positionControl(900,500,0,motorValues, &reached, true, true);
@@ -334,17 +338,17 @@ bool calibrate(Motor *motorValues)
           finalangle = *getRobotAngle();
           //finaly = getRobotPosition()->y;
           increment = 0.05f;
-          if (abs(finalangle - initialangle) > 10.0f)
+          if (cmpf(qfp_fsub(finalangle, initialangle), 10.0f) > 0 || cmpf(qfp_fsub(finalangle, initialangle), -10.0f) < 0)
           //if (abs(finaly - initialy) > 20)//10)
           {
-              if (finalangle > initialangle)
+              if (cmpf(finalangle, initialangle) > 0)
               //if (finaly > initialy)
               {
-                  motorValues->motorGain += increment;
+                  motorValues->motorGain = qfp_fadd(motorValues->motorGain, increment);
               }
               else
               {
-                  motorValues->motorGain -= increment;
+                  motorValues->motorGain = qfp_fsub(motorValues->motorGain, increment);
               }
               CalibrationStatus = StartPosition;
           }
@@ -446,10 +450,10 @@ Return	:   none
 Notes   :
 ============================================================================*/
 void angleControl(float angle_desired, Motor *motorValue, bool *aligned, bool forward, float angleThreshold)
-{/*
+{//*
     static float iTerm = 0;
     static uint32_t lastTimestamp = 0;
-    float timeDelta = ((float)(HAL_GetTick() - lastTimestamp))/1000.0f;
+    float timeDelta = qfp_fdiv(qfp_int2float(HAL_GetTick() - lastTimestamp), 1000.0f);
 
     lastTimestamp = HAL_GetTick();
 
@@ -458,14 +462,14 @@ void angleControl(float angle_desired, Motor *motorValue, bool *aligned, bool fo
     static int alignCounter = 0;
 
     int32_t motor1, motor2;
-    float angleDiff = (angle_desired - *getRobotAngle()) * PI / 180.0f;
+    float angleDiff = qfp_fmul(qfp_fsub(angle_desired, *getRobotAngle()), PI / 180.0f);
 
     //improve that...
     if (forward == true)
-        angleDiff = atan2f(sinf(angleDiff), cosf(angleDiff));
+        angleDiff = qfp_fatan2(qfp_fsin(angleDiff), qfp_fcos(angleDiff));
     else
     {
-        angleDiff = tanf(atan2f(sinf(angleDiff), cosf(angleDiff)));
+        angleDiff = qfp_ftan(qfp_fatan2(qfp_fsin(angleDiff), qfp_fcos(angleDiff)));
         maximumf(&angleDiff, 5.0f);
     }
 //    float PGain = 20.0f;
@@ -480,33 +484,33 @@ void angleControl(float angle_desired, Motor *motorValue, bool *aligned, bool fo
 //    iTerm += angleDiff / timeDelta;//2.0f * (0.01367f);
 
     float pTerm = angleDiff;
-    float dTerm = (angleDiff - lastAngleDiff) / (0.01367f);
-    iTerm = iTerm + (angleDiff + lastAngleDiff) / 2.0f * (0.01367f);
+    float dTerm = qfp_fdiv(qfp_fsub(angleDiff, lastAngleDiff), (0.01367f));
+    iTerm = qfp_fadd(iTerm, qfp_fmul(qfp_fadd(angleDiff, lastAngleDiff), (0.01367f) / 2.0f));
 
     float PGain = 20.0f;
     float DGain = 1.5f;
     float IGain = 3.0f;
 
-    if (iTerm > 10.0f)
+    if (cmpf(iTerm, 10.0f) > 0)
     {
       iTerm = 10.0f;
     }
 
-    if (iTerm > 10.0f) iTerm = 10.0f;
-    else if (iTerm < -10.0f) iTerm = -10.0f;
+    if (cmpf(iTerm, 10.0f) > 0) iTerm = 10.0f;
+    else if (cmpf(iTerm, -10.0f) < 0) iTerm = -10.0f;
 
-    if (abs(angleDiff * 180.0f / PI) > angleThreshold)
+    if (cmpf(absf(qfp_fmul(angleDiff, 180.0f / PI)), angleThreshold) > 0)
     {
-        float value = PGain * pTerm + DGain * dTerm + IGain * iTerm;
-        if (angleDiff < 0.0f)
+        float value = qfp_fadd(qfp_fadd(qfp_fmul(PGain, pTerm), qfp_fmul(DGain, dTerm)), qfp_fmul(IGain, iTerm));
+        if (cmpf(angleDiff, 0.0f) < 0)
         {
-            motor1 = value;
-            motor2 = -value;
+            motor1 = qfp_float2int(value);
+            motor2 = qfp_float2int(qfp_fmul(value, -1.0f));
         }
         else
         {
-            motor1 = value;
-            motor2 = -value;
+            motor1 = qfp_float2int(value);
+            motor2 = qfp_float2int(qfp_fmul(value, -1.0f));
         }
     }
     else
@@ -524,7 +528,7 @@ void angleControl(float angle_desired, Motor *motorValue, bool *aligned, bool fo
     {
         *aligned = true;
         alignCounter = 0;
-        iTerm = 0;
+        iTerm = 0.0f;
     }
 
 //    if (counter > 100)
@@ -555,16 +559,16 @@ Return	:   none
 Notes   :
 ============================================================================*/
 void positionControl(int xTarget, int yTarget, float finalAngle, Motor *motorValues, bool *reached, bool forward, bool finalGoal, bool ignoreOrientation)
-{/*
+{//*
     float ratioOfAngle = 0.75f;
-    float distanceThreshold = 0.01f;//0.0035f;//0.01f;
+    float distanceThreshold = 0.03f;//0.0035f;//0.01f;
     bool aligned = false;
     static bool aligned1 = false;
     static bool aligned2 = false;
     static int counter = 0;
     int xNow = getRobotPosition()->x;
     int yNow = getRobotPosition()->y;
-    int lastDistance = 0;
+    float lastDistance = 0.0f;
     float sign = 0.0f;
     static int TimerTime = 0;
     static bool justStarted = false;
@@ -574,28 +578,28 @@ void positionControl(int xTarget, int yTarget, float finalAngle, Motor *motorVal
         justStarted = true;
     }
 
-    float distance2 = sqrtf((float)((xTarget - xNow) * (xTarget - xNow)) * powf((.8128) / (953.0f - 70.0f), 2) +
-                            (float)((yTarget - yNow) * (yTarget - yNow)) * powf((0.508) / (790.0f - 232.0f), 2));
-    float distance2_EU = sqrtf((float)((xTarget - xNow) * (xTarget - xNow))+//(953.0f - 70.0f), 2) +
-                            (float)((yTarget - yNow) * (yTarget - yNow)));
+    float distance2 = qfp_fsqrt(qfp_fadd(qfp_fmul(qfp_int2float((xTarget - xNow) * (xTarget - xNow)), powf((.8128) / (953.0f - 70.0f), 2)),
+                            qfp_fmul(qfp_int2float((yTarget - yNow) * (yTarget - yNow)), powf((0.508) / (790.0f - 232.0f), 2))));
+    float distance2_EU = qfp_fsqrt(qfp_fadd(qfp_int2float((xTarget - xNow) * (xTarget - xNow)),//(953.0f - 70.0f), 2) +
+                            qfp_int2float((yTarget - yNow) * (yTarget - yNow))));
 
 
     //long distance2 = (xTarget - xNow)*(xTarget - xNow) + (yTarget - yNow) * (yTarget - yNow);
     static int8_t velocity = 0;
     float factor = 0.75f;
-    float pTerm = fabs(distance2);
-    float dTerm = fabs((distance2 - lastDistance) / (0.01367f));
-    float iTerm = fabs((distance2 + lastDistance) / 2 * (0.01367f));
+    float pTerm = absf(distance2);
+    float dTerm = absf(qfp_fdiv(qfp_fsub(distance2, lastDistance), (0.01367f)));
+    float iTerm = absf(qfp_fmul(qfp_fadd(distance2, lastDistance), (0.01367f) / 2));
 
     float PGain = 0.95f;
     float DGain = 0.0f;
     float IGain = 0.05f;
 
-    if (distance2 > distanceThreshold)
+    if (cmpf(distance2, distanceThreshold) > 0)
     {
         //velocity = sign * factor * (PGain * pTerm + DGain * dTerm + IGain*iTerm);
-        float angleAIM2 = atan2f((yTarget - yNow), (xTarget - xNow)) * (180.0f / PI);
-        if ((distance2 < 5 * distanceThreshold) && (finalGoal == true))
+        float angleAIM2 = qfp_fmul(qfp_fatan2(qfp_int2float(yTarget - yNow), qfp_int2float(xTarget - xNow)), (180.0f / PI));
+        if ((cmpf(distance2, qfp_fmul(5.0f, distanceThreshold)) < 0) && (finalGoal == true))
         {
             //velocity = factor * (PGain * pTerm + DGain * dTerm + IGain*iTerm);
             //bool decreased = decreaseVelocity(&velocity,motorValues,5);
@@ -625,25 +629,25 @@ void positionControl(int xTarget, int yTarget, float finalAngle, Motor *motorVal
 
         //Angle Control
         
-        float angleDiff = (angleAIM2 - *getRobotAngle()) * PI / 180.0f;
-        angleDiff = cosf(atan2f(sinf(angleDiff), cosf(angleDiff)));
+        float angleDiff = qfp_fmul(qfp_fsub(angleAIM2, *getRobotAngle()), PI / 180.0f);
+        angleDiff = qfp_fcos(qfp_fatan2(qfp_fsin(angleDiff), qfp_fcos(angleDiff)));
         
-        if (angleDiff > 0){
-            sign = 1;
+        if (cmpf(angleDiff, 0) > 0) {
+            sign = 1.0f;
         }
         else{
-            sign = -1;
+            sign = -1.0f;
         }
         angleControl(angleAIM2, motorValues, &aligned, forward, 5.0f);
 
         int8_t tmp = motorValues->motor1;
 
-        motorValues->motor1 = sign * velocity + motorValues->motor2 * ratioOfAngle;
-        motorValues->motor2 = sign * velocity + tmp * ratioOfAngle;
+        motorValues->motor1 = qfp_float2int(qfp_fadd(qfp_fmul(sign, qfp_int2float(velocity)), qfp_fmul(qfp_int2float(motorValues->motor2), ratioOfAngle)));
+        motorValues->motor2 = qfp_float2int(qfp_fadd(qfp_fmul(sign, qfp_int2float(velocity)), qfp_fmul(qfp_int2float(tmp), ratioOfAngle)));
         *reached = false;
         aligned2 = false;
     }
-    else if (distance2 <= distanceThreshold && finalGoal == true)
+    else if (cmpf(distance2, distanceThreshold) <= 0 && finalGoal == true)
     {
         //Ignore desired angle
         if(ignoreOrientation){
@@ -662,9 +666,9 @@ void positionControl(int xTarget, int yTarget, float finalAngle, Motor *motorVal
           }
         }
     }
-    if(fabs(distance2_EU - lastDistance) < 0.5) {
-      setGreenLed(5);
-    }
+    // if(cmpf(absf(qfp_fsub(distance2_EU, lastDistance)), 0.5) < 0) {
+    //   setGreenLed(5);
+    // }
 
     lastDistance = distance2_EU;
 
@@ -810,11 +814,11 @@ Notes   :
 ============================================================================*/
 void minimumf(float *value, float min)
 {
-    if (abs(*value) < min)
+    if (cmpf(absf(*value), min) < 0)
     {
-        if (*value > 0)
+        if (cmpf(*value, 0.0f) > 0)
             *value = min;
-        if (*value < 0)
+        if (cmpf(*value, 0.0f) < 0)
             *value = -min;
     }
 }
@@ -831,11 +835,11 @@ Notes   :
 ============================================================================*/
 void maximumf(float *value, float max)
 {
-    if (abs(*value) > max)
+    if (cmpf(absf(*value), max) > 0)
     {
-        if (*value > 0)
+        if (cmpf(*value, 0.0f) > 0)
             *value = max;
-        if (*value < 0)
+        if (cmpf(*value, 0.0f) < 0)
             *value = -max;
     }
 }

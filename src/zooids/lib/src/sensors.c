@@ -1,4 +1,6 @@
 #include "sensors.h"
+#include "bittybuzz/bbzfloat.h"
+#include <qfplib.h>
 
 
 /* ADC handle declaration */
@@ -360,10 +362,11 @@ bool updateRobotPosition()
         robotPosition.x = (photoDiodesPositions[1].x + photoDiodesPositions[0].x) / 2;
         robotPosition.y = (photoDiodesPositions[1].y + photoDiodesPositions[0].y) / 2;
 
-        robotOrientation = atan2f((float)(photoDiodesPositions[1].y - photoDiodesPositions[0].y),
-                                        (float)(photoDiodesPositions[1].x - photoDiodesPositions[0].x)) * RAD_TO_DEG_CST + 90.0f;
-        if(robotOrientation > 180.0f)
-            robotOrientation -= 360.0f;
+        robotOrientation = qfp_fadd(qfp_fmul(qfp_fatan2(qfp_int2float(photoDiodesPositions[1].y - photoDiodesPositions[0].y),
+                                        qfp_int2float(photoDiodesPositions[1].x - photoDiodesPositions[0].x)), RAD_TO_DEG_CST), 90.0f);
+
+        if(qfp_fcmp(robotOrientation, 180.0f) > 0)
+            robotOrientation = qfp_fsub(robotOrientation, 360.0f);
 
         readyToUpdate0 = false;
         readyToUpdate1 = false;

@@ -5,6 +5,15 @@ Message bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
 bbzmsg_payload_t bbz_payload_buf;
 
+extern Position robotPosition;
+extern float robotOrientation;
+bbzheap_idx_t pos_x_idx;
+bbzheap_idx_t pos_y_idx;
+bbzheap_idx_t pos_orientation_idx;
+
+extern Motor motorValues;
+extern Target currentGoal;
+
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
 {
@@ -31,10 +40,11 @@ Message* bbzwhich_msg_tx() {
     if(bbzoutmsg_queue_size()) {
         bbzoutmsg_queue_first(&bbz_payload_buf);
         bbzmsg_tx.header.type = TYPE_BBZ_MESSAGE;
-        bbzmsg_tx.header.id = getRobotId();
-        *(Position*)bbzmsg_tx.payload = *getRobotPosition();
+        bbzmsg_tx.header.id = 255;
+        *(uint8_t*)bbzmsg_tx.payload = getRobotId();
+        *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = *getRobotPosition();
         for (uint8_t i=0;i<9;++i) {
-            bbzmsg_tx.payload[i+sizeof(Position)] = *bbzringbuf_at(&bbz_payload_buf, i);
+            bbzmsg_tx.payload[i+sizeof(Position)+sizeof(uint8_t)] = *bbzringbuf_at(&bbz_payload_buf, i);
         }
         return &bbzmsg_tx;
     }
@@ -47,7 +57,7 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
     if (msg_rx->header.type == TYPE_BBZ_MESSAGE) {
         bbzringbuf_clear(&bbz_payload_buf);
         for (uint8_t i = 0; i < 9; ++i) {
-            *bbzringbuf_rawat(&bbz_payload_buf, bbzringbuf_makeslot(&bbz_payload_buf)) = msg_rx->payload[i + sizeof(Position)];
+            *bbzringbuf_rawat(&bbz_payload_buf, bbzringbuf_makeslot(&bbz_payload_buf)) = msg_rx->payload[i + sizeof(Position) + sizeof(uint8_t)];
         }
         // Add the neighbor data.
 #ifndef BBZ_DISABLE_NEIGHBORS
@@ -55,7 +65,7 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
             bbzneighbors_elem_t elem;
             elem.azimuth = 0;
             elem.elevation = 0;
-            elem.robot = msg_rx->header.id;
+            elem.robot = *(uint8_t*)msg_rx->payload;
             elem.distance = distance >> 8;
             bbzneighbors_add(&elem);
         }
@@ -74,18 +84,39 @@ void bbz_init(void)
     vm = &vmObj;
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 }
+
+void bbz_createPosObject() {
+    bbzvm_pusht(); // "pos"
+    pos_x_idx = bbzint_new(0);
+    pos_y_idx = bbzint_new(0);
+    pos_orientation_idx = bbzfloat_new(bbzfloat_fromint(0));
+    bbztable_add_data(__BBZSTRID_x, pos_x_idx);
+    bbztable_add_data(__BBZSTRID_y, pos_y_idx);
+    bbztable_add_data(__BBZSTRID_orientation, pos_orientation_idx);
+    bbzvm_gsym_register(__BBZSTRID_pos, bbzvm_stack_at(0));
+    bbzheap_obj_make_permanent(*bbzheap_obj_at(bbzvm_stack_at(0)));
+    bbzvm_pop();
+}
+
+void bbz_updatePosObject() {
+    bbzvm_assign(&bbzheap_obj_at(pos_x_idx)->i.value, &robotPosition.x);
+    bbzvm_assign(&bbzheap_obj_at(pos_y_idx)->i.value, &robotPosition.y);
+    bbzheap_obj_at(pos_orientation_idx)->f.value = bbzfloat_fromfloat(robotOrientation);
+}
+
 void bbz_start(void (*setup)(void))
 {
     uint8_t has_setup = 0, init_done = 0;
     while (1)
     {
         checkRadio();
-        checkTouch();
+        // checkTouch();
         if (!init_done) {
             if (!has_setup) {
                 bbzvm_construct(getRobotId());
                 bbzvm_set_bcode(bbzzooids_bcodeFetcher, bcode_size);
                 bbzvm_set_error_receiver(bbz_err_receiver);
+                bbz_createPosObject();
                 setup();
                 has_setup = 1;
             }
@@ -107,9 +138,11 @@ void bbz_start(void (*setup)(void))
             if (vm->state != BBZVM_STATE_ERROR) {
                 bbzvm_process_inmsgs();
                 bbz_func_call(__BBZSTRID_step);
-                //bbzvm_process_outmsgs();
+                bbzvm_process_outmsgs();
             }
             //updateRobot();
+            updateRobotPosition();
+            bbz_updatePosObject();
         }
     }
 }
@@ -134,7 +167,7 @@ void bbz_err_receiver(bbzvm_error errcode)
     ___led(RGB(1, 2, 0));
     ___led(RGB(1, 2, 0));
     delay(300);
-#if 1
+#if 0
     for (i = 4; i; --i)
     {
         delay(700);

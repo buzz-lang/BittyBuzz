@@ -38,5 +38,9 @@ onconflict
 onconflictlost
 robot
 timestamp
+pos
+x
+y
+orientation
 __INTERNAL_1_DO_NOT_USE__
 __INTERNAL_2_DO_NOT_USE__

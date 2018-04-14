@@ -40,15 +40,23 @@ function(generate_hex c_source bzz_source)
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         COMMAND ${SIZE} ${ELF_TARGET}
         COMMENT "Calculating ELF file size:")
+    add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
+        COMMAND rm ${GENSYMS_FILE}
+        COMMENT "Removing Generated symbols")
 
-    add_custom_command(OUTPUT ${ASM_FILE}
+    add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         COMMAND ${OBJDUMP} -d -S ${ELF_TARGET} > ${ASM_FILE}
-        DEPENDS ${ELF_TARGET})
+        DEPENDS ${ELF_TARGET}
+        COMMENT "Generating text assembly file")
     # .elf -> .hex
-    add_custom_command(OUTPUT ${HEX_FILE}
+    add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
+        BYPRODUCTS ${HEX_FILE}
         COMMAND ${OBJCOPY} -Oihex ${ELF_TARGET} ${HEX_FILE}
         COMMAND ${SIZE} ${HEX_FILE}
+        COMMENT "Caclulating HEX file size:"
         DEPENDS ${ELF_TARGET})
+    
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${HEX_FILE};${ASM_FILE};${MAP_FILE}")
 
     # # .bzz -> .basm, ...
     # if (NOT ${ARGN} STREQUAL "")
@@ -63,16 +71,16 @@ function(generate_hex c_source bzz_source)
     #             DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
     # endif()
 
-    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${HEX_FILE} ${ASM_FILE} ${ELF_TARGET}) #${COMPILER_SCRIPT}
+    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${ELF_TARGET}) #${COMPILER_SCRIPT}
     set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${ELF_TARGET}" INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
-    add_dependencies(${BZZ_BASENAME} bbzzooids bittybuzz)
+    add_dependencies(${BZZ_BASENAME} bbzzooids_objects bittybuzz)
     include_directories(${BZZ_BASENAME} ${GEN_DIR})
     add_dependencies(behaviors ${BZZ_BASENAME})
     zooids_target_link_libraries(${BZZ_BASENAME} bittybuzz)
 
     add_custom_target(upload_${BZZ_BASENAME}
         LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} erase && LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} --reset --format ihex write ${HEX_FILE}
-        DEPENDS ${HEX_FILE} ${UPLOADER}
+        DEPENDS ${HEX_FILE} ${ELF_TARGET} ${UPLOADER}
         COMMENT "Uploading ${HEX_FILE} to zooids")
 endfunction()
 
@@ -98,11 +106,11 @@ endfunction()
 # =              CMAKE SCRIPT              =
 # ==========================================
 
-set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
-set(__TMP_CFLAGS "${CFLAGS}")
-set(CFLAGS "${CFLAGS} -DRID=$(printenv RESULT)")
-configure_file(compile.sh ${COMPILER_SCRIPT} @ONLY)
-set(CFLAGS "${__TMP_CFLAGS}")
-unset(__TMP_CFLAGS)
+# set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
+# set(__TMP_CFLAGS "${CFLAGS}")
+# set(CFLAGS "${CFLAGS} -DRID=$(printenv RESULT)")
+# configure_file(compile.sh ${COMPILER_SCRIPT} @ONLY)
+# set(CFLAGS "${__TMP_CFLAGS}")
+# unset(__TMP_CFLAGS)
 
 generate_all_hex()

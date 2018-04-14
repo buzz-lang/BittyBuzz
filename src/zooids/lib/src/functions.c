@@ -1,5 +1,6 @@
 #include "functions.h"
 #include "colors.h"
+#include "bittybuzz/bbzvm.h"
 #include <stdlib.h>
 
 /* Private typedef -----------------------------------------------------------*/
@@ -22,9 +23,9 @@ uint8_t atDestCounter = 0;
 bool positionSent = true;
 uint8_t currentTouch = 0;
 
-Target currentGoal = {500, 500, 0, true, true};
+Target currentGoal = {500, 500, 90, true, true};
 
-Motor motorValues = {0, 0, 1.0f, 22, MAX_SPEED, 60};
+Motor motorValues = {0, 0, 1.0f, 22, 30, 40};
 //Motor motorValues = {0, 0, 1.0f, 15, 25,40};
 
 bool isPositionControl = true;
@@ -34,6 +35,8 @@ volatile CHARGING_STATE_t chargingStatus = DISCONNECTED;
 volatile message_tx_t         message_tx;
 volatile message_tx_success_t message_tx_success;
 volatile message_rx_t         message_rx;
+
+Position msgp;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -156,17 +159,21 @@ void checkRadio() {
     whatHappened(&tx, &fail, &rx);
     clearInterruptFlag(rx, tx, fail);
     radioEvent = false;
-    if (rx)
+    if (rx) {
       handleIncomingRadioMessage();
+    }
     if (fail) {
       flush_tx();
-      handleOutgoingRadioMessage();
     }
     if (tx) {
       message_tx_success();
-      handleOutgoingRadioMessage();
+      toggleRedLed();
+      delay(40);
+      toggleRedLed();
+      delay(40);
     }
   }
+  handleOutgoingRadioMessage();
 }
 
 /*============================================================================
@@ -183,13 +190,24 @@ void handleIncomingRadioMessage() {
   // uint64_t tmpPipeAddress = 0;
   // PositionControlMessage* positionMessage;
   uint8_t payloadSize = getDynamicPayloadSize();
-  if (payloadSize > PAYLOAD_MAX_SIZE)
-    flush_rx();
-  else {
+  
+  // else {
     Message msg;
     memset(&msg, 0, sizeof(msg));
-    readRadio((uint8_t *)&msg, payloadSize);
+    readRadio((uint8_t *)&msg, PAYLOAD_MAX_SIZE);
+    if (payloadSize > PAYLOAD_MAX_SIZE) {
+      flush_rx();
+    }
+    if (msg.header.type == TYPE_BBZ_MESSAGE) {
+      toggleBlueLed();
+      delay(40);
+      toggleBlueLed();
+      delay(40);
+    }
     if (msg.header.id == RECEIVER_ID) {
+      toggleGreenLed();
+      delay(20);
+      toggleGreenLed();
       switch (msg.header.type) {
       case TYPE_UPDATE:
         break;
@@ -236,25 +254,25 @@ void handleIncomingRadioMessage() {
         // currentGoal.finalGoal = (bool)positionMessage->isFinalGoal;
         // prepareMessageToSend(getRobotPosition(), getRobotAngle(), &currentTouch, &atDestination, getBatteryLevel());
         break;
-
+      case TYPE_BBZ_MESSAGE:
+        memcpy_fast(&msgp, msg.payload+1, sizeof(Position));
+        message_rx(&msg, qfp_float2uint(qfp_fsqrt(qfp_uint2float(msgp.x*msgp.x + msgp.y*msgp.y))));
+        break;
       case TYPE_REBOOT_ROBOT:
         Reboot();
-        break;
-      case TYPE_BBZ_MESSAGE:
-        // TODO Calculate the distance
-        message_rx(&msg, 0);
         break;
       default:
         break;
       }
     }
-  }
+  // }
 }
 
 void handleOutgoingRadioMessage(void) {
+  if (message_tx == NULL) return;
   Message* msg = message_tx();
   if (msg != NULL) {
-    writeAckPayload(0, (uint8_t *)&msg, sizeof(Header) + sizeof(Position) + 9);
+    writeRadio((uint8_t *)&msg, sizeof(Header) + sizeof(uint8_t) + sizeof(Position) + 9);
   }
 }
 

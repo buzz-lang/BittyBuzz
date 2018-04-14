@@ -38,7 +38,7 @@ static uint8_t motor_state = 0;
 void bbz_forward() {
     if (motor_state != 0) {
         spinup_motors();
-        set_motors(30, 30);
+        set_motors(MAX_SPEED, MAX_SPEED);
         motor_state = 0;
     }
     bbzvm_ret0();
@@ -47,7 +47,7 @@ void bbz_forward() {
 void bbz_right() {
     if (motor_state != 1) {
         spinup_motors();
-        set_motors(-20, 20);
+        set_motors(-MAX_SPEED/2, MAX_SPEED/2);
         motor_state = 1;
     }
     bbzvm_ret0();
@@ -56,7 +56,7 @@ void bbz_right() {
 void bbz_left() {
     if (motor_state != 2) {
         spinup_motors();
-        set_motors(20, -20);
+        set_motors(MAX_SPEED/2, -MAX_SPEED/2);
         motor_state = 2;
     }
     bbzvm_ret0();
