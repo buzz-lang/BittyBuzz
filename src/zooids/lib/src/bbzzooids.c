@@ -13,6 +13,7 @@ bbzheap_idx_t pos_orientation_idx;
 
 extern Motor motorValues;
 extern Target currentGoal;
+uint8_t currentGoal_reached;
 
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
@@ -23,6 +24,9 @@ const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
     }
     return buf;
 }
+
+void bbz_createPosObject();
+void bbz_updatePosObject();
 
 void bbz_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
@@ -35,12 +39,46 @@ void bbz_func_call(uint16_t strid) {
     }
 }
 
+void bbzzooids_func_call(uint16_t strid) {
+    bbzvm_pushs(strid);
+    bbzheap_idx_t l = bbzvm_stack_at(0);
+    bbzvm_pop();
+    if(bbztable_get(vmObj.gsyms, l, &l)) {
+        bbzvm_pushnil(); // Push self table
+        bbzvm_push(l);
+
+        bbzvm_assert_state();
+        bbzvm_pushi(0);
+        int16_t blockptr = vm->blockptr;
+        bbzvm_callc();
+        while(blockptr < vm->blockptr) {
+            if(vm->state != BBZVM_STATE_READY) return;
+            bbzvm_step();
+
+            if (updateRobotPosition()) {
+                bbz_updatePosObject();
+                positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
+                minimumc(&(motorValues.motor1), motorValues.minVelocity);
+                minimumc(&(motorValues.motor2), motorValues.minVelocity);
+                maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
+                maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
+                setMotor1(motorValues.motor1);
+                setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
+            }
+            if (currentGoal_reached) {
+                setMotor1(0);
+                setMotor2(0);
+            }
+        }
+    }
+}
+
 Message* bbzwhich_msg_tx() {
 #ifndef BBZ_DISABLE_MESSAGES
     if(bbzoutmsg_queue_size()) {
         bbzoutmsg_queue_first(&bbz_payload_buf);
         bbzmsg_tx.header.type = TYPE_BBZ_MESSAGE;
-        bbzmsg_tx.header.id = 255;
+        bbzmsg_tx.header.id = RECEIVER_ID;
         *(uint8_t*)bbzmsg_tx.payload = getRobotId();
         *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = *getRobotPosition();
         for (uint8_t i=0;i<9;++i) {
@@ -137,12 +175,10 @@ void bbz_start(void (*setup)(void))
         else {
             if (vm->state != BBZVM_STATE_ERROR) {
                 bbzvm_process_inmsgs();
-                bbz_func_call(__BBZSTRID_step);
+                bbzzooids_func_call(__BBZSTRID_step);
                 bbzvm_process_outmsgs();
             }
             //updateRobot();
-            updateRobotPosition();
-            bbz_updatePosObject();
         }
     }
 }

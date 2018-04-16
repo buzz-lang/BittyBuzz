@@ -24,7 +24,9 @@ function step() {
             led(0)
         }
     }
-    goto(300 + (greyCode(i) % 2) * 400, 300 + ((greyCode(i) / 2) % 2) * 400)
-    i = i + 1
-    i = i % 4
+    reached = goto(300 + (greyCode(i) % 2) * 400, 300 + ((greyCode(i) / 2) % 2) * 400)
+    if(reached > 0) {
+        i = i + 1
+        i = i % 4
+    }
 }

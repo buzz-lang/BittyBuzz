@@ -6,6 +6,7 @@
 
 extern Target currentGoal;
 extern Motor motorValues;
+extern uint8_t currentGoal_reached;
 
 void bbz_led() {
     bbzvm_assert_lnum(1);
@@ -31,21 +32,8 @@ void bbz_goto() {
     int16_t y = bbzheap_obj_at(bbzvm_locals_at(2))->i.value;
     currentGoal.x = x;
     currentGoal.y = y;
-    bool reached = false;
-    while (!reached) {
-        if (updateRobotPosition()) {
-            positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
-            minimumc(&(motorValues.motor1), motorValues.minVelocity);
-            minimumc(&(motorValues.motor2), motorValues.minVelocity);
-            maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
-            maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
-            setMotor1(motorValues.motor1);
-            setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
-        }
-    }
-    setMotor1(0);
-    setMotor2(0);
-    bbzvm_ret0();
+    bbzvm_pushi(currentGoal_reached);
+    bbzvm_ret1();
 }
 
 void bbz_greyCode() {

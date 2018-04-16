@@ -47,10 +47,9 @@ bool initRadio()
             setRobotId(ROBOT_ID);
 
             /**/
-            openReadingPipe(0, DEFAULT_ADDRESS + 12);
-            openReadingPipe(1, 12+3);
+            openReadingPipe(0, DEFAULT_ADDRESS);
+            openWritingPipe(DEFAULT_ADDRESS);
             startListening();
-            openWritingPipe(DEFAULT_ADDRESS + 12);
             /*/
 
             setRobotPipeAddress(DEFAULT_ADDRESS + 12 + ROBOT_ID * 3);

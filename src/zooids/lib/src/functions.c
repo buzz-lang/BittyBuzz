@@ -165,13 +165,6 @@ void checkRadio() {
     if (fail) {
       flush_tx();
     }
-    if (tx) {
-      message_tx_success();
-      toggleRedLed();
-      delay(40);
-      toggleRedLed();
-      delay(40);
-    }
   }
   handleOutgoingRadioMessage();
 }
@@ -198,16 +191,7 @@ void handleIncomingRadioMessage() {
     if (payloadSize > PAYLOAD_MAX_SIZE) {
       flush_rx();
     }
-    if (msg.header.type == TYPE_BBZ_MESSAGE) {
-      toggleBlueLed();
-      delay(40);
-      toggleBlueLed();
-      delay(40);
-    }
     if (msg.header.id == RECEIVER_ID) {
-      toggleGreenLed();
-      delay(20);
-      toggleGreenLed();
       switch (msg.header.type) {
       case TYPE_UPDATE:
         break;
@@ -272,7 +256,13 @@ void handleOutgoingRadioMessage(void) {
   if (message_tx == NULL) return;
   Message* msg = message_tx();
   if (msg != NULL) {
-    writeRadio((uint8_t *)&msg, sizeof(Header) + sizeof(uint8_t) + sizeof(Position) + 9);
+    resetCommunicationWatchdog();
+    stopListening();
+    writeRadio((uint8_t*)msg, sizeof(Header) + sizeof(uint8_t) + sizeof(Position) + 9);
+    HAL_Delay(1);
+    startListening();
+
+    message_tx_success();
   }
 }
 
