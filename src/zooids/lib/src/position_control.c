@@ -561,7 +561,7 @@ Notes   :
 void positionControl(int xTarget, int yTarget, float finalAngle, Motor *motorValues, bool *reached, bool forward, bool finalGoal, bool ignoreOrientation)
 {//*
     float ratioOfAngle = 0.75f;
-    float distanceThreshold = 0.03f;//0.0035f;//0.01f;
+    float distanceThreshold = 0.01f;//0.0035f;//0.01f;
     bool aligned = false;
     static bool aligned1 = false;
     static bool aligned2 = false;

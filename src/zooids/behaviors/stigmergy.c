@@ -4,6 +4,10 @@
 #include <bittybuzz/util/bbzstring.h>
 #include <bbzzooids.h>
 
+extern Target currentGoal;
+extern Motor motorValues;
+extern uint8_t currentGoal_reached;
+
 void bbz_led() {
     bbzvm_assert_lnum(1);
 #ifndef DEBUG
@@ -22,9 +26,23 @@ void bbz_delay() {
     bbzvm_ret0();
 }
 
+void bbz_goto() {
+    bbzvm_assert_lnum(2);
+    int16_t x = bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
+    int16_t y = bbzheap_obj_at(bbzvm_locals_at(2))->i.value;
+    currentGoal.x = x;
+    currentGoal.y = y;
+    positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
+    bbzvm_pushi(currentGoal_reached);
+    bbzvm_ret1();
+}
+
+#define registerFunc(name) bbzvm_function_register(BBZSTRING_ID(name), bbz_##name)
+
 void setup() {
-    bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
-    bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
+    registerFunc(led);
+    registerFunc(delay);
+    registerFunc(goto);
 }
 
 int main() {

@@ -13,7 +13,7 @@ bbzheap_idx_t pos_orientation_idx;
 
 extern Motor motorValues;
 extern Target currentGoal;
-uint8_t currentGoal_reached;
+uint8_t currentGoal_reached = false;
 
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
@@ -56,6 +56,7 @@ void bbzzooids_func_call(uint16_t strid) {
             bbzvm_step();
 
             if (updateRobotPosition()) {
+                currentGoal_reached = false;
                 bbz_updatePosObject();
                 positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
                 minimumc(&(motorValues.motor1), motorValues.minVelocity);
@@ -147,8 +148,6 @@ void bbz_start(void (*setup)(void))
     uint8_t has_setup = 0, init_done = 0;
     while (1)
     {
-        checkRadio();
-        // checkTouch();
         if (!init_done) {
             if (!has_setup) {
                 bbzvm_construct(getRobotId());
@@ -178,6 +177,8 @@ void bbz_start(void (*setup)(void))
                 bbzzooids_func_call(__BBZSTRID_step);
                 bbzvm_process_outmsgs();
             }
+            checkRadio();
+            // checkTouch();
             //updateRobot();
         }
     }
@@ -203,7 +204,7 @@ void bbz_err_receiver(bbzvm_error errcode)
     ___led(RGB(1, 2, 0));
     ___led(RGB(1, 2, 0));
     delay(300);
-#if 0
+#if 1
     for (i = 4; i; --i)
     {
         delay(700);

@@ -13,11 +13,11 @@ function init() {
     }
 }
 
-i = 20
+i = 30
 function step() {
     i = i + 1
-    if (id == 7 and i % 20 == 0) {
-        stig.put("1", 41 + ((i / 20) % 3))
+    if (id == 7 and i % 30 == 0) {
+        stig.put("1", 41 + ((i / 30) % 3))
         led(7)
     }
     var val = stig.get("1")
@@ -30,4 +30,5 @@ function step() {
     else {
         led(2)
     }
+    goto(200 + id * 60, 500);
 }

@@ -25,7 +25,7 @@ uint8_t currentTouch = 0;
 
 Target currentGoal = {500, 500, 90, true, true};
 
-Motor motorValues = {0, 0, 1.0f, 22, 30, 40};
+Motor motorValues = {0, 0, 1.0f, 22, 40, 60};
 //Motor motorValues = {0, 0, 1.0f, 15, 25,40};
 
 bool isPositionControl = true;
