@@ -32,6 +32,7 @@ void bbz_goto() {
     int16_t y = bbzheap_obj_at(bbzvm_locals_at(2))->i.value;
     currentGoal.x = x;
     currentGoal.y = y;
+    currentGoal_reached = false;
     positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
     bbzvm_pushi(currentGoal_reached);
     bbzvm_ret1();

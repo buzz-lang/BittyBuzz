@@ -38,6 +38,8 @@ volatile message_rx_t         message_rx;
 
 Position msgp;
 
+extern bool isListening;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -166,7 +168,6 @@ void checkRadio() {
       flush_tx();
     }
   }
-  handleOutgoingRadioMessage();
 }
 
 /*============================================================================
@@ -196,51 +197,12 @@ void handleIncomingRadioMessage() {
       case TYPE_UPDATE:
         break;
       case TYPE_MOTORS_VELOCITY:
-        // isPositionControl = false;
-        // setMotor1((int8_t)msg.payload[0]);
-        // setMotor2((int8_t)msg.payload[1]);
-        // setRGBLed(msg.payload[2] / 8, msg.payload[3] / 8, msg.payload[4] / 8);
-        // prepareMessageToSend(getRobotPosition(), getRobotAngle(), &currentTouch, &atDestination, getBatteryLevel());
         break;
       case TYPE_ROBOT_POSITION:
-        // isPositionControl = true;
-        // positionMessage = (PositionControlMessage*)msg.payload;
-        // if(currentGoal.x != positionMessage->positionX || currentGoal.y != positionMessage->positionY){
-        //   currentGoal.x = positionMessage->positionX;
-        //   currentGoal.y = positionMessage->positionY;
-
-        //   reached = false;
-        //   atDestination = false;
-        //   setRedLed(0);
-        //   atDestCounter = 0;
-        // }
-        // //setRGBLed(positionMessage->colorRed/8, positionMessage->colorGreen/8, positionMessage->colorBlue/8);
-
-        // motorValues.preferredVelocity = positionMessage->preferredSpeed;
-
-        // if(positionMessage->preferredSpeed == 0){
-        //   setMotor1(0);
-        //   setMotor2(0);
-        //   isPositionControl = false;
-        // }
-
-        // currentGoal.angle = ((float)positionMessage->orientation)/100.0f;
-        // currentGoal.ignoreOrientation = positionMessage->ignoreOrientation;
-
-        // if(motorValues.preferredVelocity > MAX_SPEED)
-        //   motorValues.preferredVelocity = MAX_SPEED;
-        // if(motorValues.preferredVelocity < -MAX_SPEED)
-        //   motorValues.preferredVelocity = -MAX_SPEED;
-        //  // Required ??
-        // if(motorValues.preferredVelocity < motorValues.minVelocity)
-        //   motorValues.preferredVelocity = motorValues.minVelocity;
-
-        // currentGoal.finalGoal = (bool)positionMessage->isFinalGoal;
-        // prepareMessageToSend(getRobotPosition(), getRobotAngle(), &currentTouch, &atDestination, getBatteryLevel());
         break;
       case TYPE_BBZ_MESSAGE:
         memcpy_fast(&msgp, msg.payload+1, sizeof(Position));
-        message_rx(&msg, qfp_float2uint(qfp_fsqrt(qfp_uint2float(msgp.x*msgp.x + msgp.y*msgp.y))));
+        message_rx(&msg, qfp_float2uint(qfp_fsqrt(qfp_uint2float((uint32_t)(msgp.x)*(uint32_t)(msgp.x) + (uint32_t)(msgp.y)*(uint32_t)(msgp.y)))));
         break;
       case TYPE_REBOOT_ROBOT:
         Reboot();
@@ -255,7 +217,7 @@ void handleIncomingRadioMessage() {
 void handleOutgoingRadioMessage(void) {
   if (message_tx == NULL) return;
   Message* msg = message_tx();
-  if (msg != NULL) {
+  while (msg != NULL) {
     resetCommunicationWatchdog();
     stopListening();
     writeRadio((uint8_t*)msg, sizeof(Header) + sizeof(uint8_t) + sizeof(Position) + 9);
@@ -263,6 +225,7 @@ void handleOutgoingRadioMessage(void) {
     startListening();
 
     message_tx_success();
+    msg = message_tx();
   }
 }
 
@@ -374,8 +337,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
   }
 
   //nRF IRQ
-  if ((GPIO_Pin & RADIO_IRQ_PIN) > 0)
+  if ((GPIO_Pin & RADIO_IRQ_PIN) > 0) {
     radioEvent = true;
+
+    if (isListening) {
+      bool tx, fail, rx;
+      whatHappened(&tx, &fail, &rx);
+      if (rx) {
+        handleIncomingRadioMessage();
+        clearInterruptFlag(true, false, false);
+      }
+    }
+  }
 
   //IMU IRQ
   //    if(GPIO_Pin && IMU_INT_PIN);

@@ -245,6 +245,7 @@ void bbzmsg_process_vstig(bbzmsg_t* msg) {
                                      data->timestamp);
         ++vm->vstig.size;
     }
+    bbzvm_gc();
 }
 #endif
 

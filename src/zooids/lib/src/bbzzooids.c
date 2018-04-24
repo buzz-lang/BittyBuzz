@@ -13,7 +13,7 @@ bbzheap_idx_t pos_orientation_idx;
 
 extern Motor motorValues;
 extern Target currentGoal;
-uint8_t currentGoal_reached = false;
+uint8_t currentGoal_reached = true;
 
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
@@ -56,20 +56,22 @@ void bbzzooids_func_call(uint16_t strid) {
             bbzvm_step();
 
             if (updateRobotPosition()) {
-                currentGoal_reached = false;
                 bbz_updatePosObject();
-                positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
-                minimumc(&(motorValues.motor1), motorValues.minVelocity);
-                minimumc(&(motorValues.motor2), motorValues.minVelocity);
-                maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
-                maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
-                setMotor1(motorValues.motor1);
-                setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
+                if (!currentGoal_reached) {
+                    positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
+                    minimumc(&(motorValues.motor1), motorValues.minVelocity);
+                    minimumc(&(motorValues.motor2), motorValues.minVelocity);
+                    maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
+                    maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
+                    setMotor1(motorValues.motor1);
+                    setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
+                }
             }
             if (currentGoal_reached) {
                 setMotor1(0);
                 setMotor2(0);
             }
+            handleOutgoingRadioMessage();
         }
     }
 }

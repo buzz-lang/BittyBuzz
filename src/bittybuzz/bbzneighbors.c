@@ -20,20 +20,11 @@
 static void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
     bbzvm_pusht();
     // Distance
-    bbzvm_pushi(elem->distance);
-    bbzheap_idx_t dist = bbzvm_stack_at(0);
-    bbzvm_pop();
-    bbztable_add_data(__BBZSTRID_distance,  dist);
+    bbztable_add_data(__BBZSTRID_distance,  bbzint_new(elem->distance));
     // Azimuth
-    bbzvm_pushi(elem->azimuth);
-    bbzheap_idx_t azim = bbzvm_stack_at(0);
-    bbzvm_pop();
-    bbztable_add_data(__BBZSTRID_azimuth,   azim);
+    bbztable_add_data(__BBZSTRID_azimuth,   bbzint_new(elem->azimuth));
     // Elevation
-    bbzvm_pushi(elem->elevation);
-    bbzheap_idx_t elev = bbzvm_stack_at(0);
-    bbzvm_pop();
-    bbztable_add_data(__BBZSTRID_elevation, elev);
+    bbztable_add_data(__BBZSTRID_elevation, bbzint_new(elem->elevation));
 }
 
 /**
@@ -55,15 +46,11 @@ static void add_neighborlike_fields(int16_t count) {
 
 #ifndef BBZ_XTREME_MEMORY
     // Add a sub-table which will contain the neighbors' data
-    bbzvm_pusht();
-    bbzheap_idx_t sub_tbl = bbzvm_stack_at(0);
-    bbzvm_pop();
+    bbzheap_idx_t sub_tbl = bbztable_new();
     bbztable_add_data(INTERNAL_STRID_SUB_TBL, sub_tbl);
 
     // Add neighbor count
-    bbzvm_pushi(count);
-    bbzheap_idx_t cnt = bbzvm_stack_at(0);
-    bbzvm_pop();
+    bbzheap_idx_t cnt = bbzint_new(count);
     bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
 #else
     RM_UNUSED_WARN(count);
@@ -492,7 +479,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
-    bbztable_add_data(INTERNAL_STRID_COUNT, vm->neighbors.count);
+    bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
 
     // Set data to the sub-table.
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);

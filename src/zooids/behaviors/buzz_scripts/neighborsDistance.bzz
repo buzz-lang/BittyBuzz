@@ -7,19 +7,19 @@ function init() {
             if (dist < 0) {
                 led(0) # Off
             }
-            else if (dist > 210) {
+            else if (dist > 5) {
                 led(5) # Magenta
             }
-            else if (dist > 168) {
+            else if (dist > 4) {
                 led(4) # Blue
             }
-            else if (dist > 126) {
+            else if (dist > 3) {
                 led(6) # Cyan
             }
-            else if (dist > 84) {
+            else if (dist > 2) {
                 led(2) # Green
             }
-            else if (dist > 42) {
+            else if (dist > 1) {
                 led(3) # Yellow
             }
             else {
@@ -35,7 +35,7 @@ function init() {
 }
 
 function step() {
-    if(id == 7) {
+    if(id == 0) {
         neighbors.broadcast("Hello world!", 42)
         led(4) # Blue
         led(0) # Off

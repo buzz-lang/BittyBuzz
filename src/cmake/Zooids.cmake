@@ -72,15 +72,15 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 #
 set(BBZ_ROBOT zooids)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
-option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte." ON)
+option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" ON)
 set(BBZHEAP_SIZE 4096)
 set(BBZSTACK_SIZE 256)
 # message("BBZHEAP_SIZE := ${BBZHEAP_SIZE}")
-set(BBZHEAP_GCMARK_DEPTH 15)
+set(BBZHEAP_GCMARK_DEPTH 16)
 
-set(BBZ_DISABLE_NEIGHBORS ON)
-set(BBZ_DISABLE_VSTIGS OFF)
-set(BBZ_DISABLE_SWARMS ON)
+# set(BBZ_DISABLE_NEIGHBORS ON)
+# set(BBZ_DISABLE_VSTIGS OFF)
+# set(BBZ_DISABLE_SWARMS ON)
 
 #
 # CMake command to compile an executable

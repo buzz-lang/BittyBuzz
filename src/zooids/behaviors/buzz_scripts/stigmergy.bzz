@@ -3,12 +3,14 @@
 #      be OFF.                                                                #
 ###############################################################################
 
+ROBOT_ID=0
+
 function init() {
     stig = stigmergy.create(0)
     stig.onconflict(function(key, ld, rd) {
             return ld
     })
-    if (id == 7) {
+    if (id == ROBOT_ID) {
         stig.put("1", 42)
     }
 }
@@ -16,9 +18,10 @@ function init() {
 i = 30
 function step() {
     i = i + 1
-    if (id == 7 and i % 30 == 0) {
+    i = i % (90 * 10)
+    if (id == ROBOT_ID and i % 30 == 0) {
         stig.put("1", 41 + ((i / 30) % 3))
-        led(7)
+        #goto(200 + ((i / 90) % 10) * 55, 440);
     }
     var val = stig.get("1")
     if (val < 42) {
@@ -30,5 +33,7 @@ function step() {
     else {
         led(2)
     }
-    goto(200 + id * 60, 500);
+    #if (id != ROBOT_ID) {
+        goto(200 + id * 55, 500);
+    #}
 }

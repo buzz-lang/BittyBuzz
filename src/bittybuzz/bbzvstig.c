@@ -48,7 +48,7 @@ void bbzvstig_create() {
     // Table is now stack top. Return it.
     bbzvm_ret1();
 
-//    bbzvm_gc();
+    bbzvm_gc();
 }
 
 /****************************************/
