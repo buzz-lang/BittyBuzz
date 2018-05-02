@@ -27,23 +27,30 @@ function(generate_hex c_source bzz_source)
 
     generate_bbo(${BZZ_BASENAME}_bbo ${GEN_DIR} ${bzz_source} ${ARGN})
 
+    # Generate the symbols.h file
     add_custom_command(OUTPUT ${GENSYMS_FILE}
         COMMAND ./zooids_bcodegen ${BO_FILE} ${GENSYMS_FILE}
         DEPENDS zooids_bcodegen ${BO_FILE} ${BZZ_BASENAME}_bbo
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bittybuzz/exec)
-    
+
+    # We have to use 'bbzzooids_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing
     add_executable(${ELF_TARGET} EXCLUDE_FROM_ALL ${c_source} ${GENSYMS_FILE} "$<TARGET_OBJECTS:bbzzooids_objects>" )
     set_target_properties(${ELF_TARGET}
         PROPERTIES
         COMPILE_FLAGS "${CFLAGS} -DRID=$(RESULT)"
         LINK_FLAGS "${LDSCRIPT} ${LDFLAGS} -Wl,-Map=${MAP_FILE} ${LDLIBS}")
+
+    # Display the Size of the generated ELF file
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         COMMAND ${SIZE} ${ELF_TARGET}
         COMMENT "Calculating ELF file size:")
+
+    # Remove the generated symbols.h file afterward (necessary)
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         COMMAND rm ${GENSYMS_FILE}
         COMMENT "Removing Generated symbols")
 
+    # Generate .lst file (the dissassembled code)
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         COMMAND ${OBJDUMP} -d -S ${ELF_TARGET} > ${ASM_FILE}
         DEPENDS ${ELF_TARGET}
@@ -58,20 +65,7 @@ function(generate_hex c_source bzz_source)
     
     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${HEX_FILE};${ASM_FILE};${MAP_FILE}")
 
-    # # .bzz -> .basm, ...
-    # if (NOT ${ARGN} STREQUAL "")
-    #     add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-    #             BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
-    #             COMMAND ${COMPILER_SCRIPT} -V -b ${bzz_source} -B ${ARGN} ${c_source} 
-    #             DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} ${ARGN} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
-    # else()
-    #     add_custom_command(OUTPUT ${HEX_FILE} ${GEN_DIR}
-    #             BYPRODUCTS ${BASM_FILE} ${BO_FILE} ${BDB_FILE} ${BBO_FILE} ${ELF_FILE} ${MAP_FILE} ${GENSYMS_FILE} ${LOG_FILE} ${DBG_FILE} ${ASM_FILE} ${ELFDBG_FILE}
-    #             COMMAND ${COMPILER_SCRIPT} -V -b ${bzz_source} ${c_source}
-    #             DEPENDS ${COMPILER_SCRIPT} ${bzz_source} ${c_source} bbzzooids bittybuzz bo2bbo zooids_bcodegen)
-    # endif()
-
-    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${ELF_TARGET}) #${COMPILER_SCRIPT}
+    add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${ELF_TARGET})
     set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${ELF_TARGET}" INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")
     add_dependencies(${BZZ_BASENAME} bbzzooids_objects bittybuzz)
     include_directories(${BZZ_BASENAME} ${GEN_DIR})
@@ -105,12 +99,5 @@ endfunction()
 # ==========================================
 # =              CMAKE SCRIPT              =
 # ==========================================
-
-# set(COMPILER_SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/compile.sh)
-# set(__TMP_CFLAGS "${CFLAGS}")
-# set(CFLAGS "${CFLAGS} -DRID=$(printenv RESULT)")
-# configure_file(compile.sh ${COMPILER_SCRIPT} @ONLY)
-# set(CFLAGS "${__TMP_CFLAGS}")
-# unset(__TMP_CFLAGS)
 
 generate_all_hex()

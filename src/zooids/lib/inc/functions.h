@@ -19,7 +19,7 @@
 #include "memcpy_fast.h"
 #include "qfplib.h"
 
-typedef void (*message_rx_t)(Message *, uint16_t distance);
+typedef void (*message_rx_t)(Message *, uint16_t distance, int16_t azimuth);
 typedef Message *(*message_tx_t)(void);
 typedef void (*message_tx_success_t)(void);
 

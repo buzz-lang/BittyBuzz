@@ -69,5 +69,6 @@ zooids_add_library(bbzzooids
         ${ZOOIDS_SOURCES}
 )
 
+# We have to use 'bbzzooids_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing
 zooids_add_executable(blank src/bbzblank.c $<TARGET_OBJECTS:bbzzooids_objects>)
 zooids_target_link_libraries(blank bbzzooids bittybuzz)

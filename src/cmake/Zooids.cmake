@@ -73,13 +73,15 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 set(BBZ_ROBOT zooids)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
 option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" ON)
-set(BBZHEAP_SIZE 4096)
-set(BBZSTACK_SIZE 256)
+set(BBZHEAP_SIZE 2048)
+set(BBZSTACK_SIZE 128)
 # message("BBZHEAP_SIZE := ${BBZHEAP_SIZE}")
 set(BBZHEAP_GCMARK_DEPTH 16)
+set(BBZNEIGHBORS_CAP 10)
+set(BBZMSG_IN_PROC_MAX 10)
 
 # set(BBZ_DISABLE_NEIGHBORS ON)
-# set(BBZ_DISABLE_VSTIGS OFF)
+# set(BBZ_DISABLE_VSTIGS ON)
 # set(BBZ_DISABLE_SWARMS ON)
 
 #
@@ -140,6 +142,7 @@ function(zooids_add_library _TARGET)
     set(_LIB_TARGET ${_TARGET}-${BBZ_ROBOT})
     # Add library target
     add_library(${_TARGET} STATIC ${ARGN})
+    # This line is necessary to compile Buzz scripts correctly, or the script won't even initialize.
     add_library(${_TARGET}_objects OBJECT ${ARGN})
     set_target_properties(${_TARGET} PROPERTIES
         COMPILE_FLAGS "${CFLAGS} -DRID=$(RESULT)"

@@ -468,6 +468,8 @@ void bbzneighbors_data_gc() {
     bbzvm_push(tbl);
     // Update the neighbors count
     bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
+
+    bbzvm_pop();
 }
 
 /****************************************/

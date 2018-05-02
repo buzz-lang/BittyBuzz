@@ -93,7 +93,7 @@ Message* bbzwhich_msg_tx() {
     return 0;
 }
 
-void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
+void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 #ifndef BBZ_DISABLE_MESSAGES
     if (msg_rx->header.type == TYPE_BBZ_MESSAGE) {
         bbzringbuf_clear(&bbz_payload_buf);
@@ -104,10 +104,10 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
 #ifndef BBZ_DISABLE_NEIGHBORS
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
             bbzneighbors_elem_t elem;
-            elem.azimuth = 0;
+            elem.azimuth = azimuth;
             elem.elevation = 0;
             elem.robot = *(uint8_t*)msg_rx->payload;
-            elem.distance = distance >> 8;
+            elem.distance = distance << 1;
             bbzneighbors_add(&elem);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS
@@ -119,9 +119,6 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance) {
 void bbz_init(void)
 {
     initRobot();
-    //setGreenLed(5);
-    //setMotor1(30);
-    //setMotor2(30);
     vm = &vmObj;
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 }
@@ -179,9 +176,8 @@ void bbz_start(void (*setup)(void))
                 bbzzooids_func_call(__BBZSTRID_step);
                 bbzvm_process_outmsgs();
             }
-            checkRadio();
+            // checkRadio();
             // checkTouch();
-            //updateRobot();
         }
     }
 }

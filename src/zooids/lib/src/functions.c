@@ -7,6 +7,8 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 
+#define CLAMP(x, min, max) ((x) >= (min) ? ((x) <= (max) ? (x) : (max)) : (min))
+
 /* Private variables ---------------------------------------------------------*/
 
 /* Timer Output Compare Configuration Structure declaration */
@@ -180,38 +182,34 @@ Return	:
 Notes   :
 ============================================================================*/
 void handleIncomingRadioMessage() {
-  // Position tmpPosition = {0, 0};
-  // uint64_t tmpPipeAddress = 0;
-  // PositionControlMessage* positionMessage;
   uint8_t payloadSize = getDynamicPayloadSize();
-  
-  // else {
-    Message msg;
-    memset(&msg, 0, sizeof(msg));
-    readRadio((uint8_t *)&msg, PAYLOAD_MAX_SIZE);
-    if (payloadSize > PAYLOAD_MAX_SIZE) {
-      flush_rx();
-    }
-    if (msg.header.id == RECEIVER_ID) {
-      switch (msg.header.type) {
-      case TYPE_UPDATE:
-        break;
-      case TYPE_MOTORS_VELOCITY:
-        break;
-      case TYPE_ROBOT_POSITION:
-        break;
-      case TYPE_BBZ_MESSAGE:
+
+  Message msg;
+  memset(&msg, 0, sizeof(msg));
+  readRadio((uint8_t *)&msg, PAYLOAD_MAX_SIZE);
+  if (payloadSize > PAYLOAD_MAX_SIZE) {
+    flush_rx();
+  }
+  if (msg.header.id == RECEIVER_ID) {
+    switch (msg.header.type) {
+    case TYPE_UPDATE:
+      break;
+    case TYPE_BBZ_MESSAGE:
+      if (message_rx != NULL) {
+        Position* rbtp = getRobotPosition();
         memcpy_fast(&msgp, msg.payload+1, sizeof(Position));
-        message_rx(&msg, qfp_float2uint(qfp_fsqrt(qfp_uint2float((uint32_t)(msgp.x)*(uint32_t)(msgp.x) + (uint32_t)(msgp.y)*(uint32_t)(msgp.y)))));
-        break;
-      case TYPE_REBOOT_ROBOT:
-        Reboot();
-        break;
-      default:
-        break;
+        int16_t dist = qfp_float2uint(qfp_fsqrt(qfp_uint2float((uint32_t)(msgp.x - rbtp->x)*(uint32_t)(msgp.x - rbtp->x) + (uint32_t)(msgp.y - rbtp->y)*(uint32_t)(msgp.y - rbtp->y))));
+        int16_t azimuth = qfp_float2int(qfp_fmul(qfp_fatan2(qfp_int2float(msgp.y - rbtp->y), qfp_int2float(msgp.x - rbtp->x)), 180.0f / PI));
+        message_rx(&msg, CLAMP(dist, 0, 127), azimuth);
       }
+      break;
+    case TYPE_REBOOT_ROBOT:
+      Reboot();
+      break;
+    default:
+      break;
     }
-  // }
+  }
 }
 
 void handleOutgoingRadioMessage(void) {

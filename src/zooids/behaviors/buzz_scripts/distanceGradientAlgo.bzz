@@ -5,7 +5,7 @@
 
 function init() {
   iteration = 0
-  if(id == 7) {
+  if(id == 0) {
     # Source robot
     mydist = 0
   }
@@ -21,6 +21,9 @@ function init() {
         }
       })
   }
+  led(7)
+  delay(200)
+  led(0)
 }
 
 function step() {
@@ -53,6 +56,12 @@ function step() {
   # Set message to be passed every 3s
   if(iteration % 10 == 0 and mydist < 600) {
     neighbors.broadcast("dist_to_source", mydist)
+    if(id != 0 and mydist < 600) {
+      mydist = mydist + 2
+    }
   }
   iteration = iteration + 1
+  if(mydist < 0) {
+    mydist = 0
+  }
 }
