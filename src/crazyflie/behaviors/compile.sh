@@ -37,7 +37,7 @@ verbose="0"
 while test $# -gt 0; do
     case "$1" in
         -h|--help)
-            echo "$0 - Compile a buzz script for kilobot."
+            echo "$0 - Compile a buzz script for crazyflie."
             echo " "
             echo "$0 [options] <c_functions.c> [other_source.c [...]] [other_headers.h [...]]"
             echo " "

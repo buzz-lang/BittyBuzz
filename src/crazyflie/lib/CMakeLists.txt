@@ -5,6 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../drivers/STM32F0xx_HAL_Driver/Inc)
 link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+
 FUNCTION(PREPEND var prefix)
    SET(listVar "")
    FOREACH(f ${ARGN})
@@ -14,6 +15,8 @@ FUNCTION(PREPEND var prefix)
 ENDFUNCTION(PREPEND)
 
 PREPEND(CRAZYFLIE_SOURCES "${HAL_DIR}/Src" ${CRAZYFLIE_SOURCES})
+
+PREPEND(CFPLATFORM_SOURCES "${CRAZYFLIE_LIB_DIR}/src/platform" ${CFPLATFORM_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
@@ -67,6 +70,7 @@ crazyflie_add_library(bbzcrazyflie
         incL/cross_studio_io.h
         incL/debugio.h
         ${CRAZYFLIE_SOURCES}
+        #${CFPLATFORM_SOURCES}
 )
 
 # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing

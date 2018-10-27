@@ -29,11 +29,11 @@ function(generate_hex c_source bzz_source)
 
     # Generate the symbols.h file
     add_custom_command(OUTPUT ${GENSYMS_FILE}
-        COMMAND ./zooids_bcodegen ${BO_FILE} ${GENSYMS_FILE}
-        DEPENDS zooids_bcodegen ${BO_FILE} ${BZZ_BASENAME}_bbo
+        COMMAND ./crazyflie_bcodegen ${BO_FILE} ${GENSYMS_FILE}
+        DEPENDS crazyflie_bcodegen ${BO_FILE} ${BZZ_BASENAME}_bbo
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bittybuzz/exec)
 
-    # We have to use 'bbzzooids_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing
+    # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing
     add_executable(${ELF_TARGET} EXCLUDE_FROM_ALL ${c_source} ${GENSYMS_FILE} "$<TARGET_OBJECTS:bbzcrazyflie_objects>" )
     set_target_properties(${ELF_TARGET}
         PROPERTIES

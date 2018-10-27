@@ -25,10 +25,24 @@ set(CRAZYFLIE_LIB_DIR "${CMAKE_SOURCE_DIR}/crazyflie/lib")
 
 set(BSP_DIR "${CRAZYFLIE_DRIVER_DIR}/BSP/STM32091C_EVAL/")
 set(HAL_DIR "${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver")
+#set(CFPLATFORM_DIR "${CRAZYFLIE_LIB_DIR}/src/platform")
 
-set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL -I${CRAZYFLIE_LIB_DIR}/inc -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Include -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F0xx/Include -I${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver/Inc -I${CRAZYFLIE_DRIVER_DIR}/BSP/STM32072B_EVAL -I${CRAZYFLIE_DRIVER_DIR}/BSP/Components/Common -I${CMAKE_SOURCE_DIR} -I${CMAKE_BINARY_DIR} -I${CMAKE_BINARY_DIR}/crazyflie/lib/inc -I${CRAZYFLIE_DRIVER_DIR}/qfplib")
+set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
+-I${CRAZYFLIE_LIB_DIR}/inc \
+-I${CRAZYFLIE_LIB_DIR}/inc/platform \
+-I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Include \
+-I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F0xx/Include \
+-I${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver/Inc \
+-I${CRAZYFLIE_DRIVER_DIR}/BSP/STM32072B_EVAL \
+-I${CRAZYFLIE_DRIVER_DIR}/BSP/Components/Common \
+-I${CMAKE_SOURCE_DIR} \
+-I${CMAKE_BINARY_DIR} \
+-I${CMAKE_BINARY_DIR}/crazyflie/lib/inc \
+-I${CRAZYFLIE_DRIVER_DIR}/qfplib")
 
 set(CRAZYFLIE_SOURCES stm32f0xx_hal.c stm32f0xx_hal_adc.c stm32f0xx_hal_adc_ex.c stm32f0xx_hal_can.c stm32f0xx_hal_cec.c stm32f0xx_hal_comp.c stm32f0xx_hal_cortex.c stm32f0xx_hal_crc.c stm32f0xx_hal_crc_ex.c stm32f0xx_hal_dac.c stm32f0xx_hal_dac_ex.c stm32f0xx_hal_dma.c stm32f0xx_hal_flash.c stm32f0xx_hal_flash_ex.c stm32f0xx_hal_gpio.c stm32f0xx_hal_i2c.c stm32f0xx_hal_i2c_ex.c stm32f0xx_hal_i2s.c stm32f0xx_hal_irda.c stm32f0xx_hal_iwdg.c stm32f0xx_hal_pcd.c stm32f0xx_hal_pcd_ex.c stm32f0xx_hal_pwr.c stm32f0xx_hal_pwr_ex.c stm32f0xx_hal_rcc.c stm32f0xx_hal_rcc_ex.c stm32f0xx_hal_rtc.c stm32f0xx_hal_rtc_ex.c stm32f0xx_hal_smartcard.c stm32f0xx_hal_smartcard_ex.c stm32f0xx_hal_smbus.c stm32f0xx_hal_spi.c stm32f0xx_hal_spi_ex.c stm32f0xx_hal_tim.c stm32f0xx_hal_tim_ex.c stm32f0xx_hal_tsc.c stm32f0xx_hal_uart.c stm32f0xx_hal_uart_ex.c stm32f0xx_hal_usart.c stm32f0xx_hal_wwdg.c)
+
+set(CFPLATFORM_SOURCES platform_cf2.c)
 
 set(CRAZYFLIE_HEADERS ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_hal_conf.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_conf.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_it.h ${CRAZYFLIE_LIB_DIR}/inc/utilities.h ${CRAZYFLIE_LIB_DIR}/inc/qt1070.h ${CRAZYFLIE_LIB_DIR}/inc/config.h ${CRAZYFLIE_LIB_DIR}/inc/functions.h ${CRAZYFLIE_LIB_DIR}/inc/lsm6ds3.h ${CRAZYFLIE_LIB_DIR}/inc/RF24.h ${CRAZYFLIE_LIB_DIR}/inc/nRF24L01.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_lp_modes.h ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F0xx/Include/stm32f051x8.h ${CRAZYFLIE_LIB_DIR}/inc/MadgwickAHRS.h ${CRAZYFLIE_LIB_DIR}/inc/RingBuffer.h ${CRAZYFLIE_LIB_DIR}/inc/colors.h ${CRAZYFLIE_LIB_DIR}/inc/led.h ${CRAZYFLIE_LIB_DIR}/inc/motors.h ${CRAZYFLIE_LIB_DIR}/inc/radio.h ${CRAZYFLIE_LIB_DIR}/inc/sensors.h ${CRAZYFLIE_LIB_DIR}/inc/position_control.h)
 
