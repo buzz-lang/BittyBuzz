@@ -14,54 +14,73 @@ FUNCTION(PREPEND var prefix)
    SET(${var} "${listVar}" PARENT_SCOPE)
 ENDFUNCTION(PREPEND)
 
-PREPEND(CRAZYFLIE_SOURCES "${HAL_DIR}/Src" ${CRAZYFLIE_SOURCES})
-
-PREPEND(CFPLATFORM_SOURCES "${CRAZYFLIE_LIB_DIR}/src/platform" ${CFPLATFORM_SOURCES})
+PREPEND(CFPLATFORM_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfplatform" ${CFPLATFORM_SOURCES})
+PREPEND(CFDRIVER_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfdriver" ${CFDRIVER_SOURCES})
+PREPEND(CFUTILS_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfutils" ${CFUTILS_SOURCES}) 
+PREPEND(CFFREERTOS_SOURCES "${CRAZYFLIE_LIB_DIR}/src/FreeRTOS" ${CFFREERTOS_SOURCES})
+PREPEND(CF_STDPERI_SOURCES "${CRAZYFLIE_DRIVER_DIR}/STM32F4xx_StdPeriph_Driver/src" ${CF_STDPERI_SOURCES})
+PREPEND(CFDECK_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfdeck" ${CFDECK_SOURCES})
+PREPEND(STM32_SYS_SOURCE "${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source" ${STM32_SYS_SOURCE})
+PREPEND(STM32_USBDEVICELIB_SOURCE "${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Library/Core/src" ${STM32_USBDEVICELIB_SOURCE})
+PREPEND(STM32_USBOTG_DRIVER_SOURCE "${CRAZYFLIE_DRIVER_DIR}/STM32_USB_OTG_Driver/src" ${STM32_USBOTG_DRIVER_SOURCE})
+PREPEND(VL53L1_SOURCE "${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/src" ${VL53L1_SOURCE})
+PREPEND(CFMODULES_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfmodules" ${CFMODULES_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
-        inc/bbzmain.h
-        src/bbzzooids.c
-        inc/bbzzooids.h
+        #BY WJ: inc/bbzmain.h
+        #BY WJ: src/bbzzooids.c
+        #BY WJ: inc/bbzzooids.h
         # linker/startup_stm32f0xx.S
-        inc/colors.h
-        src/colors.c
-        inc/config.h
+        #BY WJ: inc/colors.h
+        #BY WJ: src/colors.c
+        #BY WJ: inc/config.h
         # inc/eeprom.h
         # src/eeprom.c
-        inc/functions.h
-        src/functions.c
-        inc/led.h
-        src/led.c
-        inc/lsm6ds3.h
-        src/lsm6ds3.c
+        #BY WJ: inc/functions.h
+       #BY WJ:  src/functions.c
+       #BY WJ:  inc/led.h
+       #BY WJ:  src/led.c
+       #BY WJ:  inc/lsm6ds3.h
+       #BY WJ:  src/lsm6ds3.c
         # inc/MadgwickAHRS.h
         # src/MadgwickAHRS.c
-        inc/motors.h
-        src/motors.c
-        inc/nRF24L01.h
-        inc/position_control.h
-        src/position_control.c
-        inc/qt1070.h
-        src/qt1070.c
-        inc/radio.h
-        src/radio.c
-        inc/RF24.h
-        src/RF24.c
-        inc/RingBuffer.h
-        src/RingBuffer.c
-        inc/sensors.h
-        src/sensors.c
-        inc/stm32f0xx_conf.h
-        inc/stm32f0xx_hal_conf.h
-        src/stm32f0xx_hal_msp.c
-        inc/stm32f0xx_it.h
-        src/stm32f0xx_it.c
-        inc/stm32f0xx_lp_modes.h
-        src/stm32f0xx_lp_modes.c
-        src/system_stm32f0xx.c
-        inc/utilities.h
-        src/utilities.c
+       #BY WJ:  inc/motors.h
+       #BY WJ:  src/motors.c
+      #BY WJ:   inc/nRF24L01.h
+      #BY WJ:   inc/position_control.h
+      #BY WJ:   src/position_control.c
+      #BY WJ:   inc/qt1070.h
+      #BY WJ:   src/qt1070.c
+      #BY WJ:  inc/radio.h
+      #BY WJ:   src/radio.c
+      #BY WJ:   inc/RF24.h
+      #BY WJ:   src/RF24.c
+       #BY WJ:  inc/RingBuffer.h
+      #BY WJ:   src/RingBuffer.c
+      #BY WJ:   inc/sensors.h
+       #BY WJ:  src/sensors.c
+       #BY WJ:  inc/stm32f0xx_conf.h
+       #BY WJ:  inc/stm32f0xx_hal_conf.h
+      #BY WJ:   src/stm32f0xx_hal_msp.c
+       #BY WJ:  inc/stm32f0xx_it.h
+       #BY WJ:  src/stm32f0xx_it.c
+       #BY WJ:  inc/stm32f0xx_lp_modes.h
+       #BY WJ:  src/stm32f0xx_lp_modes.c
+      #BY WJ:   src/system_stm32f0xx.c
+       #BY WJ:  inc/utilities.h
+       #BY WJ:  src/utilities.c
+        inc/libdw1000.h
+        inc/libdw1000Spi.h
+        inc/dw1000.h
+        inc/libdw1000Types.h
+        inc/cfconfig/config.h
+        inc/cfconfig/ffconf.h
+        inc/cfconfig/FreeRTOSConfig.h
+        inc/cfconfig/nvicconf.h
+        inc/cfconfig/stm32f4xx_conf.h
+        inc/cfconfig/stm32fxxx.h
+        inc/cfconfig/trace.h
         incL/memcpy_fast.h
         srcL/memcpy_fast.c
         incL/__cross_studio_io.h
@@ -69,8 +88,17 @@ crazyflie_add_library(bbzcrazyflie
         incL/__debug_stdio.h
         incL/cross_studio_io.h
         incL/debugio.h
-        ${CRAZYFLIE_SOURCES}
-        #${CFPLATFORM_SOURCES}
+        ${CFDECK_SOURCES}
+        ${CFUTILS_SOURCES}
+        ${CFPLATFORM_SOURCES}
+        ${CFDRIVER_SOURCES}
+        ${CFFREERTOS_SOURCES}
+        ${CF_STDPERI_SOURCES}
+        ${STM32_SYS_SOURCE}
+        ${STM32_USBDEVICELIB_SOURCE}
+        ${STM32_USBOTG_DRIVER_SOURCE}
+        ${VL53L1_SOURCE}
+        ${CFMODULES_SOURCES}
 )
 
 # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing

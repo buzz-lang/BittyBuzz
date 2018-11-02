@@ -10,6 +10,7 @@ find_program(OBJCOPY ${CMD_PREFIX}-objcopy)
 find_program(OBJDUMP ${CMD_PREFIX}-objdump)
 find_program(SIZE ${CMD_PREFIX}-size)
 find_program(GDB ${CMD_PREFIX}-gdb)
+find_program(AS ${CMD_PREFIX}-as)
 find_program(UPLOADER st-flash)
 
 #
@@ -20,19 +21,32 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 CMAKE_FORCE_C_COMPILER(${CC} GNU)
 CMAKE_FORCE_CXX_COMPILER(${CC} GNU)
 
+set(LOAD_ADDRESS 0x8004000)
+
 set(CRAZYFLIE_DRIVER_DIR "${CMAKE_SOURCE_DIR}/crazyflie/drivers")
 set(CRAZYFLIE_LIB_DIR "${CMAKE_SOURCE_DIR}/crazyflie/lib")
 
 set(BSP_DIR "${CRAZYFLIE_DRIVER_DIR}/BSP/STM32091C_EVAL/")
 set(HAL_DIR "${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver")
-#set(CFPLATFORM_DIR "${CRAZYFLIE_LIB_DIR}/src/platform")
 
 set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_LIB_DIR}/inc \
--I${CRAZYFLIE_LIB_DIR}/inc/platform \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfdeck \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfdriver \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfmodules \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfhal \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfconfig \
+-I${CRAZYFLIE_LIB_DIR}/inc/FreeRTOS \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfutils \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfplatform \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Include \
--I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F0xx/Include \
--I${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver/Inc \
+-I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Include \
+-I${CRAZYFLIE_DRIVER_DIR}/STM32F4xx_StdPeriph_Driver/inc \
+-I${CRAZYFLIE_LIB_DIR}/linker \
+-I${CRAZYFLIE_DRIVER_DIR}/STM32_USB_OTG_Driver/inc \
+-I${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Library/Core/inc \
+-I${CRAZYFLIE_DRIVER_DIR}/vl53l1 \
+-I${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/STM32072B_EVAL \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/Components/Common \
 -I${CMAKE_SOURCE_DIR} \
@@ -40,29 +54,54 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CMAKE_BINARY_DIR}/crazyflie/lib/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/qfplib")
 
-set(CRAZYFLIE_SOURCES stm32f0xx_hal.c stm32f0xx_hal_adc.c stm32f0xx_hal_adc_ex.c stm32f0xx_hal_can.c stm32f0xx_hal_cec.c stm32f0xx_hal_comp.c stm32f0xx_hal_cortex.c stm32f0xx_hal_crc.c stm32f0xx_hal_crc_ex.c stm32f0xx_hal_dac.c stm32f0xx_hal_dac_ex.c stm32f0xx_hal_dma.c stm32f0xx_hal_flash.c stm32f0xx_hal_flash_ex.c stm32f0xx_hal_gpio.c stm32f0xx_hal_i2c.c stm32f0xx_hal_i2c_ex.c stm32f0xx_hal_i2s.c stm32f0xx_hal_irda.c stm32f0xx_hal_iwdg.c stm32f0xx_hal_pcd.c stm32f0xx_hal_pcd_ex.c stm32f0xx_hal_pwr.c stm32f0xx_hal_pwr_ex.c stm32f0xx_hal_rcc.c stm32f0xx_hal_rcc_ex.c stm32f0xx_hal_rtc.c stm32f0xx_hal_rtc_ex.c stm32f0xx_hal_smartcard.c stm32f0xx_hal_smartcard_ex.c stm32f0xx_hal_smbus.c stm32f0xx_hal_spi.c stm32f0xx_hal_spi_ex.c stm32f0xx_hal_tim.c stm32f0xx_hal_tim_ex.c stm32f0xx_hal_tsc.c stm32f0xx_hal_uart.c stm32f0xx_hal_uart_ex.c stm32f0xx_hal_usart.c stm32f0xx_hal_wwdg.c)
+set(CF_STDPERI_SOURCES stm32f4xx_gpio.c stm32f4xx_tim.c stm32f4xx_syscfg.c stm32f4xx_rcc.c stm32f4xx_adc.c stm32f4xx_can.c stm32f4xx_crc.c stm32f4xx_cryp.c stm32f4xx_cryp_aes.c stm32f4xx_cryp_des.c stm32f4xx_cryp_tdes.c stm32f4xx_dac.c stm32f4xx_dbgmcu.c stm32f4xx_dcmi.c stm32f4xx_dma.c stm32f4xx_dma2d.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_fsmc.c stm32f4xx_hash.c stm32f4xx_hash_md5.c stm32f4xx_hash_sha1.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_ltdc.c stm32f4xx_misc.c stm32f4xx_pwr.c stm32f4xx_rng.c stm32f4xx_rtc.c stm32f4xx_sai.c stm32f4xx_sdio.c stm32f4xx_spi.c stm32f4xx_usart.c stm32f4xx_wwdg.c)
 
 set(CFPLATFORM_SOURCES platform_cf2.c)
 
-set(CRAZYFLIE_HEADERS ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_hal_conf.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_conf.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_it.h ${CRAZYFLIE_LIB_DIR}/inc/utilities.h ${CRAZYFLIE_LIB_DIR}/inc/qt1070.h ${CRAZYFLIE_LIB_DIR}/inc/config.h ${CRAZYFLIE_LIB_DIR}/inc/functions.h ${CRAZYFLIE_LIB_DIR}/inc/lsm6ds3.h ${CRAZYFLIE_LIB_DIR}/inc/RF24.h ${CRAZYFLIE_LIB_DIR}/inc/nRF24L01.h ${CRAZYFLIE_LIB_DIR}/inc/stm32f0xx_lp_modes.h ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F0xx/Include/stm32f051x8.h ${CRAZYFLIE_LIB_DIR}/inc/MadgwickAHRS.h ${CRAZYFLIE_LIB_DIR}/inc/RingBuffer.h ${CRAZYFLIE_LIB_DIR}/inc/colors.h ${CRAZYFLIE_LIB_DIR}/inc/led.h ${CRAZYFLIE_LIB_DIR}/inc/motors.h ${CRAZYFLIE_LIB_DIR}/inc/radio.h ${CRAZYFLIE_LIB_DIR}/inc/sensors.h ${CRAZYFLIE_LIB_DIR}/inc/position_control.h)
+set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem_cf2.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sitaw.c sound_cf2.c stabilizer.c sysload.c system.c trigger.c worker.c)
 
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/stm32f072.ld")
+set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c)
+
+set(CFDRIVER_SOURCES exti.c nvic.c motors.c motors_def_cf2.c)
+
+Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c configblockflash.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c)
+
+set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
+
+set(STM32_SYS_SOURCE system_stm32f4xx.c)
+
+set(STM32_USBDEVICELIB_SOURCE usbd_core.c usbd_ioreq.c usbd_req.c)
+
+set(STM32_USBOTG_DRIVER_SOURCE usb_core.c usb_dcd.c usb_dcd_int.c)
+
+set(VL53L1_SOURCE vl53l1_api.c vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c vl53l1_core.c vl53l1_core_support.c vl53l1_error_strings.c vl53l1_register_funcs.c vl53l1_silicon_core.c vl53l1_wait.c)
+
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
 set(LIBS "-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib")
+set(REV "D")
+set(ESTIMATOR "any")
+set(CONTROLLER "Any") # one of Any, PID, Mellinger
+set(POWER_DISTRIBUTION "stock")
+set(CLOAD_SCRIPT "python3 -m cfloader")
 
-set(DEFS "-DUSE_HAL_DRIVER -DSTM32F051x8 -DSTARTUP_FROM_RESET -DUSE_SPI_CRC=0")
+#set(DEFS "-DUSE_HAL_DRIVER -DSTM32F051x8 -DSTARTUP_FROM_RESET -DUSE_SPI_CRC=0")
+set(DEFS "-DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -DSTM32F4XX -DSTM32F40_41xxx -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DUSE_RADIOLINK_CRTP -DENABLE_UART -DBOARD_REV_${REV} -DESTIMATOR_NAME=${ESTIMATOR}Estimator -DCONTROLLER_NAME=ControllerType${CONTROLLER} -DPOWER_DISTRIBUTION_TYPE_${POWER_DISTRIBUTION}")
 
-set(CFLAGS "-Os -std=gnu99 -g3 -mthumb -mcpu=cortex-m0 -msoft-float")
+set(CFLAGS "-Os -std=gnu11 -g3 -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+#originally: uses -std=gnu99
 #set(CFLAGS "${CFLAGS} -Wextra -Wshadow -Wimplicit-function-declaration")
 #set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes")
-set(CFLAGS "${CFLAGS} -fno-common -ffunction-sections -fdata-sections")
-set(CFLAGS "${CFLAGS} -MD -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function")
+set(CFLAGS "${CFLAGS} -fno-common -ffunction-sections -fdata-sections -fno-math-errno")
+set(CFLAGS "${CFLAGS} -MD -Wmissing-braces -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function -Wdouble-promotion")
 set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS}")
 set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -fomit-frame-pointer -ffast-math")
 # set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
 
-set(LDFLAGS "--static -nostartfiles -mthumb -g3 -mcpu=cortex-m0 -msoft-float -T${LINKER_SCRIPT}")
+set(LDFLAGS "--static -nostartfiles -mthumb -g3 -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T${LINKER_SCRIPT}")
 set(LDSCRIPT "")
-set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
+#set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
+set(LDFLAGS "--specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
+
 # LDLIBS
 set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
 

@@ -1,0 +1,6 @@
+crazyflie/lib/inc
+
+removed: 
+1. config.h
+2. motors.h
+3. utilities.h
