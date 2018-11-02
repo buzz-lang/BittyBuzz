@@ -47,6 +47,7 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Library/Core/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/vl53l1 \
 -I${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/inc \
+-I${CRAZYFLIE_DRIVER_DIR}/FatFS \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/STM32072B_EVAL \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/Components/Common \
 -I${CMAKE_SOURCE_DIR} \
@@ -62,11 +63,13 @@ set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c con
 
 set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c)
 
-set(CFDRIVER_SOURCES exti.c nvic.c motors.c motors_def_cf2.c)
+set(CFDRIVER_SOURCES exti.c nvic.c motors.c motors_def_cf2.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c)
 
 Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c configblockflash.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c)
 
 set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
+
+set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_none.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c)
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c)
 
@@ -75,6 +78,8 @@ set(STM32_USBDEVICELIB_SOURCE usbd_core.c usbd_ioreq.c usbd_req.c)
 set(STM32_USBOTG_DRIVER_SOURCE usb_core.c usb_dcd.c usb_dcd_int.c)
 
 set(VL53L1_SOURCE vl53l1_api.c vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c vl53l1_core.c vl53l1_core_support.c vl53l1_error_strings.c vl53l1_register_funcs.c vl53l1_silicon_core.c vl53l1_wait.c)
+
+set(FATFS_SOURCES ff.c syscall.c unicode.c)
 
 set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
 set(LIBS "-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib")

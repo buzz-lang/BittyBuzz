@@ -25,6 +25,8 @@ PREPEND(STM32_USBDEVICELIB_SOURCE "${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Libr
 PREPEND(STM32_USBOTG_DRIVER_SOURCE "${CRAZYFLIE_DRIVER_DIR}/STM32_USB_OTG_Driver/src" ${STM32_USBOTG_DRIVER_SOURCE})
 PREPEND(VL53L1_SOURCE "${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/src" ${VL53L1_SOURCE})
 PREPEND(CFMODULES_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfmodules" ${CFMODULES_SOURCES})
+PREPEND(CFHAL_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfhal" ${CFHAL_SOURCES})
+PREPEND(FATFS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/FatFS" ${FATFS_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
@@ -99,6 +101,8 @@ crazyflie_add_library(bbzcrazyflie
         ${STM32_USBOTG_DRIVER_SOURCE}
         ${VL53L1_SOURCE}
         ${CFMODULES_SOURCES}
+        ${CFHAL_SOURCES}
+        ${FATFS_SOURCES}
 )
 
 # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing

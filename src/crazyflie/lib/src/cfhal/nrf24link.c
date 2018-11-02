@@ -32,6 +32,7 @@
 #include "crtp.h"
 #include "configblock.h"
 #include "ledseq.h"
+#include "led.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -144,7 +145,7 @@ static void nrf24linkTask(void * arg)
   //Packets handling loop
   while(1)
   {
-    ledseqRun(LED_GREEN, seq_linkup);
+    ledseqRun(LED_GREEN_L, seq_linkup);
 
     xSemaphoreTake(dataRdy, portMAX_DELAY);
     lastPacketTick = xTaskGetTickCount();
