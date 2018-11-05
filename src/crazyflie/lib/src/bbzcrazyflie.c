@@ -18,6 +18,7 @@ bbzheap_idx_t pos_orientation_idx;
 // extern Target currentGoal;
 // uint8_t currentGoal_reached = true;
 
+
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
 {
