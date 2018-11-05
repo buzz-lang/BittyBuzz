@@ -41,10 +41,26 @@
 
 #ifndef CONFIG_H_
 #define CONFIG_H_
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #include "nrf24l01.h"
 
 #include "trace.h"
 #include "usec_time.h"
+
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include "__cross_studio_io.h"
+
+/* Exported macro ------------------------------------------------------------*/
+#define BIT(x) (1<<(x))
+#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
+
 
 #define PROTOCOL_VERSION 4
 
@@ -65,7 +81,6 @@
   #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() initUsecTimer()
   #define portGET_RUN_TIME_COUNTER_VALUE() usecTimestamp()
 #endif
-
 
 // Task priorities. Higher number higher priority
 #define STABILIZER_TASK_PRI     5
@@ -158,10 +173,27 @@
 #define MULTIRANGER_TASK_STACKSIZE    (2 * configMINIMAL_STACK_SIZE)
 #define BBZ_TASK_STACKSIZE            (3 * configMINIMAL_STACK_SIZE)
 
-//The radio channel. From 0 to 125
-#define RADIO_CHANNEL 80
-#define RADIO_DATARATE RADIO_RATE_250K
-#define RADIO_ADDRESS 0xE7E7E7E7E7ULL
+///////////////////////////////////
+//    COMMUNICATION CONSTANTS    //
+///////////////////////////////////
+#define ROBOT_ID                              ( RID )  //this should be different for each robot
+#define RADIO_CHANNEL                         80 //The radio channel. From 0 to 125
+#define RADIO_DATARATE                        RADIO_RATE_250K
+#define RADIO_ADDRESS                         0xE7E7E7E7E7ULL
+#define PAYLOAD_SIZE                          8  //size of the data from master to slave
+#define PAYLOAD_MAX_SIZE                      32
+#define COMMUNICATION_TIMEOUT                 2000 //in ms
+
+#define RECEIVER_ID                           250
+
+///////// MESSAGE TYPES ///////////
+//Operating messages
+#define TYPE_UPDATE                           0x03
+#define TYPE_STATUS                           0x04
+#define TYPE_MOTORS_VELOCITY                  0x05
+#define TYPE_ROBOT_POSITION                   0x06
+#define TYPE_BBZ_MESSAGE                      0x10
+
 
 /**
  * \def PROPELLER_BALANCE_TEST_THRESHOLD
@@ -221,6 +253,106 @@
 
 #if defined(UART_OUTPUT_TRACE_DATA) && defined(T_LAUNCH_ACC)
 #  error "UART_OUTPUT_TRACE_DATA and T_LAUNCH_ACC doesn't work at the same time yet due to dma sharing..."
+#endif
+
+typedef struct {
+	uint16_t positionX;
+	uint16_t positionY;
+	uint8_t colorRed;
+	uint8_t colorGreen;
+	uint8_t colorBlue;
+	uint8_t preferredSpeed;
+	int16_t orientation;
+	bool isFinalGoal;
+	uint8_t empty;
+        bool ignoreOrientation;
+}PositionControlMessage;
+
+typedef struct
+{
+  uint16_t x;
+  uint16_t y;
+  float angle;
+  bool finalGoal;
+  bool ignoreOrientation;
+} Target;
+
+typedef struct
+{
+  uint16_t x;
+  uint16_t y;
+} Position;
+
+typedef struct
+{
+  uint8_t type;
+  uint8_t id;
+} Header;
+
+typedef struct
+{
+  Header header;
+  uint8_t payload[PAYLOAD_MAX_SIZE-sizeof(Header)];
+} Message;
+
+typedef struct
+{
+    int16_t ax;
+    int16_t ay;
+    int16_t az;
+    int16_t gx;
+    int16_t gy;
+    int16_t gz;
+    int16_t T;
+} ImuRawData;
+
+typedef struct
+{
+    float ax;
+    float ay;
+    float az;
+    float gx;
+    float gy;
+    float gz;
+    float T;
+} MotionData;
+
+typedef struct
+{
+    int16_t ax;
+    int16_t ay;
+    int16_t az;
+} AccelRawData;
+
+typedef struct
+{
+    int16_t gx;
+    int16_t gy;
+    int16_t gz;
+} GyroRawData;
+
+typedef struct
+{
+    float w;
+    float x;
+    float y;
+    float z;
+} Quaternion;
+
+typedef enum {
+	DISCONNECTED 		 = 0x00,
+	CHARGING 		 = 0x01,
+        CHARGED 		 = 0x02,
+} CHARGING_STATE_t;
+
+typedef struct
+{
+  uint8_t id;
+  uint64_t pipeAddress;
+} Robot;
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* CONFIG_H_ */

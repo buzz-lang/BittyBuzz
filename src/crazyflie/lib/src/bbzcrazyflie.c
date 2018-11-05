@@ -1,9 +1,12 @@
-#include "bbzzooids.h"
+#include "bbzcrazyflie.h"
+#include "system.h"
 
 bbzvm_t vmObj;
 Message bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
 bbzmsg_payload_t bbz_payload_buf;
+
+uint8_t myId = 0;
 
 extern Position robotPosition;
 extern float robotOrientation;
@@ -11,9 +14,9 @@ bbzheap_idx_t pos_x_idx;
 bbzheap_idx_t pos_y_idx;
 bbzheap_idx_t pos_orientation_idx;
 
-extern Motor motorValues;
-extern Target currentGoal;
-uint8_t currentGoal_reached = true;
+// extern Motor motorValues;
+// extern Target currentGoal;
+// uint8_t currentGoal_reached = true;
 
 uint8_t buf[4];
 const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
@@ -23,6 +26,16 @@ const uint8_t *bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size)
         *(uint8_t *)(buf + i) = *(uint8_t *)(__addr16 + i);
     }
     return buf;
+}
+
+void setRobotId(uint8_t _id)
+{
+      myId = _id;
+}
+
+uint8_t getRobotId()
+{
+      return myId;
 }
 
 void bbz_createPosObject();
@@ -55,23 +68,23 @@ void bbzzooids_func_call(uint16_t strid) {
             if(vm->state != BBZVM_STATE_READY) return;
             bbzvm_step();
 
-            if (updateRobotPosition()) {
-                bbz_updatePosObject();
-                if (!currentGoal_reached) {
-                    positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
-                    minimumc(&(motorValues.motor1), motorValues.minVelocity);
-                    minimumc(&(motorValues.motor2), motorValues.minVelocity);
-                    maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
-                    maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
-                    setMotor1(motorValues.motor1);
-                    setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
-                }
-            }
-            if (currentGoal_reached) {
-                setMotor1(0);
-                setMotor2(0);
-            }
-            handleOutgoingRadioMessage();
+//             if (updateRobotPosition()) {
+//                 bbz_updatePosObject();
+//                 if (!currentGoal_reached) {
+//                     positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
+//                     minimumc(&(motorValues.motor1), motorValues.minVelocity);
+//                     minimumc(&(motorValues.motor2), motorValues.minVelocity);
+//                     maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
+//                     maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
+//                     setMotor1(motorValues.motor1);
+//                     setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
+//                 }
+//             }
+//             if (currentGoal_reached) {
+//                 setMotor1(0);
+//                 setMotor2(0);
+//             }
+//             handleOutgoingRadioMessage();
         }
     }
 }
@@ -83,7 +96,7 @@ Message* bbzwhich_msg_tx() {
         bbzmsg_tx.header.type = TYPE_BBZ_MESSAGE;
         bbzmsg_tx.header.id = RECEIVER_ID;
         *(uint8_t*)bbzmsg_tx.payload = getRobotId();
-        *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = *getRobotPosition();
+//         *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = *getRobotPosition();
         for (uint8_t i=0;i<9;++i) {
             bbzmsg_tx.payload[i+sizeof(Position)+sizeof(uint8_t)] = *bbzringbuf_at(&bbz_payload_buf, i);
         }
@@ -118,7 +131,8 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 
 void bbz_init(void)
 {
-    initRobot();
+//     initRobot();
+    systemLaunch();
     vm = &vmObj;
     bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 }
@@ -150,6 +164,7 @@ void bbz_start(void (*setup)(void))
         if (!init_done) {
             if (!has_setup) {
                 bbzvm_construct(getRobotId());
+//                 bbzvm_construct(0); //Added by WJ temporarily
                 bbzvm_set_bcode(bbzzooids_bcodeFetcher, bcode_size);
                 bbzvm_set_error_receiver(bbz_err_receiver);
                 bbz_createPosObject();
@@ -182,110 +197,110 @@ void bbz_start(void (*setup)(void))
     }
 }
 
-void set_color(uint8_t rgb) {
-    setRGBLed((rgb&3) << 4, (rgb&0xc) << 2, (rgb&0x30));
-}
-static void ___led(uint8_t x)
-{
-    set_color(x);
-    delay(50);
-    set_color(0);
-    delay(100);
-}
-void bbz_err_receiver(bbzvm_error errcode)
-{
-    setMotor1(0);
-    setMotor2(0);
-    uint8_t i;
-    ___led(RGB(1, 2, 0));
-    ___led(RGB(1, 2, 0));
-    ___led(RGB(1, 2, 0));
-    ___led(RGB(1, 2, 0));
-    delay(300);
-#if 1
-    for (i = 4; i; --i)
-    {
-        delay(700);
-        switch (errcode)
-        {
-        case BBZVM_ERROR_INSTR:
-            ___led(RGB(2, 0, 0));
-            ___led(RGB(2, 0, 0));
-            break;
-        case BBZVM_ERROR_STACK:
-            ___led(RGB(1, 2, 0));
-            if (bbzvm_stack_size() >= BBZSTACK_SIZE)
-            {
-                ___led(RGB(0, 3, 0));
-            }
-            else if (bbzvm_stack_size() <= 0)
-            {
-                ___led(RGB(2, 0, 0));
-            }
-            else
-            {
-                ___led(RGB(1, 2, 0));
-            }
-            break;
-        case BBZVM_ERROR_LNUM:
-            ___led(RGB(3, 1, 0));
-            ___led(RGB(3, 1, 0));
-            break;
-        case BBZVM_ERROR_PC:
-            ___led(RGB(0, 3, 0));
-            ___led(RGB(0, 3, 0));
-            break;
-        case BBZVM_ERROR_FLIST:
-            ___led(RGB(0, 3, 0));
-            ___led(RGB(2, 0, 0));
-            break;
-        case BBZVM_ERROR_TYPE:
-            ___led(RGB(0, 3, 0));
-            ___led(RGB(1, 2, 0));
-            break;
-        case BBZVM_ERROR_OUTOFRANGE:
-            ___led(RGB(0, 0, 2));
-            ___led(RGB(2, 0, 0));
-            break;
-        case BBZVM_ERROR_NOTIMPL:
-            ___led(RGB(0, 0, 2));
-            ___led(RGB(0, 2, 0));
-            break;
-        case BBZVM_ERROR_RET:
-            ___led(RGB(0, 3, 0));
-            ___led(RGB(0, 0, 2));
-            break;
-        case BBZVM_ERROR_STRING:
-            ___led(RGB(0, 2, 1));
-            ___led(RGB(0, 2, 1));
-            break;
-        case BBZVM_ERROR_SWARM:
-            ___led(RGB(0, 2, 1));
-            ___led(RGB(2, 0, 0));
-            break;
-        case BBZVM_ERROR_VSTIG:
-            ___led(RGB(0, 2, 1));
-            ___led(RGB(1, 2, 0));
-            break;
-        case BBZVM_ERROR_MEM:
-            ___led(RGB(0, 2, 1));
-            ___led(RGB(0, 0, 2));
-            break;
-        case BBZVM_ERROR_MATH:
-            ___led(RGB(0, 0, 2));
-            ___led(RGB(0, 0, 2));
-            break;
-        default:
-            ___led(RGB(2, 0, 2));
-            ___led(RGB(2, 0, 2));
-            break;
-        }
-    }
-#endif
-    ___led(RGB(2, 2, 2));
-    ___led(RGB(2, 2, 2));
-    Reboot();
-}
+// void set_color(uint8_t rgb) {
+//     setRGBLed((rgb&3) << 4, (rgb&0xc) << 2, (rgb&0x30));
+// }
+// static void ___led(uint8_t x)
+// {
+//     set_color(x);
+//     delay(50);
+//     set_color(0);
+//     delay(100);
+// }
+// void bbz_err_receiver(bbzvm_error errcode)
+// {
+//     setMotor1(0);
+//     setMotor2(0);
+//     uint8_t i;
+//     ___led(RGB(1, 2, 0));
+//     ___led(RGB(1, 2, 0));
+//     ___led(RGB(1, 2, 0));
+//     ___led(RGB(1, 2, 0));
+//     delay(300);
+// #if 1
+//     for (i = 4; i; --i)
+//     {
+//         delay(700);
+//         switch (errcode)
+//         {
+//         case BBZVM_ERROR_INSTR:
+//             ___led(RGB(2, 0, 0));
+//             ___led(RGB(2, 0, 0));
+//             break;
+//         case BBZVM_ERROR_STACK:
+//             ___led(RGB(1, 2, 0));
+//             if (bbzvm_stack_size() >= BBZSTACK_SIZE)
+//             {
+//                 ___led(RGB(0, 3, 0));
+//             }
+//             else if (bbzvm_stack_size() <= 0)
+//             {
+//                 ___led(RGB(2, 0, 0));
+//             }
+//             else
+//             {
+//                 ___led(RGB(1, 2, 0));
+//             }
+//             break;
+//         case BBZVM_ERROR_LNUM:
+//             ___led(RGB(3, 1, 0));
+//             ___led(RGB(3, 1, 0));
+//             break;
+//         case BBZVM_ERROR_PC:
+//             ___led(RGB(0, 3, 0));
+//             ___led(RGB(0, 3, 0));
+//             break;
+//         case BBZVM_ERROR_FLIST:
+//             ___led(RGB(0, 3, 0));
+//             ___led(RGB(2, 0, 0));
+//             break;
+//         case BBZVM_ERROR_TYPE:
+//             ___led(RGB(0, 3, 0));
+//             ___led(RGB(1, 2, 0));
+//             break;
+//         case BBZVM_ERROR_OUTOFRANGE:
+//             ___led(RGB(0, 0, 2));
+//             ___led(RGB(2, 0, 0));
+//             break;
+//         case BBZVM_ERROR_NOTIMPL:
+//             ___led(RGB(0, 0, 2));
+//             ___led(RGB(0, 2, 0));
+//             break;
+//         case BBZVM_ERROR_RET:
+//             ___led(RGB(0, 3, 0));
+//             ___led(RGB(0, 0, 2));
+//             break;
+//         case BBZVM_ERROR_STRING:
+//             ___led(RGB(0, 2, 1));
+//             ___led(RGB(0, 2, 1));
+//             break;
+//         case BBZVM_ERROR_SWARM:
+//             ___led(RGB(0, 2, 1));
+//             ___led(RGB(2, 0, 0));
+//             break;
+//         case BBZVM_ERROR_VSTIG:
+//             ___led(RGB(0, 2, 1));
+//             ___led(RGB(1, 2, 0));
+//             break;
+//         case BBZVM_ERROR_MEM:
+//             ___led(RGB(0, 2, 1));
+//             ___led(RGB(0, 0, 2));
+//             break;
+//         case BBZVM_ERROR_MATH:
+//             ___led(RGB(0, 0, 2));
+//             ___led(RGB(0, 0, 2));
+//             break;
+//         default:
+//             ___led(RGB(2, 0, 2));
+//             ___led(RGB(2, 0, 2));
+//             break;
+//         }
+//     }
+// #endif
+//     ___led(RGB(2, 2, 2));
+//     ___led(RGB(2, 2, 2));
+//     Reboot();
+// }
 
 static uint8_t seed = 0xaa, accumulator = 0;
 
@@ -302,18 +317,18 @@ void rand_seed(uint8_t s)
     seed = s;
 }
 
-void set_motors(int8_t m1, int8_t m2)
-{
-#ifndef DEBUG
-    setMotor1(m1);
-    setMotor2(m2);
-#endif
-}
-
-void spinup_motors()
-{
-#ifndef DEBUG
-    set_motors(MAX_SPEED, MAX_SPEED);
-    delay(15);
-#endif
-}
+// void set_motors(int8_t m1, int8_t m2)
+// {
+// #ifndef DEBUG
+//     setMotor1(m1);
+//     setMotor2(m2);
+// #endif
+// }
+// 
+// void spinup_motors()
+// {
+// #ifndef DEBUG
+//     set_motors(MAX_SPEED, MAX_SPEED);
+//     delay(15);
+// #endif
+// }

@@ -1,8 +1,8 @@
-#include <functions.h>
+// #include <functions.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
 #include <bbzzooids.h>
-#include "led.h"
+// #include "led.h"
 
 #define TBL_SZ 79
 
@@ -12,24 +12,24 @@ const uint16_t bcode_size = sizeof(bcode);
 
 void loop() {
     bbzvm_gc();
-    setColor(red);
-    delay(75);
-    setColor(pink);
-    delay(75);
-    setColor(purple);
-    delay(75);
-    setColor(blue);
-    delay(75);
-    setColor(cyan);
-    delay(75);
-    setColor(light_blue);
-    delay(75);
-    setColor(green);
-    delay(75);
-    setColor(yellow);
-    delay(75);
-    setColor(orange);
-    delay(75);
+//     setColor(red);
+//     delay(75);
+//     setColor(pink);
+//     delay(75);
+//     setColor(purple);
+//     delay(75);
+//     setColor(blue);
+//     delay(75);
+//     setColor(cyan);
+//     delay(75);
+//     setColor(light_blue);
+//     delay(75);
+//     setColor(green);
+//     delay(75);
+//     setColor(yellow);
+//     delay(75);
+//     setColor(orange);
+//     delay(75);
     bbzvm_ret0();
 }
 

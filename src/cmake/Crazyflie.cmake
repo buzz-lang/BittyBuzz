@@ -11,6 +11,7 @@ find_program(OBJDUMP ${CMD_PREFIX}-objdump)
 find_program(SIZE ${CMD_PREFIX}-size)
 find_program(GDB ${CMD_PREFIX}-gdb)
 find_program(AS ${CMD_PREFIX}-as)
+find_program(LD ${CMD_PREFIX}-gcc)
 find_program(UPLOADER st-flash)
 
 #
@@ -21,13 +22,13 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 CMAKE_FORCE_C_COMPILER(${CC} GNU)
 CMAKE_FORCE_CXX_COMPILER(${CC} GNU)
 
-set(LOAD_ADDRESS 0x8004000)
+set(LOAD_ADDRESS "0x8004000")
 
 set(CRAZYFLIE_DRIVER_DIR "${CMAKE_SOURCE_DIR}/crazyflie/drivers")
 set(CRAZYFLIE_LIB_DIR "${CMAKE_SOURCE_DIR}/crazyflie/lib")
 
-set(BSP_DIR "${CRAZYFLIE_DRIVER_DIR}/BSP/STM32091C_EVAL/")
-set(HAL_DIR "${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver")
+#set(BSP_DIR "${CRAZYFLIE_DRIVER_DIR}/BSP/STM32091C_EVAL/")
+#set(HAL_DIR "${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver")
 
 set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_LIB_DIR}/inc \
@@ -97,7 +98,7 @@ set(CFLAGS "-Os -std=gnu11 -g3 -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fp
 #set(CFLAGS "${CFLAGS} -Wextra -Wshadow -Wimplicit-function-declaration")
 #set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes")
 set(CFLAGS "${CFLAGS} -fno-common -ffunction-sections -fdata-sections -fno-math-errno")
-set(CFLAGS "${CFLAGS} -MD -Wmissing-braces -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function -Wdouble-promotion")
+set(CFLAGS "${CFLAGS} -MD -MP -Wmissing-braces -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function -Wdouble-promotion")
 set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS}")
 set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -fomit-frame-pointer -ffast-math")
 # set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
@@ -112,8 +113,12 @@ set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
 
 set(VPATH "${CRAZYFLIE_LIB_DIR}/src")
 set(VPATH "${VPATH} ${CRAZYFLIE_LIB_DIR}/srcL")
-set(VPATH "${VPATH} ${BSP_DIR}")
-set(VPATH "${VPATH} ${HAL_DIR}/Src")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32F4xx_StdPeriph_Driver/src")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Library/Core/src")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32_USB_OTG_Driver/src")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/src")
+#set(VPATH "${VPATH} ${BSP_DIR}")
+#set(VPATH "${VPATH} ${HAL_DIR}/Src")
 
 #
 # Variable caching (for compiler swap functions)

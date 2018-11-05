@@ -30,10 +30,10 @@ PREPEND(FATFS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/FatFS" ${FATFS_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
-        #BY WJ: inc/bbzmain.h
-        #BY WJ: src/bbzzooids.c
-        #BY WJ: inc/bbzzooids.h
-        # linker/startup_stm32f0xx.S
+        inc/bbzmain.h
+        src/bbzcrazyflie.c
+        inc/bbzcrazyflie.h
+        linker/startup_stm32f40xx.s
         #BY WJ: inc/colors.h
         #BY WJ: src/colors.c
         #BY WJ: inc/config.h
@@ -69,7 +69,7 @@ crazyflie_add_library(bbzcrazyflie
        #BY WJ:  src/stm32f0xx_it.c
        #BY WJ:  inc/stm32f0xx_lp_modes.h
        #BY WJ:  src/stm32f0xx_lp_modes.c
-      #BY WJ:   src/system_stm32f0xx.c
+        src/cfplatform/system_stm32f4xx.c
        #BY WJ:  inc/utilities.h
        #BY WJ:  src/utilities.c
         inc/libdw1000.h
@@ -90,6 +90,8 @@ crazyflie_add_library(bbzcrazyflie
         incL/__debug_stdio.h
         incL/cross_studio_io.h
         incL/debugio.h
+        inc/FreeRTOS/portmacro.h
+        inc/libarm_math.a
         ${CFDECK_SOURCES}
         ${CFUTILS_SOURCES}
         ${CFPLATFORM_SOURCES}

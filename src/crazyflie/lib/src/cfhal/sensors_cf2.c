@@ -363,7 +363,7 @@ static void sensorsDeviceInit(void)
   // Set accelerometer digital low-pass bandwidth
   mpu6500SetAccelDLPF(MPU6500_ACCEL_DLPF_BW_41);
 
-#if SENSORS_MPU6500_DLPF_256HZ
+#ifdef SENSORS_MPU6500_DLPF_256HZ
   // 256Hz digital low-pass filter only works with little vibrations
   // Set output rate (15): 8000 / (1 + 7) = 1000Hz
   mpu6500SetRate(7);
