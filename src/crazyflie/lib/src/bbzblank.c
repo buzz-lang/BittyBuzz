@@ -1,8 +1,11 @@
 // #include <functions.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
-#include <bbzzooids.h>
+#include <bbzcrazyflie.h>
 // #include "led.h"
+#include "debug.h"
+
+#define DEBUG_MODULE "MAIN"
 
 #define TBL_SZ 79
 
@@ -38,6 +41,7 @@ void setup() {
 }
 
 int main() {
+    DEBUG_PRINT("Initializing system...\n");
     bbz_init();
     bbz_start(setup);
 

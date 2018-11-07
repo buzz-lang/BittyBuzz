@@ -36,7 +36,7 @@ extern volatile message_tx_t         message_tx;
 extern volatile message_tx_success_t message_tx_success;
 extern volatile message_rx_t         message_rx;
 
-const uint8_t* bbzzooids_bcodeFetcher(bbzpc_t offset, uint8_t size);
+const uint8_t* bbzcrazyflie_bcodeFetcher(bbzpc_t offset, uint8_t size);
 void bbz_init(void);
 void bbz_start(void (*setup)(void));
 void bbz_err_receiver(bbzvm_error errcode);
@@ -48,6 +48,12 @@ void rand_seed(uint8_t s);
 
 void setRobotId(uint8_t _id);
 uint8_t getRobotId();
+
+// void handleIncomingRadioMessage();
+// void handleOutgoingRadioMessage();
+
+void bbz_createPosObject();
+void bbz_updatePosObject();
 
 #ifdef __cplusplus
 }

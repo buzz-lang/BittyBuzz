@@ -70,7 +70,7 @@ Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom
 
 set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
 
-set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_none.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c)
+set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_none.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c)
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c)
 
