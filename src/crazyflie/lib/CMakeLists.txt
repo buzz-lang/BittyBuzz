@@ -27,26 +27,29 @@ PREPEND(VL53L1_SOURCE "${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/src" ${VL53L1_SOURCE}
 PREPEND(CFMODULES_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfmodules" ${CFMODULES_SOURCES})
 PREPEND(CFHAL_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfhal" ${CFHAL_SOURCES})
 PREPEND(FATFS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/FatFS" ${FATFS_SOURCES})
+PREPEND(LIBDW1000_SOURCES "${CRAZYFLIE_DRIVER_DIR}/libdw1000/src" ${LIBDW1000_SOURCES})
+PREPEND(DSP_FILTERINGFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/FilteringFunctions" ${DSP_FILTERINGFUNCTIONS_SOURCES})
+PREPEND(DSP_STATISTICFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/StatisticsFunctions" ${DSP_STATISTICFUNCTIONS_SOURCES})
+PREPEND(DSP_MATRIXFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/MatrixFunctions" ${DSP_MATRIXFUNCTIONS_SOURCES})
+PREPEND(DSP_FASTMATHFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/FastMathFunctions" ${DSP_FASTMATHFUNCTIONS_SOURCES})
+PREPEND(DSP_CONTROLLERFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/ControllerFunctions" ${DSP_CONTROLLERFUNCTIONS_SOURCES})
+PREPEND(DSP_COMMONTABLES_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/CommonTables" ${DSP_COMMONTABLES_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
         inc/bbzmain.h
         src/bbzcrazyflie.c
         inc/bbzcrazyflie.h
-        linker/startup_stm32f40xx.s
+        #linker/startup_stm32f40xx.s
         #BY WJ: inc/colors.h
         #BY WJ: src/colors.c
         #BY WJ: inc/config.h
-        # inc/eeprom.h
-        # src/eeprom.c
         #BY WJ: inc/functions.h
        #BY WJ:  src/functions.c
        #BY WJ:  inc/led.h
        #BY WJ:  src/led.c
        #BY WJ:  inc/lsm6ds3.h
        #BY WJ:  src/lsm6ds3.c
-        # inc/MadgwickAHRS.h
-        # src/MadgwickAHRS.c
        #BY WJ:  inc/motors.h
        #BY WJ:  src/motors.c
       #BY WJ:   inc/nRF24L01.h
@@ -69,13 +72,9 @@ crazyflie_add_library(bbzcrazyflie
        #BY WJ:  src/stm32f0xx_it.c
        #BY WJ:  inc/stm32f0xx_lp_modes.h
        #BY WJ:  src/stm32f0xx_lp_modes.c
-        src/cfplatform/system_stm32f4xx.c
+        #src/cfplatform/system_stm32f4xx.c
        #BY WJ:  inc/utilities.h
        #BY WJ:  src/utilities.c
-        inc/libdw1000.h
-        inc/libdw1000Spi.h
-        inc/dw1000.h
-        inc/libdw1000Types.h
         inc/cfconfig/config.h
         inc/cfconfig/ffconf.h
         inc/cfconfig/FreeRTOSConfig.h
@@ -105,6 +104,13 @@ crazyflie_add_library(bbzcrazyflie
         ${CFMODULES_SOURCES}
         ${CFHAL_SOURCES}
         ${FATFS_SOURCES}
+        ${LIBDW1000_SOURCES}
+        ${DSP_FILTERINGFUNCTIONS_SOURCES}
+        ${DSP_STATISTICFUNCTIONS_SOURCES}
+        ${DSP_MATRIXFUNCTIONS_SOURCES}
+        ${DSP_FASTMATHFUNCTIONS_SOURCES}
+        ${DSP_CONTROLLERFUNCTIONS_SOURCES}
+        ${DSP_COMMONTABLES_SOURCES}
 )
 
 # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing

@@ -41,6 +41,7 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_LIB_DIR}/inc/cfutils \
 -I${CRAZYFLIE_LIB_DIR}/inc/cfplatform \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Include \
+-I${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Include \
 -I${CRAZYFLIE_DRIVER_DIR}/STM32F4xx_StdPeriph_Driver/inc \
 -I${CRAZYFLIE_LIB_DIR}/linker \
@@ -49,6 +50,7 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_DRIVER_DIR}/vl53l1 \
 -I${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/FatFS \
+-I${CRAZYFLIE_DRIVER_DIR}/libdw1000/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/STM32072B_EVAL \
 -I${CRAZYFLIE_DRIVER_DIR}/BSP/Components/Common \
 -I${CMAKE_SOURCE_DIR} \
@@ -62,15 +64,15 @@ set(CFPLATFORM_SOURCES platform_cf2.c)
 
 set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem_cf2.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sitaw.c sound_cf2.c stabilizer.c sysload.c system.c trigger.c worker.c)
 
-set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c)
+set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c lpsTwrTag.c lpsTdoa2Tag.c lpsTdoa3Tag.c zranger.c zranger2.c)
 
-set(CFDRIVER_SOURCES exti.c nvic.c motors.c motors_def_cf2.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c)
+set(CFDRIVER_SOURCES exti.c nvic.c motors.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c platform_info_stm32.c)
 
-Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c configblockflash.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c)
+Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c)
 
 set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
 
-set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_none.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c)
+set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c)
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c)
 
@@ -82,7 +84,22 @@ set(VL53L1_SOURCE vl53l1_api.c vl53l1_api_calibration.c vl53l1_api_core.c vl53l1
 
 set(FATFS_SOURCES ff.c syscall.c unicode.c)
 
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
+set(LIBDW1000_SOURCES libdw1000.c libdw1000Spi.c)
+
+set(DSP_FILTERINGFUNCTIONS_SOURCES arm_biquad_cascade_df1_f32.c arm_biquad_cascade_df1_init_f32.c arm_biquad_cascade_df2T_f32.c arm_biquad_cascade_df2T_f64.c arm_biquad_cascade_df2T_init_f32.c arm_biquad_cascade_df2T_init_f64.c arm_biquad_cascade_stereo_df2T_f32.c arm_biquad_cascade_stereo_df2T_init_f32.c arm_conv_f32.c arm_conv_partial_f32.c arm_correlate_f32.c arm_fir_decimate_f32.c arm_fir_decimate_init_f32.c arm_fir_f32.c arm_fir_init_f32.c arm_fir_interpolate_f32.c arm_fir_interpolate_init_f32.c arm_fir_lattice_f32.c arm_fir_lattice_init_f32.c arm_fir_sparse_f32.c arm_fir_sparse_init_f32.c arm_iir_lattice_f32.c arm_iir_lattice_init_f32.c arm_lms_f32.c arm_lms_init_f32.c arm_lms_norm_f32.c arm_lms_norm_init_f32.c)
+
+set(DSP_STATISTICFUNCTIONS_SOURCES arm_max_f32.c arm_min_f32.c arm_power_f32.c arm_rms_f32.c arm_var_f32.c arm_std_f32.c arm_mean_f32.c)
+
+set(DSP_MATRIXFUNCTIONS_SOURCES arm_mat_add_f32.c arm_mat_cmplx_mult_f32.c arm_mat_init_f32.c arm_mat_inverse_f32.c arm_mat_mult_f32.c arm_mat_scale_f32.c arm_mat_sub_f32.c arm_mat_trans_f32.c)
+
+set(DSP_FASTMATHFUNCTIONS_SOURCES arm_cos_f32.c arm_sin_f32.c)
+
+set(DSP_CONTROLLERFUNCTIONS_SOURCES arm_pid_init_f32.c arm_pid_reset_f32.c arm_sin_cos_f32.c)
+
+set(DSP_COMMONTABLES_SOURCES arm_common_tables.c arm_const_structs.c)
+
+#set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/stm32f4cf.ld")
 set(LIBS "-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib")
 set(REV "D")
 set(ESTIMATOR "any")
@@ -106,7 +123,7 @@ set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort
 set(LDFLAGS "--static -nostartfiles -mthumb -g3 -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T${LINKER_SCRIPT}")
 set(LDSCRIPT "")
 #set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
-set(LDFLAGS "--specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
+set(LDFLAGS "--specs=rdimon.specs --specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s")
 
 # LDLIBS
 set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
@@ -117,6 +134,16 @@ set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32F4xx_StdPeriph_Driver/src")
 set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32_USB_Device_Library/Core/src")
 set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/STM32_USB_OTG_Driver/src")
 set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/vl53l1/core/src")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/FilteringFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/BasicMathFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/CommonTables")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/ComplexMathFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/ControllerFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/FastMathFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/MatrixFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/StatisticsFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/SupportFunctions")
+set(VPATH "${VPATH} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/TransformFunctions")
 #set(VPATH "${VPATH} ${BSP_DIR}")
 #set(VPATH "${VPATH} ${HAL_DIR}/Src")
 
@@ -149,6 +176,14 @@ set(BBZMSG_IN_PROC_MAX 10)
 # set(BBZ_DISABLE_NEIGHBORS ON)
 # set(BBZ_DISABLE_VSTIGS ON)
 # set(BBZ_DISABLE_SWARMS ON)
+
+set(local_revision 0)
+set(revision 0)
+set(tag 2018)
+set(branch master)
+set(modified false)
+
+configure_file(${CRAZYFLIE_LIB_DIR}/src/cfutils/version.vtpl ${CRAZYFLIE_LIB_DIR}/src/cfutils/version.c @ONLY)
 
 #
 # CMake command to compile an executable

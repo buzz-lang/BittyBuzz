@@ -48,8 +48,8 @@
 #include "param.h"
 #include "nvicconf.h"
 #include "estimator.h"
-#include "exti.h"
-#include "nrf24l01.h"
+// #include "exti.h"
+// #include "nrf24l01.h"
 
 #include "locodeck.h"
 
@@ -57,8 +57,10 @@
 #include "lpsTdoa3Tag.h"
 #include "lpsTwrTag.h"
 
-#include "stm32f4xx_exti.h"
-#include "stm32f4xx_syscfg.h"
+#include "libdw1000.h"
+
+// #include "stm32f4xx_exti.h"
+// #include "stm32f4xx_syscfg.h"
 
 
 #define CS_PIN DECK_GPIO_IO1
