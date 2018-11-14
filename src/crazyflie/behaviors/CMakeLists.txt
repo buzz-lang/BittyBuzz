@@ -24,6 +24,8 @@ function(generate_hex c_source bzz_source)
     set(ELFDBG_FILE  ${BZZ_BASEPATH}.elfdbg)
 
     set(ELF_TARGET ${BZZ_BASENAME}-${BBZ_ROBOT}.elf)
+    set(BIN_TARGET ${BZZ_BASENAME}-${BBZ_ROBOT}.bin)
+    set(BIN_FILE  ${BZZ_BASEPATH}.bin)
 
     generate_bbo(${BZZ_BASENAME}_bbo ${GEN_DIR} ${bzz_source} ${ARGN})
 
@@ -62,8 +64,14 @@ function(generate_hex c_source bzz_source)
         COMMAND ${SIZE} ${HEX_FILE}
         COMMENT "Caclulating HEX file size:"
         DEPENDS ${ELF_TARGET})
+    # .elf -> .bin (Generate a .bin file by WJ) 
+    add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
+        BYPRODUCTS ${BIN_FILE}
+        COMMAND ${OBJCOPY} -Obinary ${ELF_TARGET} ${BIN_FILE}
+        COMMENT "Generating BIN file: \n  >> ${BIN_FILE}"
+        DEPENDS ${ELF_TARGET})
     
-    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${HEX_FILE};${ASM_FILE};${MAP_FILE}")
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${HEX_FILE};${ASM_FILE};${MAP_FILE};${BIN_FILE}")
 
     add_custom_target(${BZZ_BASENAME} ALL DEPENDS ${ELF_TARGET})
     set_target_properties(${BZZ_BASENAME} PROPERTIES OUTPUT_NAME "${ELF_TARGET}" INCLUDE_DIRECTORIES "${INCLUDE_DIRECTORIES}")

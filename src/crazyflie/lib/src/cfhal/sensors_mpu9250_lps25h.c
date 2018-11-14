@@ -7,7 +7,7 @@
  *
  * Crazyflie control firmware
  *
- * Copyright (C) 2011-2016 Bitcraze AB
+ * Copyright (C) 2011-2018 Bitcraze AB
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,15 +21,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * sensors_task.h - Sensors interface using an interrupt-driven task to reduce CPU load
+ * Implements HAL for sensors MPU9250 and LPS25H
  *
  * 2016.06.15: Initial version by Mike Hamer, http://mikehamer.info
  */
 
-#include "sensors.h"
+#include "sensors_mpu9250_lps25h.h"
 
 #include <math.h>
-#include <stm32f4xx.h>
+#include "stm32f4xx.h"
 
 #include "lps25h.h"
 #include "mpu6500.h"
@@ -142,10 +142,10 @@ static bool isAK8963TestPassed = false;
 static bool isLPS25HTestPassed = false;
 
 // Pre-calculated values for accelerometer alignment
-float cosPitch;
-float sinPitch;
-float cosRoll;
-float sinRoll;
+float cosPitch_mpu9250;
+float sinPitch_mpu9250;
+float cosRoll_mpu9250;
+float sinRoll_mpu9250;
 
 // This buffer needs to hold data from all sensors
 static uint8_t buffer[SENSORS_MPU6500_BUFF_LEN + SENSORS_MAG_BUFF_LEN + SENSORS_BARO_BUFF_LEN] = {0};
@@ -168,27 +168,27 @@ static void sensorsAddBiasValue(BiasObj* bias, int16_t x, int16_t y, int16_t z);
 static bool sensorsFindBiasValue(BiasObj* bias);
 static void sensorsAccAlignToGravity(Axis3f* in, Axis3f* out);
 
-bool sensorsReadGyro(Axis3f *gyro)
+bool sensorsMpu9250Lps25hReadGyro(Axis3f *gyro)
 {
   return (pdTRUE == xQueueReceive(gyroDataQueue, gyro, 0));
 }
 
-bool sensorsReadAcc(Axis3f *acc)
+bool sensorsMpu9250Lps25hReadAcc(Axis3f *acc)
 {
   return (pdTRUE == xQueueReceive(accelerometerDataQueue, acc, 0));
 }
 
-bool sensorsReadMag(Axis3f *mag)
+bool sensorsMpu9250Lps25hReadMag(Axis3f *mag)
 {
   return (pdTRUE == xQueueReceive(magnetometerDataQueue, mag, 0));
 }
 
-bool sensorsReadBaro(baro_t *baro)
+bool sensorsMpu9250Lps25hReadBaro(baro_t *baro)
 {
   return (pdTRUE == xQueueReceive(barometerDataQueue, baro, 0));
 }
 
-void sensorsAcquire(sensorData_t *sensors, const uint32_t tick)
+void sensorsMpu9250Lps25hAcquire(sensorData_t *sensors, const uint32_t tick)
 {
   sensorsReadGyro(&sensors->gyro);
   sensorsReadAcc(&sensors->acc);
@@ -200,7 +200,7 @@ void sensorsAcquire(sensorData_t *sensors, const uint32_t tick)
   sensors->interruptTimestamp = sensorData.interruptTimestamp;
 }
 
-bool sensorsAreCalibrated() {
+bool sensorsMpu9250Lps25hAreCalibrated() {
   return gyroBiasFound;
 }
 
@@ -250,7 +250,7 @@ static void sensorsTask(void *param)
   }
 }
 
-void sensorsWaitDataReady(void)
+void sensorsMpu9250Lps25hWaitDataReady(void)
 {
   xSemaphoreTake(dataReady, portMAX_DELAY);
 }
@@ -414,10 +414,10 @@ static void sensorsDeviceInit(void)
   }
 #endif
 
-  cosPitch = cosf(configblockGetCalibPitch() * (float) M_PI/180);
-  sinPitch = sinf(configblockGetCalibPitch() * (float) M_PI/180);
-  cosRoll = cosf(configblockGetCalibRoll() * (float) M_PI/180);
-  sinRoll = sinf(configblockGetCalibRoll() * (float) M_PI/180);
+//   cosPitch_mpu9250 = cosf(configblockGetCalibPitch() * (float) M_PI/180);
+//   sinPitch_mpu9250 = sinf(configblockGetCalibPitch() * (float) M_PI/180);
+//   cosRoll_mpu9250 = cosf(configblockGetCalibRoll() * (float) M_PI/180);
+//   sinRoll_mpu9250 = sinf(configblockGetCalibRoll() * (float) M_PI/180);
 }
 
 
@@ -524,7 +524,7 @@ static void sensorsInterruptInit(void)
   portENABLE_INTERRUPTS();
 }
 
-void sensorsInit(void)
+void sensorsMpu9250Lps25hInit(void)
 {
   if (isInit)
   {
@@ -539,7 +539,7 @@ void sensorsInit(void)
   isInit = true;
 }
 
-bool sensorsTest(void)
+bool sensorsMpu9250Lps25hTest(void)
 {
   bool testStatus = true;
 
@@ -783,7 +783,7 @@ static bool sensorsFindBiasValue(BiasObj* bias)
   return foundBias;
 }
 
-bool sensorsManufacturingTest(void)
+bool sensorsMpu9250Lps25hManufacturingTest(void)
 {
   bool testStatus = false;
   Axis3i16 g;
@@ -864,20 +864,20 @@ static void sensorsAccAlignToGravity(Axis3f* in, Axis3f* out)
 
   // Rotate around x-axis
   rx.x = in->x;
-  rx.y = in->y * cosRoll - in->z * sinRoll;
-  rx.z = in->y * sinRoll + in->z * cosRoll;
+  rx.y = in->y * cosRoll_mpu9250 - in->z * sinRoll_mpu9250;
+  rx.z = in->y * sinRoll_mpu9250 + in->z * cosRoll_mpu9250;
 
   // Rotate around y-axis
-  ry.x = rx.x * cosPitch - rx.z * sinPitch;
+  ry.x = rx.x * cosPitch_mpu9250 - rx.z * sinPitch_mpu9250;
   ry.y = rx.y;
-  ry.z = -rx.x * sinPitch + rx.z * cosPitch;
+  ry.z = -rx.x * sinPitch_mpu9250 + rx.z * cosPitch_mpu9250;
 
   out->x = ry.x;
   out->y = ry.y;
   out->z = ry.z;
 }
 
-void sensorsSetAccMode(accModes accMode)
+void sensorsMpu9250Lps25hSetAccMode(accModes accMode)
 {
   switch (accMode)
   {

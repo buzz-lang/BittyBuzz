@@ -34,6 +34,7 @@ PREPEND(DSP_MATRIXFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Sourc
 PREPEND(DSP_FASTMATHFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/FastMathFunctions" ${DSP_FASTMATHFUNCTIONS_SOURCES})
 PREPEND(DSP_CONTROLLERFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/ControllerFunctions" ${DSP_CONTROLLERFUNCTIONS_SOURCES})
 PREPEND(DSP_COMMONTABLES_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Source/CommonTables" ${DSP_COMMONTABLES_SOURCES})
+PREPEND(CFBOSCH_SOURCES "${CRAZYFLIE_LIB_DIR}/src/cfdriver/bosch" ${CFBOSCH_SOURCES})
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
@@ -111,6 +112,7 @@ crazyflie_add_library(bbzcrazyflie
         ${DSP_FASTMATHFUNCTIONS_SOURCES}
         ${DSP_CONTROLLERFUNCTIONS_SOURCES}
         ${DSP_COMMONTABLES_SOURCES}
+        ${CFBOSCH_SOURCES}
 )
 
 # We have to use 'bbzcrazyflie_objects' instead of the usual library file because of an issue with the linker that prevent the script from initializing

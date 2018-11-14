@@ -21,39 +21,73 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * TODO: Add description
+ * Platform functionality for the CF2 platform
  */
 
 #define DEBUG_MODULE "PLATFORM"
 
-/* Personal configs */
-/* Project includes */
+#include <string.h>
+
+#include "platform.h"
 #include "exti.h"
 #include "nvic.h"
 #include "debug.h"
 #include "radiolink.h"
-#include "platform.h"
 
 // Define to decrease the nRF51 Tx power to reduce interference
 #ifndef PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM
 #define PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM (-12)
 #endif
 
-// TODO: Implement!
-int platformInit(void)
-{
+static void initHardware();
+
+static platformConfig_t configs[] = {
+  {
+    .deviceType = "CF20",
+    .deviceTypeName = "Crazyflie 2.0",
+    .sensorImplementation = SensorImplementation_mpu9250_lps25h,
+  },
+  {
+    .deviceType = "CF21",
+    .deviceTypeName = "Crazyflie 2.1",
+    .sensorImplementation = SensorImplementation_bmi088_bmp388,
+  }
+};
+
+
+
+int platformInit(void) {
+  int err = platformInitConfiguration(configs, sizeof(configs) / sizeof(platformConfig_t));
+  if (err != 0)
+  {
+    // This firmware is not compatible, abort init
+    return 1;
+  }
+
+  initHardware();
+  return 0;
+}
+
+
+void platformSetLowInterferenceRadioMode(void) {
+  // Decrease the nRF51 Tx power to reduce interference
+  radiolinkSetPowerDbm(PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM);
+  DEBUG_PRINT("Low interference mode. NRF51 TX power offset by %ddb.\r\n", PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM);
+}
+
+
+static void initHardware() {
   //Low level init: Clock and Interrupt controller
   nvicInit();
 
   //EXTI interrupts
   extiInit();
-
-  return 0;
 }
 
-void platformSetLowInterferenceRadioMode(void)
-{
-  // Decrease the nRF51 Tx power to reduce interference
-  radiolinkSetPowerDbm(PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM);
-  DEBUG_PRINT("Low interference mode. NRF51 TX power offset by %ddb.\r\n", PLATFORM_NRF51_LOW_INTERFERENCE_TX_POWER_DBM);
+
+// Config functions ------------------------
+
+const char* platformConfigGetPlatformName() {
+  return "cf2";
 }
+

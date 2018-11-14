@@ -24,6 +24,15 @@ CMAKE_FORCE_CXX_COMPILER(${CC} GNU)
 
 set(LOAD_ADDRESS "0x8004000")
 
+#
+# Version of the crazyflie
+#
+set(local_revision 0)
+set(revision 0)
+set(tag 2018)
+set(branch master)
+set(modified false)
+
 set(CRAZYFLIE_DRIVER_DIR "${CMAKE_SOURCE_DIR}/crazyflie/drivers")
 set(CRAZYFLIE_LIB_DIR "${CMAKE_SOURCE_DIR}/crazyflie/lib")
 
@@ -40,6 +49,7 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_LIB_DIR}/inc/FreeRTOS \
 -I${CRAZYFLIE_LIB_DIR}/inc/cfutils \
 -I${CRAZYFLIE_LIB_DIR}/inc/cfplatform \
+-I${CRAZYFLIE_LIB_DIR}/inc/cfdriver/bosch \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Include \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib \
 -I${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Include \
@@ -60,7 +70,7 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 
 set(CF_STDPERI_SOURCES stm32f4xx_gpio.c stm32f4xx_tim.c stm32f4xx_syscfg.c stm32f4xx_rcc.c stm32f4xx_adc.c stm32f4xx_can.c stm32f4xx_crc.c stm32f4xx_cryp.c stm32f4xx_cryp_aes.c stm32f4xx_cryp_des.c stm32f4xx_cryp_tdes.c stm32f4xx_dac.c stm32f4xx_dbgmcu.c stm32f4xx_dcmi.c stm32f4xx_dma.c stm32f4xx_dma2d.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_fsmc.c stm32f4xx_hash.c stm32f4xx_hash_md5.c stm32f4xx_hash_sha1.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_ltdc.c stm32f4xx_misc.c stm32f4xx_pwr.c stm32f4xx_rng.c stm32f4xx_rtc.c stm32f4xx_sai.c stm32f4xx_sdio.c stm32f4xx_spi.c stm32f4xx_usart.c stm32f4xx_wwdg.c)
 
-set(CFPLATFORM_SOURCES platform_cf2.c)
+set(CFPLATFORM_SOURCES platform_cf2.c platform.c platform_stm32f4.c)
 
 set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem_cf2.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sitaw.c sound_cf2.c stabilizer.c sysload.c system.c trigger.c worker.c)
 
@@ -68,11 +78,13 @@ set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c 
 
 set(CFDRIVER_SOURCES exti.c nvic.c motors.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c platform_info_stm32.c)
 
+set(CFBOSCH_SOURCES bmi055_accel.c bmi055_gyro.c bmi160.c bmp280.c bstdr_comm_support.c bmm150.c bmi088_accel.c bmi088_gyro.c bmi088_fifo.c bmp3.c)
+
 Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c)
 
 set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
 
-set(CFHAL_SOURCES sensors_cf2.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_f405.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c)
+set(CFHAL_SOURCES sensors.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_stm32f4.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c)
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c)
 
@@ -98,8 +110,8 @@ set(DSP_CONTROLLERFUNCTIONS_SOURCES arm_pid_init_f32.c arm_pid_reset_f32.c arm_s
 
 set(DSP_COMMONTABLES_SOURCES arm_common_tables.c arm_const_structs.c)
 
-#set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
-set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/stm32f4cf.ld")
+set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
+#set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/stm32f4cf.ld")
 set(LIBS "-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib")
 set(REV "D")
 set(ESTIMATOR "any")
@@ -108,22 +120,28 @@ set(POWER_DISTRIBUTION "stock")
 set(CLOAD_SCRIPT "python3 -m cfloader")
 
 #set(DEFS "-DUSE_HAL_DRIVER -DSTM32F051x8 -DSTARTUP_FROM_RESET -DUSE_SPI_CRC=0")
+
+set(PROCESSOR "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+
 set(DEFS "-DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -DSTM32F4XX -DSTM32F40_41xxx -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DUSE_RADIOLINK_CRTP -DENABLE_UART -DBOARD_REV_${REV} -DESTIMATOR_NAME=${ESTIMATOR}Estimator -DCONTROLLER_NAME=ControllerType${CONTROLLER} -DPOWER_DISTRIBUTION_TYPE_${POWER_DISTRIBUTION}")
 
-set(CFLAGS "-Os -std=gnu11 -g3 -mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+set(SENSOR_CONFIG "-DSENSOR_INCLUDED_BMI088_BMP388 -DSENSOR_INCLUDED_MPU9250_LPS25H")
+
+set(CFLAGS "-Os -std=gnu11 -g3")
 #originally: uses -std=gnu99
 #set(CFLAGS "${CFLAGS} -Wextra -Wshadow -Wimplicit-function-declaration")
 #set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes")
 set(CFLAGS "${CFLAGS} -fno-common -ffunction-sections -fdata-sections -fno-math-errno")
 set(CFLAGS "${CFLAGS} -MD -MP -Wmissing-braces -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function -Wdouble-promotion")
-set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS}")
+set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS} ${PROCESSOR} ${SENSOR_CONFIG}")
 set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -fomit-frame-pointer -ffast-math")
 # set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
 
-set(LDFLAGS "--static -nostartfiles -mthumb -g3 -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -T${LINKER_SCRIPT}")
+set(LDFLAGS "--static -nostartfiles -g3 ${PROCESSOR} -T${LINKER_SCRIPT}")
 set(LDSCRIPT "")
 #set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
 set(LDFLAGS "--specs=rdimon.specs --specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s")
+#set(LDFLAGS "${LDFLAGS}, --cref, --undefined=uxTopUsedPriority")
 
 # LDLIBS
 set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
@@ -176,12 +194,6 @@ set(BBZMSG_IN_PROC_MAX 10)
 # set(BBZ_DISABLE_NEIGHBORS ON)
 # set(BBZ_DISABLE_VSTIGS ON)
 # set(BBZ_DISABLE_SWARMS ON)
-
-set(local_revision 0)
-set(revision 0)
-set(tag 2018)
-set(branch master)
-set(modified false)
 
 configure_file(${CRAZYFLIE_LIB_DIR}/src/cfutils/version.vtpl ${CRAZYFLIE_LIB_DIR}/src/cfutils/version.c @ONLY)
 

@@ -7,7 +7,7 @@
  *
  * Crazyflie control firmware
  *
- * Copyright (C) 2011-2012 Bitcraze AB
+ * Copyright (C) 2011-2018 Bitcraze AB
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,32 +21,57 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * config.h - Main configuration file
- *
- * This file define the default configuration of the copter
- * It contains two types of parameters:
- * - The global parameters are globally defined and independent of any
- *   compilation profile. An example of such define could be some pinout.
- * - The profiled defines, they are parameter that can be specific to each
- *   dev build. The vanilla build is intended to be a "customer" build without
- *   fancy spinning debugging stuff. The developers build are anything the
- *   developer could need to debug and run his code/crazy stuff.
- *
- * The golden rule for the profile is NEVER BREAK ANOTHER PROFILE. When adding a
- * new parameter, one shall take care to modified everything necessary to
- * preserve the behavior of the other profiles.
- *
- * For the flag. T_ means task. H_ means HAL module. U_ would means utils.
  */
 
 #ifndef PLATFORM_H_
 #define PLATFORM_H_
+
+#include <stdbool.h>
+
+#define PLATFORM_DEVICE_TYPE_STRING_MAX_LEN (32 + 1)
+#define PLATFORM_DEVICE_TYPE_MAX_LEN (4 + 1)
+
+typedef enum {
+  #ifdef SENSOR_INCLUDED_BMI088_BMP388
+  SensorImplementation_bmi088_bmp388,
+  #endif
+
+  #ifdef SENSOR_INCLUDED_BMI088_SPI_BMP388
+  SensorImplementation_bmi088_spi_bmp388,
+  #endif
+
+  #ifdef SENSOR_INCLUDED_MPU9250_LPS25H
+  SensorImplementation_mpu9250_lps25h,
+  #endif
+
+  #ifdef SENSOR_INCLUDED_BOSCH
+  SensorImplementation_bosch,
+  #endif
+
+  SensorImplementation_COUNT,
+} SensorImplementation_t;
+
+typedef struct {
+  char deviceType[PLATFORM_DEVICE_TYPE_MAX_LEN];
+  char deviceTypeName[14];
+  SensorImplementation_t sensorImplementation;
+} platformConfig_t;
 
 /**
  * Initilizes all platform specific things.
  */
 int platformInit(void);
 
+void platformGetDeviceTypeString(char* deviceTypeString);
+int platformParseDeviceTypeString(const char* deviceTypeString, char* deviceType);
+int platformInitConfiguration(const platformConfig_t* configs, const int nrOfConfigs);
+
 void platformSetLowInterferenceRadioMode(void);
+
+
+// Functions to read configuration
+const char* platformConfigGetPlatformName();
+const char* platformConfigGetDeviceTypeName();
+SensorImplementation_t platformConfigGetSensorImplementation();
 
 #endif /* PLATFORM_H_ */
