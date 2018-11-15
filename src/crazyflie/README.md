@@ -36,7 +36,7 @@ These are the steps you have to follow to build BittyBuzz for Crazyflie:
 2. Run `mkdir build_crazyflie && cd build_crazyflie`
 3. Run `cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Crazyflie.cmake ../src`
 4. Build using `make RESULT=<ID>`
-   whereby <ID> is replaced by the number ID of the crazyflie you wish to assign
+   whereby `<ID>` is replaced by the number ID of the crazyflie you wish to assign
 
 Build your scripts
 ------------------
