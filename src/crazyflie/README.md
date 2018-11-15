@@ -1,7 +1,7 @@
-BittyBuzz on Zooids
+BittyBuzz on Crazyflie
 ===================
 
-This is a documentation on how to setup the development environment to run **BittyBuzz** on **Zooids**. This was only tested on **Ubuntu 16.04**
+This is a documentation on how to setup the development environment to run **BittyBuzz** on **Crazyflie**. This was only tested on **Ubuntu 16.04**
 
 Prerequisites
 =============
@@ -23,20 +23,20 @@ Compilation
 ===========
 
 At the moment, BittyBuzz can only compile Buzz scripts that are placed in the
-`<BittyBuzz_Root>/src/<robot>/behaviors`. You have to provide a *C* script that will
-link your compiled Buzz script with the *BittyBuzz VM*. You must also provide a
-*Buzz Symbol Table* file (`.bst`). It's not needed anymore to put anything in this
-file. It will eventually become optionnal. You can take example on the scripts
+`<BittyBuzz_Root>/src/<robot>/behaviors`. 
+You have to provide a *C* script that will link your compiled Buzz script with the *BittyBuzz VM*. You must also provide a *Buzz Symbol Table* file (`.bst`). It's no longer needed to put anything in this file. It will eventually become optionnal. You can take example on the scripts
 currently in that folder. The C, BST and Buzz files must all have to same name.
 
 Setup the build directory
 -------------------------
 
-These are the steps you have to follow to build BittyBuzz for Zooids:
+These are the steps you have to follow to build BittyBuzz for Crazyflie:
 
-1. In a terminal, go in the root directory of the BittyBuzz repository.
-2. Run `mkdir build-zooids && cd build-zooids`.
-3. Run `cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Zooids.cmake ../src`
+1. In a terminal, go to the root directory of the BittyBuzz repository.
+2. Run `mkdir build_crazyflie && cd build_crazyflie`
+3. Run `cmake -DCMAKE_TOOLCHAIN_FILE=../src/cmake/Crazyflie.cmake ../src`
+4. Build using `make RESULT=<ID>`
+   whereby <ID> is replaced by the number ID of the crazyflie you wish to assign
 
 Build your scripts
 ------------------

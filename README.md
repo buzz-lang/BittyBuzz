@@ -83,6 +83,13 @@ For Zooids
 
 See `src/zooids/README.md`
 
+
+For Crazyflie
+----------
+
+See `src/crazyflie/README.md`
+
+
 Options
 -------
 

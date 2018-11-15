@@ -86,7 +86,7 @@ set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c
 
 set(CFHAL_SOURCES sensors.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_stm32f4.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c)
 
-set(STM32_SYS_SOURCE system_stm32f4xx.c)
+set(STM32_SYS_SOURCE system_stm32f4xx.c startup_stm32f40xx.s)
 
 set(STM32_USBDEVICELIB_SOURCE usbd_core.c usbd_ioreq.c usbd_req.c)
 
@@ -137,10 +137,10 @@ set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS} ${PROCESSOR} ${SENSOR_CONFIG}")
 set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -fomit-frame-pointer -ffast-math")
 # set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
 
-set(LDFLAGS "--static -nostartfiles -g3 ${PROCESSOR} -T${LINKER_SCRIPT}")
+set(LDFLAGS "--static -nostartfiles -g3 ${PROCESSOR} ${LIBS} -T${LINKER_SCRIPT}")
 set(LDSCRIPT "")
 #set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
-set(LDFLAGS "--specs=rdimon.specs --specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s")
+set(LDFLAGS "--specs=rdimon.specs --specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections,--cref,--undefined=uxTopUsedPriority")
 #set(LDFLAGS "${LDFLAGS}, --cref, --undefined=uxTopUsedPriority")
 
 # LDLIBS
