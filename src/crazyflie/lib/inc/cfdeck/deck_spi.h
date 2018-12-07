@@ -29,7 +29,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "stm32f4xx_spi.h"
 
 // Based on 84MHz peripheral clock
 #define SPI_BAUDRATE_21MHZ  SPI_BaudRatePrescaler_4     // 21MHz

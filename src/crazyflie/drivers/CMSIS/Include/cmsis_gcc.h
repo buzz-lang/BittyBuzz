@@ -527,7 +527,7 @@ __attribute__((always_inline)) __STATIC_INLINE uint32_t __RBIT(uint32_t value)
 {
   uint32_t result;
 
-#if       (defined(__CORTEX_M) && __CORTEX_M >= 0x03U) || (defined(__CORTEX_SC) && __CORTEX_SC >= 300U)
+#if       (__CORTEX_M >= 0x03U) || (__CORTEX_SC >= 300U)
    __ASM volatile ("rbit %0, %1" : "=r" (result) : "r" (value) );
 #else
   int32_t s = 4 /*sizeof(v)*/ * 8 - 1; /* extra shift needed at end */
@@ -554,7 +554,7 @@ __attribute__((always_inline)) __STATIC_INLINE uint32_t __RBIT(uint32_t value)
 #define __CLZ             __builtin_clz
 
 
-#if       (defined(__CORTEX_M) && __CORTEX_M >= 0x03U) || (defined(__CORTEX_SC) && __CORTEX_SC >= 300U)
+#if       (__CORTEX_M >= 0x03U) || (__CORTEX_SC >= 300U)
 
 /**
   \brief   LDR Exclusive (8 bit)

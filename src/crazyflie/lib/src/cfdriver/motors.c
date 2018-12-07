@@ -47,9 +47,10 @@ static uint16_t motorsConv16ToBits(uint16_t bits);
 
 uint32_t motor_ratios[] = {0, 0, 0, 0};
 
-void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
-void motorsPlayMelody(uint16_t *notes);
-void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
+// Shifted to motors.h
+// void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
+// void motorsPlayMelody(uint16_t *notes);
+// void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
 
 #include "motors_def_cf2.c"
 
@@ -59,7 +60,7 @@ const uint32_t MOTORS[] = { MOTOR_M1, MOTOR_M2, MOTOR_M3, MOTOR_M4 };
 
 const uint16_t testsound[NBR_OF_MOTORS] = {A4, A5, F5, D5 };
 
-static const uint16_t testsoundWJ[NBR_OF_MOTORS] = {G6, D6, G5, A5 };
+const uint16_t testsoundWJ[NBR_OF_MOTORS] = {G6, D6, G5, A5 };
 
 static bool isInit = false;
 
@@ -187,13 +188,12 @@ bool motorsTest(void)
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
       motorsBeep(MOTORS[i], false, 0, 0);
       vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-      
 #elif defined ACTIVATE_WJ_SOUND
       motorsBeep(MOTORS[i], true, testsoundWJ[i], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 20);
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
       motorsBeep(MOTORS[i], false, 0, 0);
-      vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));  
-      
+      vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
+
 #else
       motorsSetRatio(MOTORS[i], MOTORS_TEST_RATIO);
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
@@ -204,20 +204,6 @@ bool motorsTest(void)
   }
 
   return isInit;
-}
-
-void motorsWhileIdle(void)
-{
-    int j;
-    
-    for (j = 0; j < sizeof(MOTORS) / sizeof(*MOTORS); j++)
-    {
-      vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-      motorsBeep(MOTORS[j], true, testsound[j], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 5);
-      vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS * 10));
-      motorsBeep(MOTORS[j], false, 0, 0);
-      vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-    }
 }
 
 // Ithrust is thrust mapped for 65536 <==> 60 grams

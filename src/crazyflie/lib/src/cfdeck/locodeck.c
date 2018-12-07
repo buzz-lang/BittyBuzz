@@ -34,7 +34,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "stm32f4xx.h"
+#include "stm32fxxx.h"
 
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -48,8 +48,6 @@
 #include "param.h"
 #include "nvicconf.h"
 #include "estimator.h"
-// #include "exti.h"
-// #include "nrf24l01.h"
 
 #include "locodeck.h"
 
@@ -57,25 +55,20 @@
 #include "lpsTdoa3Tag.h"
 #include "lpsTwrTag.h"
 
-#include "libdw1000.h"
-
-// #include "stm32f4xx_exti.h"
-// #include "stm32f4xx_syscfg.h"
-
 
 #define CS_PIN DECK_GPIO_IO1
 
-
 // LOCO deck alternative IRQ and RESET pins(IO_2, IO_3) instead of default (RX1, TX1), leaving UART1 free for use
-// BY WJ: #ifdef LOCODECK_USE_ALT_PINS
-//     #define GPIO_PIN_IRQ 	GPIO_Pin_5
-// 	#define GPIO_PIN_RESET 	GPIO_Pin_4
-// 	#define GPIO_PORT		GPIOB
-// 	#define EXTI_PortSource EXTI_PortSourceGPIOB
-// 	#define EXTI_PinSource 	EXTI_PinSource5
-// 	#define EXTI_LineN 		EXTI_Line5
-// 	#define EXTI_IRQChannel EXTI9_5_IRQn
-// #else
+#if LOCODECK_USE_ALT_PINS
+    #define GPIO_PIN_IRQ 	GPIO_Pin_5
+	#define GPIO_PIN_RESET 	GPIO_Pin_4
+	#define GPIO_PORT		GPIOB
+	#define EXTI_PortSource EXTI_PortSourceGPIOB
+	#define EXTI_PinSource 	EXTI_PinSource5
+	#define EXTI_LineN 		EXTI_Line5
+	#define EXTI_IRQChannel EXTI9_5_IRQn
+        #warning locodeck_use_alt_pins enabled 
+#else
     #define GPIO_PIN_IRQ 	GPIO_Pin_11
 	#define GPIO_PIN_RESET 	GPIO_Pin_10
 	#define GPIO_PORT		GPIOC
@@ -83,8 +76,8 @@
 	#define EXTI_PinSource 	EXTI_PinSource11
 	#define EXTI_LineN 		EXTI_Line11
 	#define EXTI_IRQChannel EXTI15_10_IRQn
-// #endif
-
+        #warning locodeck not using alt_pins 
+#endif
 
 #define DEFAULT_RX_TIMEOUT 10000
 
@@ -95,17 +88,19 @@
 // As an option you can set a static position in this file and set
 // combinedAnchorPositionOk to enable sending the anchor rangings to the Kalman filter
 
-#define LPS_TDOA_ENABLE 0
-#define LPS_TDOA3_ENABLE 0
 static lpsAlgoOptions_t algoOptions = {
   // .rangingMode is the wanted algorithm, available as a parameter
-#if (LPS_TDOA_ENABLE)
-  .rangingMode = lpsMode_TDoA2;
-#elif (LPS_TDOA3_ENABLE)
-  .rangingMode = lpsMode_TDoA3;
+#if LPS_TDOA_ENABLE
+  #warning lps_tdoa is enabled
+  .rangingMode = lpsMode_TDoA2,
+#elif LPS_TDOA3_ENABLE
+  #warning lps_tdoa3 is enabled
+  .rangingMode = lpsMode_TDoA3,
 #elif defined(LPS_TWR_ENABLE)
+  #warning lps_twr is enabled
   .rangingMode = lpsMode_TWR,
 #else
+  #warning lpsMode_auto is used for rangingMode
   .rangingMode = lpsMode_auto,
 #endif
   // .currentRangingMode is the currently running algorithm, available as a log
@@ -333,7 +328,6 @@ static void spiRead(dwDevice_t* dev, const void *header, size_t headerLength,
   spiEndTransaction();
 }
 
-#define LOCODECK_USE_ALT_PINS false
 #if LOCODECK_USE_ALT_PINS
 	void __attribute__((used)) EXTI5_Callback(void)
 #else

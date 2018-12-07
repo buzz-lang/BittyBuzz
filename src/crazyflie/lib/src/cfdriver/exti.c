@@ -26,10 +26,6 @@
 #include <stdbool.h>
 
 #include "stm32fxxx.h"
-// #include "stm32f4xx.h"
-// #include "stm32f4xx_misc.h"
-// #include "stm32f4xx_rcc.h"
-// #include "stm32f4xx_exti.h"
 
 #include "exti.h"
 #include "nvicconf.h"
@@ -117,7 +113,6 @@ void __attribute__((used)) EXTI3_IRQHandler(void)
   EXTI3_Callback();
 }
 
-// Trying to use line 4 for interrupt.
 void __attribute__((used)) EXTI4_IRQHandler(void)
 {
   EXTI_ClearITPendingBit(EXTI_Line4);

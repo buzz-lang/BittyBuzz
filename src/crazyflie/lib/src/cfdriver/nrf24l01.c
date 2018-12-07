@@ -39,10 +39,6 @@
 
 /* ST includes */
 #include "stm32fxxx.h"
-#include "stm32f4xx.h"
-#include "stm32f4xx_spi.h"
-#include "stm32f4xx_gpio.h"
-#include "stm32f4xx_exti.h"
 
 #include "debug.h"
 #include "exti.h"
@@ -359,13 +355,11 @@ void nrfInit(void)
     return;
 
   /* Enable SPI and GPIO clocks */
-//   RCC_APB2PeriphClockCmd(RADIO_GPIO_CE_PERIF | RADIO_GPIO_IRQ_PERIF, ENABLE);
-//Original:
-//     RCC_APB2PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF | 
-//                          RADIO_GPIO_CE_PERIF | RADIO_GPIO_IRQ_PERIF, ENABLE);
+  RCC_APB2PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF | 
+                         RADIO_GPIO_CE_PERIF | RADIO_GPIO_IRQ_PERIF, ENABLE);
 
   /* Enable SPI and GPIO clocks */
-//   RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
+  RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
 
   /* Configure main clock */
   GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CLK;

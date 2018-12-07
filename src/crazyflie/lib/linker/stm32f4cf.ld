@@ -24,7 +24,6 @@ There will be a link error if there is not this amount of RAM free at the end.
 */
 _Minimum_Stack_Size = 0x100 ;
 
-
 /*
 this sends all unreferenced IRQHandlers to reset
 */
@@ -202,6 +201,8 @@ PROVIDE ( NVIC            = (SCS_BASE + 0x0100) ) ;
 PROVIDE ( SCB             = (SCS_BASE + 0x0D00) ) ;
 
 
+
+
 /*
 Linker subscript for STM32F405 definitions with 1M Flash and 128K RAM
 Copyright RAISONANCE 2007-2009
@@ -227,7 +228,6 @@ MEMORY
 
 /* higher address of the user mode stack */
 _estack = 0x2001FFFF;
-
 
 /*
 Common part of the linker scripts for STR71x devices in FLASH mode
@@ -493,4 +493,3 @@ SECTIONS
     .debug_typenames 0 : { *(.debug_typenames) }
     .debug_varnames  0 : { *(.debug_varnames) }
 }
-

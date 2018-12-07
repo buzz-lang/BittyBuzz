@@ -1,11 +1,25 @@
-// #include <functions.h>
+/* Personal configs */
+#include "FreeRTOSConfig.h"
+
+/* FreeRtos includes */
+#include "FreeRTOS.h"
+#include "task.h"
+
+/* Project includes */
+#include "config.h"
+#include "platform.h"
+#include "system.h"
+#include "usec_time.h"
+
+#include "led.h"
+
+/* ST includes */
+#include "stm32fxxx.h"
+
+#include <bbzsymbols.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
 #include <bbzcrazyflie.h>
-// #include "led.h"
-#include "debug.h"
-
-#define DEBUG_MODULE "MAIN"
 
 #define TBL_SZ 79
 
@@ -41,9 +55,28 @@ void setup() {
 }
 
 int main() {
-    DEBUG_PRINT("Initializing system...\n");
     bbz_init();
     bbz_start(setup);
-
+/*
+      int err = platformInit();
+  if (err != 0) {
+    // The firmware is running on the wrong hardware. Halt
+    while(1);
+  }
+    
+  // Initializes the system onboard CF
+  systemLaunch();
+    
+  // Start the FreeRTOS scheduler
+  vTaskStartScheduler();*/
+  
+    //TODO: Move to platform launch failed
+  ledInit();
+  ledSet(0, 1);
+  ledSet(1, 1);
+  
+//   //Should never reach this point!
+//   while(1);
+    
     return 0;
 }

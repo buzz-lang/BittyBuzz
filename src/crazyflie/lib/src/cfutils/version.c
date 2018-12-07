@@ -31,20 +31,20 @@
 #include "config.h"
 #include "param.h"
 
-const char * V_SLOCAL_REVISION="{0}";
-const char * V_SREVISION="{0}";
-const char * V_STAG="{2018}";
-const char * V_BRANCH="{master}";
-const char * V_PROFILE=P_NAME;
-const bool V_MODIFIED={false};
+const char * V_SLOCAL_REVISION="26";
+const char * V_SREVISION="43b6c25db2ee";
+const char * V_STAG="2018.10-rc1-26";
+const char * V_BRANCH="master";
+// const char * V_PROFILE=P_NAME;
+const bool V_MODIFIED=false;
 
 /* Version recoverable from the ground */
-// const uint32_t V_REVISION_0={irevision0};
-// const uint16_t V_REVISION_1={irevision1};
+const uint32_t V_REVISION_0=0x43b6c25d;
+const uint16_t V_REVISION_1=0xb2ee;
 
 PARAM_GROUP_START(firmware)
-// PARAM_ADD(PARAM_UINT32 | PARAM_RONLY, revision0, &V_REVISION_0)
-// PARAM_ADD(PARAM_UINT16 | PARAM_RONLY, revision1, &V_REVISION_1)
+PARAM_ADD(PARAM_UINT32 | PARAM_RONLY, revision0, &V_REVISION_0)
+PARAM_ADD(PARAM_UINT16 | PARAM_RONLY, revision1, &V_REVISION_1)
 PARAM_ADD(PARAM_UINT8 | PARAM_RONLY, modified, &V_MODIFIED)
 PARAM_GROUP_STOP(firmware)
 

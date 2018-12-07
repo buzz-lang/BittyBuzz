@@ -67,8 +67,8 @@ function(generate_hex c_source bzz_source)
     # .elf -> .bin (Generate a .bin file by WJ) 
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         BYPRODUCTS ${BIN_FILE}
-        COMMAND ${OBJCOPY} -Obinary ${ELF_TARGET} ${BIN_FILE}
-        COMMENT "Generating BIN file: \n  >> ${BIN_FILE}"
+        COMMAND ${OBJCOPY} -Obinary ${ELF_TARGET} ${BIN_TARGET}
+        COMMENT "Generating BIN file: \n  >> ${BIN_TARGET}"
         DEPENDS ${ELF_TARGET})
     
     set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${HEX_FILE};${ASM_FILE};${MAP_FILE};${BIN_FILE}")
@@ -83,7 +83,7 @@ function(generate_hex c_source bzz_source)
     add_custom_target(upload_${BZZ_BASENAME}
         LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} erase && LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} --reset --format ihex write ${HEX_FILE}
         DEPENDS ${HEX_FILE} ${ELF_TARGET} ${UPLOADER}
-        COMMENT "Uploading ${HEX_FILE} to crazyflie")
+        COMMENT "Uploading ${HEX_FILE} to Crazyflie")
 endfunction()
 
 # Generates all hex files.

@@ -31,7 +31,6 @@
 #include "cfassert.h"
 
 #include "uart1.h"
-#include "stm32f4xx_misc.h"
 #define UART_PRINT    uart1Printf
 
 #define DONT_DISCARD __attribute__((used))

@@ -1,6 +1,6 @@
 /**
- *    ||          ____  _ __
- * +------+      / __ )(_) /_______________ _____  ___
+ *    ||          ____  _ __                           
+ * +------+      / __ )(_) /_______________ _____  ___ 
  * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
  * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
  *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
@@ -32,7 +32,7 @@
 #elif defined (STM32F10X_MD)
   #include "stm32f10x.h"
 #else
-//  #warning "Don't know which stm32fxxx header file to include"
+  #warning "Don't know which stm32fxxx header file to include"
 #endif
 
 #endif /* STM32FXXX_H_ */

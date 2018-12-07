@@ -229,6 +229,10 @@ bool motorsTestWJ(void);
 
 void motorsWhileIdle(void);
 
+void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
+void motorsPlayMelody(uint16_t *notes);
+void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
+
 /**
  * Set the PWM ratio of the motor 'id'
  */

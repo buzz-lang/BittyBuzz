@@ -42,10 +42,6 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
 #include "nrf24l01.h"
 
 #include "trace.h"
@@ -65,16 +61,16 @@
 #define PROTOCOL_VERSION 4
 
 #ifdef STM32F4XX
-#ifndef P_NAME
-  #define P_NAME "Crazyflie 2.0"
-#endif
+ // #ifndef P_NAME
+ //   #define P_NAME "Crazyflie 2.0"
+ // #endif
   #define QUAD_FORMATION_X
 
   #define CONFIG_BLOCK_ADDRESS    (2048 * (64-1))
   #define MCU_ID_ADDRESS          0x1FFF7A10
   #define MCU_FLASH_SIZE_ADDRESS  0x1FFF7A22
   #define FREERTOS_HEAP_SIZE      40000
-  #define FREERTOS_MIN_STACK_SIZE 150       // M4-FPU register setup is bigger so stack needs to be bigger
+  #define FREERTOS_MIN_STACK_SIZE 150       // M4-FPU register setup is bigger so stack needs to be bigger. Originally: 150
   #define FREERTOS_MCU_CLOCK_HZ   168000000
 
   #define configGENERATE_RUN_TIME_STATS 1
@@ -89,8 +85,8 @@
 #define FLOW_TASK_PRI           3
 #define MULTIRANGER_TASK_PRI    3
 #define SYSTEM_TASK_PRI         2
-#define CRTP_TX_TASK_PRI        3
-#define CRTP_RX_TASK_PRI        3
+#define CRTP_TX_TASK_PRI        2
+#define CRTP_RX_TASK_PRI        2
 #define EXTRX_TASK_PRI          2
 #define ZRANGER_TASK_PRI        2
 #define ZRANGER2_TASK_PRI       2
@@ -350,9 +346,5 @@ typedef struct
   uint8_t id;
   uint64_t pipeAddress;
 } Robot;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CONFIG_H_ */

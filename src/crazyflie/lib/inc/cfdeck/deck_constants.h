@@ -30,9 +30,7 @@
 // For true and false
 #include <stdbool.h>
 
-//#include "stm32fxxx.h"
-#include "stm32f4xx.h"
-#include "stm32f4xx_gpio.h"
+#include "stm32fxxx.h"
 
 #define LOW 0x0
 #define HIGH 0x1

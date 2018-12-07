@@ -1,0 +1,145 @@
+#SMART_MOVE = False
+LEAD_ROBOT = 3
+
+function init() {
+    time = get_time()
+    init_pos = absolute_position
+    cum_dist = {}
+
+    # ----------------
+    # Stuff for timing
+
+    status = "waiting"
+    last_status = status
+
+    if (id == LEAD_ROBOT) {
+        wait_until = 0.5
+        ind = 1
+
+        instructed = {}  # Table of commands that have been called (value for each key is always True)
+        takeoff_time = 100
+    }
+    
+    else {
+        neighbors.listen("status_change",
+            function(vid, value, rid) {
+                if (status != value) {
+                    status = value
+                    neighbors.broadcast(vid, value)
+                }
+            }
+        )
+        neighbors.listen("takeoff",
+            function(vid, value, rid) {
+                if (id == value) {
+                    status = vid
+                }
+            }
+        )
+    }
+}
+
+function step() {
+    last_time = time
+    time = get_time()
+
+    # ----------------
+    # Stuff for timing
+
+    if (id == LEAD_ROBOT) {
+
+        if ((time > wait_until) and (not (instructed.takeoff))) {
+            
+            if (ind < 6) {
+                if (ind != id) {
+                    neighbors.broadcast("takeoff", ind)
+                    print("Robot ", id, ": takeoff ", ind)
+                    wait_until = wait_until + 0.25
+                }
+                ind = ind + 1
+            }
+            else {
+                takeoff_time = get_time()
+                status = "takeoff"
+                instructed.takeoff = True
+            }
+        }
+        if ((time > takeoff_time + 10) and (not (instructed.land))) {
+            lead("land")
+        }
+        if ((time > takeoff_time + 20) and (not (instructed.stop))) {
+            lead("stop")
+        }
+    }
+
+    # -----------------
+    # Do something once
+
+    if (status != last_status) {
+        if (status == "takeoff") {
+            print("Robot ", id, ": Taking off!")
+        }
+        else if (status == "lift") {
+            print("Robot ", id, ": Lifting")
+        }
+        else if (status == "move") {
+            print("Robot ", id, ": Moving")
+        }
+        else if (status == "spin_1") {
+            print("Robot ", id, ": Spinning")
+        }
+        else if (status == "diff_h") {
+            print("Robot ", id, ": Going to different height")
+        }
+        else if (status == "spin_2") {
+            print("Robot ", id, ": Spinning")
+        }
+        else if (status == "spin_3") {
+            print("Robot ", id, ": Spinning")
+        }
+        else if (status == "home") {
+            print("Robot ", id, ": Returning to home")
+        }
+        else if (status == "same_h") {
+            print("Robot ", id, ": Going back to same height")
+        }
+        else if (status == "land") {
+            print("Robot ", id, ": Landing")
+        }
+        else if (status == "stop") {
+            print("Robot ", id, ": Stopping")
+            close(id)
+        }
+        last_status = status
+
+        # mean_target might not have been updated during previous step. Possibly first declaration
+        mean_target = absolute_position
+    }
+
+    # ----------------
+    # Maintain the job
+
+    if (status == "takeoff") {
+        move_to(id, init_pos.x, init_pos.y, 0.3)
+        #takeoff()
+    }
+    
+    else if (status == "land") {
+        var lower = absolute_position.z - 0.1  #incrementally lower to this z height
+        var min_height = 0.1  # final height
+        if (lower < min_height) {
+            move_to(id, absolute_position.x, absolute_position.y, min_height)
+        }
+        else {
+            move_to(id, absolute_position.x, absolute_position.y, lower)
+        }
+    }
+    else if (status == "stop") {
+    }
+
+}
+
+function destroy() {
+    close(id)
+}
+

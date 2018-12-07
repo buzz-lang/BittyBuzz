@@ -64,6 +64,8 @@
 #include "deck.h"
 #include "extrx.h"
 
+#include "bbzcrazyflie.h"
+
 /* Private variable */
 static bool selftestPassed;
 static bool canFly;
@@ -81,7 +83,6 @@ void systemLaunch(void)
   xTaskCreate(systemTask, SYSTEM_TASK_NAME,
               SYSTEM_TASK_STACKSIZE, NULL,
               SYSTEM_TASK_PRI, NULL);
-
 }
 
 // This must be the first module to be initialized!
@@ -101,7 +102,8 @@ void systemInit(void)
   consoleInit();
 
   DEBUG_PRINT("----------------------------\n");
-  DEBUG_PRINT(P_NAME " is up and running!\n");
+//   DEBUG_PRINT(P_NAME " is up and running!\n");
+  DEBUG_PRINT("%s is up and running!\n", platformConfigGetDeviceTypeName());
   DEBUG_PRINT("Build %s:%s (%s) %s\n", V_SLOCAL_REVISION,
               V_SREVISION, V_STAG, (V_MODIFIED)?"MODIFIED":"CLEAN");
   DEBUG_PRINT("I am 0x%08X%08X%08X and I have %dKB of flash!\n",
@@ -158,7 +160,7 @@ void systemTask(void *arg)
   deckInit();
   estimator = deckGetRequiredEstimator();
   stabilizerInit(estimator);
-  if (deckGetRequiredLowInterferenceRadioMode())
+  if (deckGetRequiredLowInterferenceRadioMode() && platformConfigPhysicalLayoutAntennasAreClose())
   {
     platformSetLowInterferenceRadioMode();
   }
@@ -196,12 +198,12 @@ void systemTask(void *arg)
     {
       while(1)
       {
-        ledseqRun(SYS_LED, seq_testPassed); //Red passed == not passed!
+        ledseqRun(ERR_LED2, seq_testPassed); //Red passed == not passed!
         vTaskDelay(M2T(2000));
         // System can be forced to start by setting the param to 1 from the cfclient
         if (selftestPassed)
         {
-	        DEBUG_PRINT("Start forced.\n");
+          DEBUG_PRINT("Start forced.\n");
           systemStart();
           break;
         }
@@ -210,7 +212,7 @@ void systemTask(void *arg)
     else
     {
       ledInit();
-      ledSet(SYS_LED, true);
+      ledSet(ERR_LED2, true);
     }
   }
   DEBUG_PRINT("Free heap: %d bytes\n", xPortGetFreeHeapSize());
@@ -226,7 +228,7 @@ void systemTask(void *arg)
 /* Global system variables */
 void systemStart()
 {
-  xSemaphoreGive(canStartMutex);
+  xSemaphoreGive(canStartMutex);  
 #ifndef DEBUG
   watchdogInit();
 #endif

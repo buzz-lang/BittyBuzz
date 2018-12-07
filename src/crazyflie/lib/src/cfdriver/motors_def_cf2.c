@@ -25,12 +25,6 @@
  *
  * This code mainly interfacing the PWM peripheral lib of ST.
  */
-// #include "stm32f4xx_rcc.h"
-// #include "stm32f4xx_gpio.h"
-// #include "stm32f4xx_dbgmcu.h"
-
-#include "motors.h"
-
 // Connector M1, PA1, TIM2_CH2
 static const MotorPerifDef CONN_M1 =
 {

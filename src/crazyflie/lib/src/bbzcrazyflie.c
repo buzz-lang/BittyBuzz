@@ -1,15 +1,20 @@
-#include "bbzcrazyflie.h"
-#include "bittybuzz/bbzvm.h"
-#include "system.h"
-#include "platform.h"
-
-/* Personal configs */
-#include "FreeRTOSConfig.h"
+#define DEBUG_MODULE "BBZCF"
 
 /* FreeRtos includes */
 #include "FreeRTOS.h"
 #include "task.h"
+
+#include "bbzcrazyflie.h"
+#include "bittybuzz/bbzvm.h"
+#include "system.h"
+#include "platform.h"
+#include "config.h"
+
+/* Personal configs */
+#include "FreeRTOSConfig.h"
+
 #include "usec_time.h"
+// #include "semphr.h"
 #include "debug.h"
 
 /* ST includes */
@@ -19,6 +24,11 @@
 #include <string.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <unistd.h>
+
+// #include "led.h"
 
 bbzvm_t vmObj;
 Message bbzmsg_tx;
@@ -36,6 +46,9 @@ bbzheap_idx_t pos_orientation_idx;
 volatile message_tx_t         message_tx;
 volatile message_tx_success_t message_tx_success;
 volatile message_rx_t         message_rx;
+
+static void bbzTask(void * prm);
+static bool isInit = false;
 
 // extern Motor motorValues;
 // extern Target currentGoal;
@@ -78,6 +91,7 @@ void bbzcrazyflie_func_call(uint16_t strid) {
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
     if(bbztable_get(vmObj.gsyms, l, &l)) {
+        DEBUG_PRINT("bbztable_get called.\n");
         bbzvm_pushnil(); // Push self table
         bbzvm_push(l);
 
@@ -88,6 +102,7 @@ void bbzcrazyflie_func_call(uint16_t strid) {
         while(blockptr < vm->blockptr) {
             if(vm->state != BBZVM_STATE_READY) return;
             bbzvm_step();
+            DEBUG_PRINT("VM: Stepping\n");
 
 //             if (updateRobotPosition()) {
 //                 bbz_updatePosObject();
@@ -150,21 +165,87 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 #endif // !BBZ_DISABLE_MESSAGES
 }
 
-void bbz_init(void)
+void bbz_init(void (*setup)(void))
 {
-//     initRobot();
+  if(isInit)
+     return;
+  
+  setRobotId(ROBOT_ID);
+  vm = &vmObj;
+  bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
     
-    //Initialize the platform.
-    platformInit();
+//     initRobot();  
+  int err = platformInit();
+  if (err != 0) {
+    // The firmware is running on the wrong hardware. Halt
+    while(1);
+  }
+  
+  // Initializes the system onboard CF
+  systemLaunch();
+  setup();
+  DEBUG_PRINT("CF system launched.\n");
+  
+  xTaskCreate(bbzTask, BBZ_TASK_NAME, 
+              BBZ_TASK_STACKSIZE, NULL, BBZ_TASK_PRI, NULL);
+  
+  isInit = true;
+  
+  // Start the FreeRTOS scheduler
+  vTaskStartScheduler();
+  
+//   isInit = true;
+}
+
+void bbzTask(void * param)
+{
+    systemWaitStart();
+    TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
+    vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     
-    // Initializes the system onboard CF
-    systemLaunch();
+    uint8_t has_setup = 0, init_done = 0;
+    while (1)
+    {
+     vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
+     
+        if (!init_done) {
+            if (!has_setup) {
+                bbzvm_construct(getRobotId());
+                bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
+                bbzvm_set_error_receiver(bbz_err_receiver);
+                bbz_createPosObject();
+//                 setup();
+                DEBUG_PRINT("VM: Setting up VM now.\n");
+                has_setup = 1;
+            }
+            if (vm->state == BBZVM_STATE_READY) {
+                DEBUG_PRINT("VM: stepping now.\n");
+                bbzvm_step();
+            }
+            else {
+                init_done = 1;
+                vm->state = BBZVM_STATE_READY;
+                bbz_func_call(__BBZSTRID_init);
+                DEBUG_PRINT("VM: State Ready.\n");
+#ifndef BBZ_DISABLE_MESSAGES
+                message_tx = bbzwhich_msg_tx;
+                message_tx_success = bbzoutmsg_queue_next;
+                message_rx = bbzprocess_msg_rx;
+#endif
+            }
+        }
+        else {
+            if (vm->state != BBZVM_STATE_ERROR) {
+                bbzvm_process_inmsgs();
+                bbzcrazyflie_func_call(__BBZSTRID_step);
+                DEBUG_PRINT("VM: stepping function called\n");
+                bbzvm_process_outmsgs();
+            }
+            // checkRadio();
+            // checkTouch();
+        }
+    }
     
-    //Start the FreeRTOS scheduler
-    vTaskStartScheduler();
-    
-    vm = &vmObj;
-    bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
 }
 
 void bbz_createPosObject() {
@@ -189,8 +270,14 @@ void bbz_updatePosObject() {
 void bbz_start(void (*setup)(void))
 {
     uint8_t has_setup = 0, init_done = 0;
+    systemWaitStart();
+//     
+//     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
+//     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
+    
     while (1)
     {
+//      vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
         if (!init_done) {
             if (!has_setup) {
                 bbzvm_construct(getRobotId());

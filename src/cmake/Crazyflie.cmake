@@ -22,22 +22,23 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 CMAKE_FORCE_C_COMPILER(${CC} GNU)
 CMAKE_FORCE_CXX_COMPILER(${CC} GNU)
 
-set(LOAD_ADDRESS "0x8004000")
+set(LOAD_ADDRESS_CLOAD "0x8004000")
+set(PLATFORM_NAME_cf2 CF2 platform)
 
 #
 # Version of the crazyflie
 #
-set(local_revision 0)
-set(revision 0)
-set(tag 2018)
+set(local_revision 26)
+set(revision 43b6c25db2ee)
+set(tag 2018.10-rc1-26)
 set(branch master)
 set(modified false)
+set(irevision0 0x43b6c25d)
+set(irevision1 0xb2ee)
+set(robot_id $(RESULT))
 
 set(CRAZYFLIE_DRIVER_DIR "${CMAKE_SOURCE_DIR}/crazyflie/drivers")
 set(CRAZYFLIE_LIB_DIR "${CMAKE_SOURCE_DIR}/crazyflie/lib")
-
-#set(BSP_DIR "${CRAZYFLIE_DRIVER_DIR}/BSP/STM32091C_EVAL/")
-#set(HAL_DIR "${CRAZYFLIE_DRIVER_DIR}/STM32F0xx_HAL_Driver")
 
 set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CRAZYFLIE_LIB_DIR}/inc \
@@ -68,23 +69,25 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CMAKE_BINARY_DIR}/crazyflie/lib/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/qfplib")
 
-set(CF_STDPERI_SOURCES stm32f4xx_gpio.c stm32f4xx_tim.c stm32f4xx_syscfg.c stm32f4xx_rcc.c stm32f4xx_adc.c stm32f4xx_can.c stm32f4xx_crc.c stm32f4xx_cryp.c stm32f4xx_cryp_aes.c stm32f4xx_cryp_des.c stm32f4xx_cryp_tdes.c stm32f4xx_dac.c stm32f4xx_dbgmcu.c stm32f4xx_dcmi.c stm32f4xx_dma.c stm32f4xx_dma2d.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_fsmc.c stm32f4xx_hash.c stm32f4xx_hash_md5.c stm32f4xx_hash_sha1.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_ltdc.c stm32f4xx_misc.c stm32f4xx_pwr.c stm32f4xx_rng.c stm32f4xx_rtc.c stm32f4xx_sai.c stm32f4xx_sdio.c stm32f4xx_spi.c stm32f4xx_usart.c stm32f4xx_wwdg.c)
+set(CF_STDPERI_SOURCES stm32f4xx_gpio.c stm32f4xx_tim.c stm32f4xx_syscfg.c stm32f4xx_rcc.c stm32f4xx_adc.c stm32f4xx_dbgmcu.c stm32f4xx_dma.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_misc.c stm32f4xx_spi.c stm32f4xx_usart.c stm32f4xx_cryp.c stm32f4xx_hash.c stm32f4xx_rng.c stm32f4xx_can.c stm32f4xx_dac.c stm32f4xx_dcmi.c stm32f4xx_fsmc.c stm32f4xx_wwdg.c stm32f4xx_sdio.c stm32f4xx_rtc.c stm32f4xx_pwr.c stm32f4xx_crc.c stm32f4xx_sai.c)
+#Removed after usart: stm32f4xx_can.c stm32f4xx_crc.c stm32f4xx_dac.c stm32f4xx_fsmc.c stm32f4xx_hash.c stm32f4xx_dma2d.c stm32f4xx_hash_md5.c stm32f4xx_hash_sha1.c stm32f4xx_ltdc.c stm32f4xx_pwr.c stm32f4xx_rtc.c stm32f4xx_sdio.c stm32f4xx_wwdg.c stm32f4xx_sai.c stm32f4xx_rng.c stm32f4xx_dcmi.c stm32f4xx_cryp_tdes.c stm32f4xx_cryp_aes.c stm32f4xx_cryp_des.c stm32f4xx_cryp.c
 
-set(CFPLATFORM_SOURCES platform_cf2.c platform.c platform_stm32f4.c)
+set(CFPLATFORM_SOURCES platform_cf2.c platform.c platform_stm32f4.c platform_utils.c)
 
 set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem_cf2.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sitaw.c sound_cf2.c stabilizer.c sysload.c system.c trigger.c worker.c)
 
-set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c lpsTwrTag.c lpsTdoa2Tag.c lpsTdoa3Tag.c zranger.c zranger2.c)
+set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c lpsTwrTag.c lpsTdoa2Tag.c lpsTdoa3Tag.c zranger.c zranger2.c bigquad.c buzzdeck.c cppmdeck.c gtgps.c lighthouse.c multiranger.c oa.c rzr.c usddeck.c exptest.c exptestRR.c)
 
-set(CFDRIVER_SOURCES exti.c nvic.c motors.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c platform_info_stm32.c)
+set(CFDRIVER_SOURCES exti.c nvic.c motors.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c)
 
 set(CFBOSCH_SOURCES bmi055_accel.c bmi055_gyro.c bmi160.c bmp280.c bstdr_comm_support.c bmm150.c bmi088_accel.c bmi088_gyro.c bmi088_fifo.c bmp3.c)
 
-Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c)
+Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c lighthouse_geometry.c pulse_processor.c)
 
 set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
 
 set(CFHAL_SOURCES sensors.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_stm32f4.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c)
+#sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c startup_stm32f40xx.s)
 
@@ -110,41 +113,83 @@ set(DSP_CONTROLLERFUNCTIONS_SOURCES arm_pid_init_f32.c arm_pid_reset_f32.c arm_s
 
 set(DSP_COMMONTABLES_SOURCES arm_common_tables.c arm_const_structs.c)
 
+set(DSP_TRANSFORMFUNCTIONS_SOURCES arm_bitreversal2.S arm_cfft_f32.c arm_cfft_radix2_f32.c arm_cfft_radix2_init_f32.c arm_cfft_radix4_f32.c arm_cfft_radix4_init_f32.c arm_cfft_radix8_f32.c arm_dct4_f32.c arm_dct4_init_f32.c arm_rfft_f32.c arm_rfft_fast_f32.c arm_rfft_fast_init_f32.c arm_rfft_init_f32.c)
+
+set(DSP_COMPLEXMATHFUNCTIONS_SOURCES arm_cmplx_conj_f32.c arm_cmplx_dot_prod_f32.c arm_cmplx_mag_f32.c arm_cmplx_mag_squared_f32.c arm_cmplx_mult_cmplx_f32.c arm_cmplx_mult_real_f32.c)
+
+set(DSP_BASICMATHFUNCTIONS_SOURCES arm_abs_f32.c arm_add_f32.c arm_dot_prod_f32.c arm_mult_f32.c arm_negate_f32.c arm_offset_f32.c arm_scale_f32.c arm_sub_f32.c)
+
+set(DSP_SUPPORTFUNCTIONS_SOURCES arm_copy_f32.c arm_fill_f32.c)
+
 set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/FLASH_CLOAD.ld")
 #set(LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/crazyflie/lib/linker/stm32f4cf.ld")
-set(LIBS "-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib")
+set(LIBS "-L${CRAZYFLIE_LIB_DIR}/linker")
+#-L${CRAZYFLIE_DRIVER_DIR}/CMSIS/Lib
 set(REV "D")
 set(ESTIMATOR "any")
 set(CONTROLLER "Any") # one of Any, PID, Mellinger
 set(POWER_DISTRIBUTION "stock")
 set(CLOAD_SCRIPT "python3 -m cfloader")
+set(LPS_TDOA_ENABLE 0)
+set(LPS_TDOA3_ENABLE 0)
+set(LPS_TDMA_ENABLE 0)
+set(LOCODECK_USE_ALT_PINS 0)
 
-#set(DEFS "-DUSE_HAL_DRIVER -DSTM32F051x8 -DSTARTUP_FROM_RESET -DUSE_SPI_CRC=0")
+if(LPS_TDOA_ENABLE)
+  set(LPS_DEF "-DLPS_TDOA_ENABLE=1")
+else(LPS_TDOA_ENABLE) 
+  set(LPS_DEF "${LPS_DEF} -DLPS_TDOA_ENABLE=0")
+endif(LPS_TDOA_ENABLE)
 
-set(PROCESSOR "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16")
+if(LPS_TDOA3_ENABLE)
+  set(LPS_DEF "${LPS_DEF} -DLPS_TDOA3_ENABLE=1")
+else(LPS_TDOA3_ENABLE)
+  set(LPS_DEF "${LPS_DEF} -DLPS_TDOA3_ENABLE=0")
+endif(LPS_TDOA3_ENABLE)
+
+if(LPS_TDMA_ENABLE)
+  set(LPS_DEF "${LPS_DEF} -DLPS_TDMA_ENABLE=1")
+else(LPS_TDMA_ENABLE)
+  set(LPS_DEF "${LPS_DEF} -DLPS_TDMA_ENABLE=0")
+endif(LPS_TDMA_ENABLE)
+
+if(LOCODECK_USE_ALT_PINS)
+  set(LPS_DEF "${LPS_DEF} -DLOCODECK_USE_ALT_PINS=1")
+else(LOCODECK_USE_ALT_PINS)
+  set(LPS_DEF "${LPS_DEF} -DLOCODECK_USE_ALT_PINS=0")
+endif(LOCODECK_USE_ALT_PINS)
+
+set(PROCESSOR "-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
 set(DEFS "-DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -DSTM32F4XX -DSTM32F40_41xxx -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DUSE_RADIOLINK_CRTP -DENABLE_UART -DBOARD_REV_${REV} -DESTIMATOR_NAME=${ESTIMATOR}Estimator -DCONTROLLER_NAME=ControllerType${CONTROLLER} -DPOWER_DISTRIBUTION_TYPE_${POWER_DISTRIBUTION}")
 
-set(SENSOR_CONFIG "-DSENSOR_INCLUDED_BMI088_BMP388 -DSENSOR_INCLUDED_MPU9250_LPS25H")
+set(SENSOR_CONFIG "-DSENSORS_IGNORE_BAROMETER_FAIL -DSENSOR_INCLUDED_MPU9250_LPS25H -DSENSORS_FORCE=SensorImplementation_mpu9250_lps25h -DSENSOR_INCLUDED_BMI088_BMP388")
+#-DSENSOR_INCLUDED_BMI088_BMP388 -DSENSOR_INCLUDED_MPU9250_LPS25H
+
+#set(FORCEDEVICE "-DDEVICE_TYPE_STRING_FORCE=CF20 -DDECK_FORCE=bcDWM1000")
 
 set(CFLAGS "-Os -std=gnu11 -g3")
-#originally: uses -std=gnu99
+#originally: uses -std=gnu99 -Os -g3
 #set(CFLAGS "${CFLAGS} -Wextra -Wshadow -Wimplicit-function-declaration")
-#set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes")
-set(CFLAGS "${CFLAGS} -fno-common -ffunction-sections -fdata-sections -fno-math-errno")
-set(CFLAGS "${CFLAGS} -MD -MP -Wmissing-braces -Wall -Wundef -Wno-comment -Wno-unused-variable -Wno-unused-function -Wdouble-promotion")
-set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS} ${PROCESSOR} ${SENSOR_CONFIG}")
-set(CFLAGS "${CFLAGS} -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fno-strict-aliasing -fomit-frame-pointer -ffast-math")
-# set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize")
+#set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wno-comment -Wno-unused-variable -Wno-unused-function")
+set(CFLAGS "${CFLAGS} -ffunction-sections -fdata-sections -fno-math-errno")
+set(CFLAGS "${CFLAGS} -MD -MP -Wmissing-braces -Wall -Wundef -Wdouble-promotion")
+set(CFLAGS "${CFLAGS} ${INCLUDE_DIR} ${DEFS} ${PROCESSOR} ${SENSOR_CONFIG} ${LPS_DEF} ${FORCEDEVICE}")
+set(CFLAGS "${CFLAGS} -fno-strict-aliasing -fshort-wchar")
+# set(CFLAGS "${CFLAGS} -fno-builtin -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize -fno-common -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -fomit-frame-pointer -ffast-math")
 
-set(LDFLAGS "--static -nostartfiles -g3 ${PROCESSOR} ${LIBS} -T${LINKER_SCRIPT}")
+set(LDFLAGS "--static ${PROCESSOR} ${LIBS} -T${LINKER_SCRIPT}")
 set(LDSCRIPT "")
 #set(LDFLAGS "${LDFLAGS} -Wl,--gc-sections ${LIBS} ${CRAZYFLIE_LIB_DIR}/linker/startup_stm32f0xx.S ${CRAZYFLIE_DRIVER_DIR}/qfplib/qfplib.s")
-set(LDFLAGS "--specs=rdimon.specs --specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections,--cref,--undefined=uxTopUsedPriority")
-#set(LDFLAGS "${LDFLAGS}, --cref, --undefined=uxTopUsedPriority")
+set(LDFLAGS "--specs=nosys.specs --specs=nano.specs ${LDFLAGS} -Wl,--gc-sections,--cref,--undefined=uxTopUsedPriority,--no-wchar-size-warning,-u,__errno")
+#-Wl,-u,__errno,--cref,--gc-sections,--undefined=uxTopUsedPriority ${LIBS} ${CRAZYFLIE_DRIVER_DIR}/CMSIS/Device/ST/STM32F4xx/Source/startup_stm32f40xx.s")
+#set(LDFLAGS "${LDFLAGS},--specs=rdimon.specs --cref, --undefined=uxTopUsedPriority")
+#--static -nostartfiles -g3 in LDFLAGS
 
 # LDLIBS
+#set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
 set(LDLIBS "-Wl,--start-group -lm -Wl,--end-group")
+#-u,__errno,
 
 set(VPATH "${CRAZYFLIE_LIB_DIR}/src")
 set(VPATH "${VPATH} ${CRAZYFLIE_LIB_DIR}/srcL")
@@ -183,7 +228,7 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 #
 set(BBZ_ROBOT crazyflie)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
-option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" ON)
+option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" ON) #Turned ON for Cortex-M0. CF uses Cortex-M4
 set(BBZHEAP_SIZE 2048)
 set(BBZSTACK_SIZE 128)
 # message("BBZHEAP_SIZE := ${BBZHEAP_SIZE}")
@@ -191,8 +236,9 @@ set(BBZHEAP_GCMARK_DEPTH 16)
 set(BBZNEIGHBORS_CAP 10)
 set(BBZMSG_IN_PROC_MAX 10)
 
-# set(BBZ_DISABLE_NEIGHBORS ON)
-# set(BBZ_DISABLE_VSTIGS ON)
+#originally: all commented out
+#set(BBZ_DISABLE_NEIGHBORS ON)
+#set(BBZ_DISABLE_VSTIGS ON)
 # set(BBZ_DISABLE_SWARMS ON)
 
 configure_file(${CRAZYFLIE_LIB_DIR}/src/cfutils/version.vtpl ${CRAZYFLIE_LIB_DIR}/src/cfutils/version.c @ONLY)
@@ -238,7 +284,7 @@ function(crazyflie_add_executable _TARGET)
     add_custom_target(upload_${_TARGET}
         LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} erase && LD_LIBRARY_PATH=/usr/local/lib/ ${UPLOADER} --reset --format ihex write ${_HEX_TARGET}
         DEPENDS ${_HEX_TARGET}
-        COMMENT "Uploading ${_HEX_TARGET} to crazyflie")
+        COMMENT "Uploading ${_HEX_TARGET} to Crazyflie ${robot_id}")
 
     # Extra files to clean
     get_directory_property(_CLEAN_FILES ADDITIONAL_MAKE_CLEAN_FILES)

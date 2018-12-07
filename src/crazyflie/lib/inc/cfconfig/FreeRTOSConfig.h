@@ -69,14 +69,6 @@
  *
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
-
- // #define CONFIG_BLOCK_ADDRESS    (2048 * (64-1))
- // #define MCU_ID_ADDRESS          0x1FFF7A10
- // #define MCU_FLASH_SIZE_ADDRESS  0x1FFF7A22
- // #define FREERTOS_HEAP_SIZE      40000
- // #define FREERTOS_MIN_STACK_SIZE 150       // M4-FPU register setup is bigger so stack needs to be bigger
- // #define FREERTOS_MCU_CLOCK_HZ   168000000
-
 #define configUSE_PREEMPTION		1
 #define configUSE_IDLE_HOOK			1
 #define configUSE_TICK_HOOK			0
@@ -100,7 +92,7 @@
 #define configUSE_MALLOC_FAILED_HOOK 1
 #define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE * 4)
 
-#define configMAX_PRIORITIES		( 6 )
+#define configMAX_PRIORITIES		( 6 ) //Original:6
 #define configMAX_CO_ROUTINE_PRIORITIES ( 2 )
 
 /* Set the following definitions to 1 to include the API function, or zero
@@ -146,6 +138,7 @@ to exclude the API function. */
 #define TASK_ADC_ID_NBR         4
 #define TASK_PM_ID_NBR          5
 #define TASK_PROXIMITY_ID_NBR   6
+#define TASK_BBZ_ID_NBR         7
 
 #define configASSERT( x )  if( ( x ) == 0 ) assertFail(#x, __FILE__, __LINE__ )
 

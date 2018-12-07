@@ -98,7 +98,7 @@
   */
 
 #if !defined (STM32F40_41xxx) && !defined (STM32F427_437xx) && !defined (STM32F429_439xx) && !defined (STM32F401xx)
- //BY WJ: #error "Please select first the target STM32F4xx device used in your application (in stm32f4xx.h file)"
+ #error "Please select first the target STM32F4xx device used in your application (in stm32f4xx.h file)"
 #endif
 
 #if !defined  (USE_STDPERIPH_DRIVER)

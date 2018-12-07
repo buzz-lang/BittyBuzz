@@ -36,8 +36,6 @@
 /* Internal format of the config block */
 #define MAGIC 0x43427830
 #define VERSION 0
-
-#define CONFIG_BLOCK_ADDRESS    (2048 * (64-1))
 struct configblock_s {
   /* header */
   uint32_t magic;

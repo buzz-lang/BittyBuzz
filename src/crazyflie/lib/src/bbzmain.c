@@ -36,9 +36,28 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include "bbzcrazyflie.h"
+#include "bittybuzz/bbzvm.h"
+#include "system.h"
+#include "platform.h"
 #include "config.h"
-#include "utilities.h"
-#include "functions.h"
+
+/* Personal configs */
+#include "FreeRTOSConfig.h"
+
+/* FreeRtos includes */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "usec_time.h"
+#include "debug.h"
+
+/* ST includes */
+#include "stm32fxxx.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <stdbool.h>
 
 /** @addtogroup STM32F0xx_HAL_Examples
   * @{
@@ -64,14 +83,34 @@
 
 int main(void)
 {
-    initRobot();
+//     initRobot();
     //setGreenLed(5);
     //setMotor1(30);
     //setMotor2(30);
+    
+  //Initialize the platform.
+  int err = platformInit();
+  if (err != 0) {
+    // The firmware is running on the wrong hardware. Halt
+    while(1);
+  }
+    
+    // Initializes the system onboard CF
+    systemLaunch();
+    
+    //Start the FreeRTOS scheduler
+    vTaskStartScheduler();
+    
+  //TODO: Move to platform launch failed
+  ledInit();
+  ledSet(0, 1);
+  ledSet(1, 1);
+    
     while (1)
     {
-        checkRadio();
+//         checkRadio();
         //checkTouch();
-        updateRobot();
+//         updateRobot();
     }
+    return 0;
 }

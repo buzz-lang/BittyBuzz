@@ -88,7 +88,7 @@ void uart1Init(const uint32_t baudrate)
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
-  uart1queue = xQueueCreate(64, sizeof(uint8_t)); //Original: 64
+  uart1queue = xQueueCreate(64, sizeof(uint8_t));
 
   USART_ITConfig(UART1_TYPE, USART_IT_RXNE, ENABLE);
 

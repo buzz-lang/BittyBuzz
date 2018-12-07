@@ -12,10 +12,10 @@ You can use, copy and distribute this file freely, but without any waranty.*/
 SEARCH_DIR("./src/crazyflie/lib/linker")
 
 /* include the common STMxxx sub-script */
-INCLUDE "/home/mistlab/CFBittyBuzz/src/crazyflie/lib/linker/COMMON.ld"
+INCLUDE "COMMON.ld"
 
 /* include the memory spaces definitions sub-script */
-INCLUDE "/home/mistlab/CFBittyBuzz/src/crazyflie/lib/linker/DEF_CLOAD.ld"
+INCLUDE "DEF_CLOAD.ld"
 
 /* include the sections management sub-script for FLASH mode */
-INCLUDE "/home/mistlab/CFBittyBuzz/src/crazyflie/lib/linker/sections_FLASH.ld"
+INCLUDE "sections_FLASH.ld"
