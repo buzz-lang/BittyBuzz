@@ -83,34 +83,26 @@
 
 int main(void)
 {
-//     initRobot();
-    //setGreenLed(5);
-    //setMotor1(30);
-    //setMotor2(30);
-    
-  //Initialize the platform.
-  int err = platformInit();
-  if (err != 0) {
-    // The firmware is running on the wrong hardware. Halt
-    while(1);
-  }
-    
-    // Initializes the system onboard CF
-    systemLaunch();
-    
-    //Start the FreeRTOS scheduler
-    vTaskStartScheduler();
-    
+  bbz_init(setup);
+//   bbz_start(setup);
+//   int err = platformInit();
+//   if (err != 0) {
+//     // The firmware is running on the wrong hardware. Halt
+//     while(1);
+//   }
+//   // Initializes the system onboard CF
+//   systemLaunch();
+//   
+//   // Start the FreeRTOS scheduler
+//   vTaskStartScheduler();
+//   
   //TODO: Move to platform launch failed
   ledInit();
   ledSet(0, 1);
   ledSet(1, 1);
-    
-    while (1)
-    {
-//         checkRadio();
-        //checkTouch();
-//         updateRobot();
-    }
-    return 0;
+  
+  //Should never reach this point!
+  while(1);
+// 
+  return 0;
 }

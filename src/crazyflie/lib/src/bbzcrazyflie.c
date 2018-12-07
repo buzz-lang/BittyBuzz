@@ -9,6 +9,7 @@
 #include "system.h"
 #include "platform.h"
 #include "config.h"
+#include "motors.h"
 
 /* Personal configs */
 #include "FreeRTOSConfig.h"
@@ -79,6 +80,7 @@ void bbz_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
+//     DEBUG_PRINT("The value of bbztable_get1: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
     if(bbztable_get(vmObj.gsyms, l, &l)) {
         bbzvm_pushnil(); // Push self table
         bbzvm_push(l);
@@ -90,6 +92,7 @@ void bbzcrazyflie_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
+//     DEBUG_PRINT("The value of bbztable_get2: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
     if(bbztable_get(vmObj.gsyms, l, &l)) {
         DEBUG_PRINT("bbztable_get called.\n");
         bbzvm_pushnil(); // Push self table
@@ -165,7 +168,7 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 #endif // !BBZ_DISABLE_MESSAGES
 }
 
-void bbz_init(void (*setup)(void))
+void bbz_init()
 {
   if(isInit)
      return;
@@ -183,19 +186,17 @@ void bbz_init(void (*setup)(void))
   
   // Initializes the system onboard CF
   systemLaunch();
-  setup();
-  DEBUG_PRINT("CF system launched.\n");
   
   xTaskCreate(bbzTask, BBZ_TASK_NAME, 
               BBZ_TASK_STACKSIZE, NULL, BBZ_TASK_PRI, NULL);
   
-  isInit = true;
-  
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();
-  
-//   isInit = true;
+//   setup();
+  DEBUG_PRINT("CF system launched.\n");
+  isInit = true;
 }
+
 
 void bbzTask(void * param)
 {
@@ -238,7 +239,7 @@ void bbzTask(void * param)
             if (vm->state != BBZVM_STATE_ERROR) {
                 bbzvm_process_inmsgs();
                 bbzcrazyflie_func_call(__BBZSTRID_step);
-                DEBUG_PRINT("VM: stepping function called\n");
+                DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_step) called.\n");
                 bbzvm_process_outmsgs();
             }
             // checkRadio();
@@ -269,48 +270,45 @@ void bbz_updatePosObject() {
 
 void bbz_start(void (*setup)(void))
 {
-    uint8_t has_setup = 0, init_done = 0;
-    systemWaitStart();
-//     
-//     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
-//     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
-    
-    while (1)
-    {
-//      vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
-        if (!init_done) {
-            if (!has_setup) {
-                bbzvm_construct(getRobotId());
-                bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
-                bbzvm_set_error_receiver(bbz_err_receiver);
-                bbz_createPosObject();
-                setup();
-                has_setup = 1;
-            }
-            if (vm->state == BBZVM_STATE_READY) {
-                bbzvm_step();
-            }
-            else {
-                init_done = 1;
-                vm->state = BBZVM_STATE_READY;
-                bbz_func_call(__BBZSTRID_init);
-#ifndef BBZ_DISABLE_MESSAGES
-                message_tx = bbzwhich_msg_tx;
-                message_tx_success = bbzoutmsg_queue_next;
-                message_rx = bbzprocess_msg_rx;
-#endif
-            }
-        }
-        else {
-            if (vm->state != BBZVM_STATE_ERROR) {
-                bbzvm_process_inmsgs();
-                bbzcrazyflie_func_call(__BBZSTRID_step);
-                bbzvm_process_outmsgs();
-            }
-            // checkRadio();
-            // checkTouch();
-        }
-    }
+//     uint8_t has_setup = 0, init_done = 0;
+       setup();
+       DEBUG_PRINT("bbz_start called.\n");
+//     while (1)
+//     {
+// //      vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
+//         if (!init_done) {
+//             if (!has_setup) {
+//                 bbzvm_construct(getRobotId());
+//                 bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
+//                 bbzvm_set_error_receiver(bbz_err_receiver);
+//                 bbz_createPosObject();
+//                 setup();
+//                 has_setup = 1;
+//             }
+//             if (vm->state == BBZVM_STATE_READY) {
+//                 bbzvm_step();
+//             }
+//             else {
+//                 init_done = 1;
+//                 vm->state = BBZVM_STATE_READY;
+//                 bbz_func_call(__BBZSTRID_init);
+// #ifndef BBZ_DISABLE_MESSAGES
+//                 message_tx = bbzwhich_msg_tx;
+//                 message_tx_success = bbzoutmsg_queue_next;
+//                 message_rx = bbzprocess_msg_rx;
+// #endif
+//             }
+//         }
+//         else {
+//             if (vm->state != BBZVM_STATE_ERROR) {
+//                 bbzvm_process_inmsgs();
+//                 bbzcrazyflie_func_call(__BBZSTRID_step);
+//                 bbzvm_process_outmsgs();
+//             }
+//             // checkRadio();
+//             // checkTouch();
+//         }
+//     }
 }
 
 // void set_color(uint8_t rgb) {
@@ -432,19 +430,10 @@ void rand_seed(uint8_t s)
 {
     seed = s;
 }
-
-// void set_motors(int8_t m1, int8_t m2)
-// {
-// #ifndef DEBUG
-//     setMotor1(m1);
-//     setMotor2(m2);
-// #endif
-// }
-// 
-// void spinup_motors()
-// {
-// #ifndef DEBUG
-//     set_motors(MAX_SPEED, MAX_SPEED);
-//     delay(15);
-// #endif
-// }
+/*
+void takeoff() {
+        motorsSetRatio(MOTOR_M1, 10000);
+        motorsSetRatio(MOTOR_M2, 10000);
+        motorsSetRatio(MOTOR_M3, 10000);
+        motorsSetRatio(MOTOR_M4, 10000);   
+}*/

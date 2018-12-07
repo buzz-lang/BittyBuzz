@@ -1,24 +1,12 @@
-/* Personal configs */
-#include "FreeRTOSConfig.h"
-
-/* FreeRtos includes */
-#include "FreeRTOS.h"
-#include "task.h"
-
-/* Project includes */
-#include "config.h"
-#include "platform.h"
-#include "system.h"
-#include "usec_time.h"
-
 #include "led.h"
 
-/* ST includes */
-#include "stm32fxxx.h"
+// /* ST includes */
+// #include "stm32fxxx.h"
 
 #include <bbzsymbols.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
+#include <bittybuzz/bbzvm.h>
 #include <bbzcrazyflie.h>
 
 #define TBL_SZ 79
@@ -55,8 +43,7 @@ void setup() {
 }
 
 int main() {
-    bbz_init();
-    bbz_start(setup);
+bbz_init(setup);
 /*
       int err = platformInit();
   if (err != 0) {
@@ -70,13 +57,13 @@ int main() {
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();*/
   
-    //TODO: Move to platform launch failed
+  //TODO: Move to platform launch failed
   ledInit();
   ledSet(0, 1);
   ledSet(1, 1);
   
-//   //Should never reach this point!
-//   while(1);
-    
-    return 0;
+  //Should never reach this point!
+  while(1);
+// 
+  return 0;
 }

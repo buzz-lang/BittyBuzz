@@ -10,7 +10,6 @@
 // #include "platform.h"
 // #include "system.h"
 // #include "usec_time.h"
-
 #include "led.h"
 #include "motors.h"
 
@@ -20,33 +19,31 @@
 #include <bbzsymbols.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
+#include <bittybuzz/bbzvm.h>
 #include <bbzcrazyflie.h>
 
-// void bbz_takeoff() {
-//     bbzvm_assert_lnum(1);
-//     motorsPlayTone(G6, 1000);
-//     bbzvm_ret0();
-// }
+bool motorsEnable = false;
+
+void bbz_takeoff() {
+    bbzvm_assert_lnum(1);
+    if (motorsEnable) {
+        motorsSetRatio(MOTOR_M1, 10000);
+        motorsSetRatio(MOTOR_M2, 10000);
+        motorsSetRatio(MOTOR_M3, 10000);
+        motorsSetRatio(MOTOR_M4, 10000);   
+    }
+    bbzvm_ret0();
+}
 
 void setup() {
-//     bbzvm_function_register(BBZSTRING_ID(takeoff), bbz_takeoff);
+    bbzvm_function_register(BBZSTRING_ID(takeoff), bbz_takeoff);
 }
 
 int main() 
 {
-  bbz_init(setup);
-//   bbz_start(setup);
-//   int err = platformInit();
-//   if (err != 0) {
-//     // The firmware is running on the wrong hardware. Halt
-//     while(1);
-//   }
-//   // Initializes the system onboard CF
-//   systemLaunch();
-//   
-//   // Start the FreeRTOS scheduler
-//   vTaskStartScheduler();
-//   
+  bbz_init();
+  bbz_start(setup);
+  
   //TODO: Move to platform launch failed
   ledInit();
   ledSet(0, 1);

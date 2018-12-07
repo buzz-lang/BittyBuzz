@@ -99,7 +99,7 @@
 #define USDWRITE_TASK_PRI       0
 #define PCA9685_TASK_PRI        3
 #define CMD_HIGH_LEVEL_TASK_PRI 2
-#define BBZ_TASK_PRI            1
+#define BBZ_TASK_PRI            4
 
 #define SYSLINK_TASK_PRI        3
 #define USBLINK_TASK_PRI        3

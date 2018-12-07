@@ -42,7 +42,7 @@ PREPEND(DSP_SUPPORTFUNCTIONS_SOURCES "${CRAZYFLIE_DRIVER_DIR}/CMSIS/DSP_Lib/Sour
 
 enable_language(ASM)
 crazyflie_add_library(bbzcrazyflie
-        #inc/bbzmain.h
+        inc/bbzmain.h
         src/bbzcrazyflie.c
         inc/bbzcrazyflie.h
         #linker/startup_stm32f40xx.s

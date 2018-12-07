@@ -1,20 +1,14 @@
-// #include <functions.h>
+#include "led.h"
+#include "motors.h"
+
+// /* ST includes */
+// #include "stm32fxxx.h"
+
 #include <bbzsymbols.h>
 #include <bittybuzz/bbzutil.h>
 #include <bittybuzz/util/bbzstring.h>
+#include <bittybuzz/bbzvm.h>
 #include <bbzcrazyflie.h>
-#include "debug.h"
-#include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "platform.h"
-#include "system.h"
-#include "usec_time.h"
-
-#include "led.h"
-
-/* ST includes */
-#include "stm32fxxx.h"
 
 void bbz_led() {
     bbzvm_assert_lnum(1);
@@ -33,14 +27,14 @@ void bbz_delay() {
 // #endif
     bbzvm_ret0();
 }
-// 
-// 
+
 void setup() {
     bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
 }
 
-int main() {
+int main() 
+{
   bbz_init(setup);
 //   bbz_start(setup);
 //   int err = platformInit();
@@ -48,20 +42,19 @@ int main() {
 //     // The firmware is running on the wrong hardware. Halt
 //     while(1);
 //   }
-//     
 //   // Initializes the system onboard CF
 //   systemLaunch();
-//     
+//   
 //   // Start the FreeRTOS scheduler
 //   vTaskStartScheduler();
-  
-    //TODO: Move to platform launch failed
+//   
+  //TODO: Move to platform launch failed
   ledInit();
   ledSet(0, 1);
   ledSet(1, 1);
   
   //Should never reach this point!
   while(1);
-
+// 
   return 0;
 }
