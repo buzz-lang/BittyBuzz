@@ -49,11 +49,12 @@ volatile message_tx_success_t message_tx_success;
 volatile message_rx_t         message_rx;
 
 static void bbzTask(void * prm);
-static bool isInit = false;
 
 // extern Motor motorValues;
 // extern Target currentGoal;
 // uint8_t currentGoal_reached = true;
+
+static uint8_t has_setup = 0;
 
 
 uint8_t buf[4];
@@ -92,7 +93,7 @@ void bbzcrazyflie_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
-//     DEBUG_PRINT("The value of bbztable_get2: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
+    DEBUG_PRINT("The value of bbztable_get2: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
     if(bbztable_get(vmObj.gsyms, l, &l)) {
         DEBUG_PRINT("bbztable_get called.\n");
         bbzvm_pushnil(); // Push self table
@@ -168,14 +169,21 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 #endif // !BBZ_DISABLE_MESSAGES
 }
 
-void bbz_init()
+void bbz_init(void (*setup)(void))
 {
-  if(isInit)
-     return;
-  
   setRobotId(ROBOT_ID);
   vm = &vmObj;
   bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
+  
+  if (!has_setup) {
+    bbzvm_construct(getRobotId());
+    bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
+    bbzvm_set_error_receiver(bbz_err_receiver);
+    bbz_createPosObject();
+    setup();
+    DEBUG_PRINT("VM: Setting up VM now.\n");
+    has_setup = 1;
+  }
     
 //     initRobot();  
   int err = platformInit();
@@ -192,9 +200,7 @@ void bbz_init()
   
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();
-//   setup();
   DEBUG_PRINT("CF system launched.\n");
-  isInit = true;
 }
 
 
@@ -203,22 +209,15 @@ void bbzTask(void * param)
     systemWaitStart();
     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
+    DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());
+    DEBUG_PRINT("Value of has_setup: %d.\n", has_setup);
     
-    uint8_t has_setup = 0, init_done = 0;
+    uint8_t init_done = 0;
     while (1)
     {
      vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
      
         if (!init_done) {
-            if (!has_setup) {
-                bbzvm_construct(getRobotId());
-                bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
-                bbzvm_set_error_receiver(bbz_err_receiver);
-                bbz_createPosObject();
-//                 setup();
-                DEBUG_PRINT("VM: Setting up VM now.\n");
-                has_setup = 1;
-            }
             if (vm->state == BBZVM_STATE_READY) {
                 DEBUG_PRINT("VM: stepping now.\n");
                 bbzvm_step();
@@ -239,7 +238,7 @@ void bbzTask(void * param)
             if (vm->state != BBZVM_STATE_ERROR) {
                 bbzvm_process_inmsgs();
                 bbzcrazyflie_func_call(__BBZSTRID_step);
-                DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_step) called.\n");
+                DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_ step) called.\n");
                 bbzvm_process_outmsgs();
             }
             // checkRadio();
