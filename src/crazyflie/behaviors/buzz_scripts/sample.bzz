@@ -8,8 +8,8 @@ function init() {
 }
 
 function step() {
-	#s.exec(takeoff)
-	takeoff()
+	s.exec(takeoff)
+	#takeoff()
 }
 
 function destroy() {
@@ -21,5 +21,5 @@ function destroy() {
 # ========================================
 
 function takeoff() {
-	motorsEnable = True
+	motorsEnable = 1
 }

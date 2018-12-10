@@ -14,7 +14,7 @@
 
 void bbz_takeoff() {
     bbzvm_assert_lnum(1);
-    uint16_t motorsEnable = (uint16_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
+    uint8_t motorsEnable = (uint8_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
     if (motorsEnable) {
         motorsSetRatio(MOTOR_M1, 10000);
         motorsSetRatio(MOTOR_M2, 10000);
