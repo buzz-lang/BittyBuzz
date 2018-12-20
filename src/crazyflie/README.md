@@ -58,6 +58,9 @@ python3 -m cfloader flash build_crazyflie/crazyflie/behaviors/<behavior>-crazyfl
 `
 where `<behavior>` is the name of your behavior script. 
 
+**Note:**
+Using cfloader script to flash your Crazyflie wirelessly only works for .bin files.
+
 Debugging
 =========
 
