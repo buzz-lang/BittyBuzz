@@ -223,7 +223,7 @@ int8_t bbzvm_register_functions() {
 #define FILE_TEST1 "resources/1_InstrTest.bbo"
 #define FILE_TEST2 "resources/2_IfTest.bbo"
 #define FILE_TEST3 "resources/3_test1.bbo"
-#define FILE_TEST4 "resources/4_AllFeaturesTest.bbo"
+#define FILE_TEST4 "resources/sample.bbo"
 
 TEST(vm_construct) {
     vm = &vmObj;
@@ -249,7 +249,7 @@ TEST(vm_set_bytecode) {
     bbzvm_set_error_receiver(&set_last_error);
 
     // 1) Open bytecode file.
-    fbcode = fopen(FILE_TEST2, "rb");
+    fbcode = fopen(FILE_TEST4, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);

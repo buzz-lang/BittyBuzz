@@ -1,4 +1,5 @@
 #include "led.h"
+#include "motors.h"
 
 // /* ST includes */
 // #include "stm32fxxx.h"
@@ -17,45 +18,37 @@ const uint16_t bcode_size = sizeof(bcode);
 
 void loop() {
     bbzvm_gc();
-//     setColor(red);
-//     delay(75);
-//     setColor(pink);
-//     delay(75);
-//     setColor(purple);
-//     delay(75);
-//     setColor(blue);
-//     delay(75);
-//     setColor(cyan);
-//     delay(75);
-//     setColor(light_blue);
-//     delay(75);
-//     setColor(green);
-//     delay(75);
-//     setColor(yellow);
-//     delay(75);
-//     setColor(orange);
-//     delay(75);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
     bbzvm_ret0();
 }
 
 void setup() {
+    ledInit();
     bbzvm_function_register(__BBZSTRID_step, loop);
 }
 
 int main() {
-bbz_init(setup);
-/*
-      int err = platformInit();
-  if (err != 0) {
-    // The firmware is running on the wrong hardware. Halt
-    while(1);
-  }
-    
-  // Initializes the system onboard CF
-  systemLaunch();
-    
-  // Start the FreeRTOS scheduler
-  vTaskStartScheduler();*/
+  bbz_init(setup);
+//   bbz_start(setup);
   
   //TODO: Move to platform launch failed
   ledInit();

@@ -47,13 +47,16 @@ For example, you can run `make behaviors RESULT=0` to build all the Buzz scripts
 You have to specify the ID of the robot to which you wish to upload the program in
 the `RESULT` variable.
 
-Program the Zooids
+Uploading behavior script to Crazyflie
 ==================
 
-You can send any of the Buzz scripts to a Zooids by simply running the command
-`make upload_<script_name> RESULT=<robot_id>` . Replace `<script_name>` by the name
-of the Buzz script you want to upload and `<robot_id>` by the ID of the robot you
-want to upload the script to.
+You can upload the script wirelessly to the Crazyflie using Crazyradio PA dongle. To do so, follow instructions in [Crazyflie-lib-python](https://github.com/bitcraze/crazyflie-lib-python) to set up your dongle. At Crazyflie-lib-python root directory, you can setup cflib system-wide by running `python3 setup.py install`.
+
+Once done, you can flash your Crazyflie by running:
+`
+python3 -m cfloader flash build_crazyflie/crazyflie/behaviors/<behavior>-crazyflie.bin stm32-fw
+`
+where `<behavior>` is the name of your behavior script. 
 
 Debugging
 =========

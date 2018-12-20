@@ -1,25 +1,8 @@
-function init_swarm() {
-	s = swarm.create(1)
-	s.join()
-}
-
-function init() {
-	init_swarm()
-}
-
 function step() {
-	s.exec(takeoff)
-	#takeoff()
+	takeoff(1)
 }
 
 function destroy() {
 
 }
 
-# ========================================
-# =         CLOSURE DEFINITIONS          =
-# ========================================
-
-function takeoff() {
-	motorsEnable = 1
-}

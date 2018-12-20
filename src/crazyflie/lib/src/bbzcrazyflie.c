@@ -50,10 +50,6 @@ volatile message_rx_t         message_rx;
 
 static void bbzTask(void * prm);
 
-// extern Motor motorValues;
-// extern Target currentGoal;
-// uint8_t currentGoal_reached = true;
-
 static uint8_t has_setup = 0;
 
 
@@ -107,24 +103,6 @@ void bbzcrazyflie_func_call(uint16_t strid) {
             if(vm->state != BBZVM_STATE_READY) return;
             bbzvm_step();
             DEBUG_PRINT("VM: Stepping\n");
-
-//             if (updateRobotPosition()) {
-//                 bbz_updatePosObject();
-//                 if (!currentGoal_reached) {
-//                     positionControl(currentGoal.x, currentGoal.y, currentGoal.angle, &motorValues, &currentGoal_reached, true, currentGoal.finalGoal, currentGoal.ignoreOrientation);
-//                     minimumc(&(motorValues.motor1), motorValues.minVelocity);
-//                     minimumc(&(motorValues.motor2), motorValues.minVelocity);
-//                     maximumc(&(motorValues.motor1), motorValues.preferredVelocity);
-//                     maximumc(&(motorValues.motor2), motorValues.preferredVelocity);
-//                     setMotor1(motorValues.motor1);
-//                     setMotor2(qfp_float2int(qfp_fmul(qfp_int2float(motorValues.motor2), motorValues.motorGain)));
-//                 }
-//             }
-//             if (currentGoal_reached) {
-//                 setMotor1(0);
-//                 setMotor2(0);
-//             }
-//             handleOutgoingRadioMessage();
         }
     }
 }
@@ -171,20 +149,6 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 
 void bbz_init(void (*setup)(void))
 {
-  setRobotId(ROBOT_ID);
-  vm = &vmObj;
-  bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
-  
-  if (!has_setup) {
-    bbzvm_construct(getRobotId());
-    bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
-    bbzvm_set_error_receiver(bbz_err_receiver);
-    bbz_createPosObject();
-    setup();
-    DEBUG_PRINT("VM: Setting up VM now.\n");
-    has_setup = 1;
-  }
-    
 //     initRobot();  
   int err = platformInit();
   if (err != 0) {
@@ -194,6 +158,20 @@ void bbz_init(void (*setup)(void))
   
   // Initializes the system onboard CF
   systemLaunch();
+  
+    vm = &vmObj;
+  bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
+  
+  if (!has_setup) {
+    setRobotId(ROBOT_ID);
+    bbzvm_construct(getRobotId());
+    bbzvm_set_bcode(bbzcrazyflie_bcodeFetcher, bcode_size);
+    bbzvm_set_error_receiver(bbz_err_receiver);
+//     bbz_createPosObject();
+    setup();
+    DEBUG_PRINT("VM: Setting up VM now.\n");
+    has_setup = 1;
+  }
   
   xTaskCreate(bbzTask, BBZ_TASK_NAME, 
               BBZ_TASK_STACKSIZE, NULL, BBZ_TASK_PRI, NULL);
@@ -211,6 +189,7 @@ void bbzTask(void * param)
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());
     DEBUG_PRINT("Value of has_setup: %d.\n", has_setup);
+    DEBUG_PRINT("Value of bbzvm_construct: %s.\n", (bbzvm_construct(getRobotId()))?"Success":"Fail");
     
     uint8_t init_done = 0;
     while (1)

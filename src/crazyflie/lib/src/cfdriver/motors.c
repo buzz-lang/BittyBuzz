@@ -188,7 +188,7 @@ bool motorsTest(void)
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
       motorsBeep(MOTORS[i], false, 0, 0);
       vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-#elif defined ACTIVATE_WJ_SOUND
+#elif defined ACTIVATE_STARTUP_SOUND2
       motorsBeep(MOTORS[i], true, testsoundWJ[i], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 20);
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
       motorsBeep(MOTORS[i], false, 0, 0);

@@ -404,7 +404,7 @@ void bbzneighbors_reduce() {
  * @param[in] pos The position in the ringbuffer of the element to bring to
  * the beginning.
  */
-static void bringToTop(bbzringbuf_t *rb, uint8_t pos) {
+__attribute__((unused)) static void bringToTop(bbzringbuf_t *rb, uint8_t pos) {
     while (pos > 0) {
         bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos - 1)),
                            bbzringbuf_at(rb, (uint8_t) (pos)),
@@ -420,7 +420,7 @@ static void bringToTop(bbzringbuf_t *rb, uint8_t pos) {
  * @param[in] pos The position in the ringbuffer of the element to bring to
  * the end.
  */
-static void bringToBottom(bbzringbuf_t *rb, uint8_t pos) {
+__attribute__((unused)) static void bringToBottom(bbzringbuf_t *rb, uint8_t pos) {
     int16_t size = bbzringbuf_size(rb);
     while (pos < size-1) {
         bbzutil_swapArrays(bbzringbuf_at(rb, (uint8_t) (pos)), bbzringbuf_at

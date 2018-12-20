@@ -43,5 +43,5 @@ function swarm_behavior() {
     else {
         led(2) # GREEN
     }
-     delay(200)
+    delay(200)
 }

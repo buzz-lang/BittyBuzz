@@ -207,11 +207,11 @@
 /**
  * \def ACTIVATE_STARTUP_SOUND
  * Playes a startup melody using the motors and PWM modulation
- * ACTIVATE_WJ_SOUND for fun. Choose either 1.
+ * ACTIVATE_STARTUP_SOUND2 for fun. Choose either 1.
  */
 
 // #define ACTIVATE_STARTUP_SOUND
-#define ACTIVATE_WJ_SOUND
+#define ACTIVATE_STARTUP_SOUND2
 
 // Define to force initialization of expansion board drivers. For test-rig and programming.
 //#define FORCE_EXP_DETECT

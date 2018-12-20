@@ -64,7 +64,7 @@ function(generate_hex c_source bzz_source)
         COMMAND ${SIZE} ${HEX_FILE}
         COMMENT "Caclulating HEX file size:"
         DEPENDS ${ELF_TARGET})
-    # .elf -> .bin (Generate a .bin file by WJ) 
+    # .elf -> .bin (Generate a .bin file so that we can use cfloader to upload wirelessly to CF) 
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         BYPRODUCTS ${BIN_FILE}
         COMMAND ${OBJCOPY} -Obinary ${ELF_TARGET} ${BIN_TARGET}

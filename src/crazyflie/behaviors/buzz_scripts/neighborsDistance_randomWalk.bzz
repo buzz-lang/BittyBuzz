@@ -1,0 +1,63 @@
+###############################################################################
+# NOTE This behavior requires the CMake BBZ_DISABLE_NEIGHBORS option to       #
+#      be OFF.                                                                #
+###############################################################################
+
+function init() {
+    neighbors.listen("42",
+        function (vid, value, rid) {
+            var n = neighbors.get(rid)
+            if (n != nil) {
+                var dist = n.distance
+                if (dist < 0) {
+                    led(0) # Off
+                }
+                else if (dist > 210) {
+                    led(5) # Magenta
+                }
+                else if (dist > 168) {
+                    led(4) # Blue
+                }
+                else if (dist > 126) {
+                    led(6) # Cyan
+                }
+                else if (dist > 84) {
+                    led(2) # Green
+                }
+                else if (dist > 42) {
+                    led(3) # Yellow
+                }
+                else {
+                    led(1) # Red
+                }
+            }
+        })
+    led(7)
+    delay(300)
+    led(0)
+    delay(100)
+}
+
+i = 0
+function step() {
+    i = i + 1
+    if (id == 7) {
+        if (i % 8 == 0) {
+            neighbors.broadcast("42", 42)
+            led(4) # Blue
+            led(7) # White
+        }
+    }
+    if (i % 10 == 0) {
+        var val = rand() % 6
+        if (val == 0) {
+            forward()
+        }
+        if (val == 1) {
+            right()
+        }
+        if (val == 2) {
+            left()
+        }
+    }
+}

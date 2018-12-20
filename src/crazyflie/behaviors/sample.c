@@ -10,22 +10,34 @@
 #include <bittybuzz/bbzvm.h>
 #include <bbzcrazyflie.h>
 
-// bool motorsEnable = false;
 
 void bbz_takeoff() {
-    bbzvm_assert_lnum(1);
-    uint8_t motorsEnable = (uint8_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
-    if (motorsEnable) {
-        motorsSetRatio(MOTOR_M1, 10000);
-        motorsSetRatio(MOTOR_M2, 10000);
-        motorsSetRatio(MOTOR_M3, 10000);
-        motorsSetRatio(MOTOR_M4, 10000);   
+    bbzvm_assert_lnum(2);
+    uint16_t motorsEnable = (uint16_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
+    if (motorsEnable != 0) {
+        motorsPlayTone((uint16_t)C4, (uint16_t)5000);
     }
     else {
-        motorsSetRatio(MOTOR_M1, 10000);
-        motorsSetRatio(MOTOR_M2, 10000);
-        motorsSetRatio(MOTOR_M3, 10000);
-        motorsSetRatio(MOTOR_M4, 10000);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
+    ledSet(LINK_LED, 1);
+    ledSet(LINK_DOWN_LED, 1);
+    ledSet(LINK_LED, 0);
+    ledSet(LINK_DOWN_LED, 0);
     }
     bbzvm_ret0();
 }
@@ -45,7 +57,7 @@ int main()
   ledSet(1, 1);
   
   //Should never reach this point!
-  while(1);
+//   while(1);
 // 
   return 0;
 }
