@@ -271,22 +271,40 @@ extern "C" {
 
     /**
      * @brief Performs a logical and.
-     * @see BBZVM_INSTR_AND
+     * @see BBZVM_INSTR_LAND
      */
-    void bbzvm_and();
+    void bbzvm_land();
 
     /**
      * @brief Performs a logical or.
-     * @see BBZVM_INSTR_OR
+     * @see BBZVM_INSTR_LOR
      */
-    void bbzvm_or();
+    void bbzvm_lor();
 
     /**
      * @brief Performs a logical inversion.
-     * @see BBZVM_INSTR_NOT
+     * @see BBZVM_INSTR_LNOT
      */
-    void bbzvm_not();
+    void bbzvm_lnot();
 
+    /**
+     * @brief Performs a bitwise and.
+     * @see BBZVM_INSTR_BAND
+     */
+    void bbzvm_band();
+
+    /**
+     * @brief Performs a bitwise or.
+     * @see BBZVM_INSTR_BOR
+     */
+    void bbzvm_bor();
+
+    /**
+     * @brief Performs a bitwise inversion.
+     * @see BBZVM_INSTR_BNOT
+     */
+    void bbzvm_bnot();
+  
     /**
      * @brief Performs a equality check.
      * @see BBZVM_INSTR_EQ
@@ -529,6 +547,15 @@ extern "C" {
      */
     void bbzvm_lstore(uint16_t idx);
 
+    /**
+     * @brief Removes the last N local symobls
+     * @details Internally checks whether the operation is valid.
+     * @see BBZVM_INSTR_LREMOVE
+     * @param[in] num The number of symbols to remove.
+     */
+    void bbzvm_lremove(uint16_t num);
+
+  
     /**
      * @brief Sets the program counter to jump to a specificed bytecode offset.
      * @see BBZVM_INSTR_JUMP

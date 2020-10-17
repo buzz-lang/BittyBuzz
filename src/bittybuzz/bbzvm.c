@@ -80,8 +80,8 @@ char* _error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STA
                        "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM",
                        "BBZVM_ERROR_MATH"};
 char* _instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
-                       "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
-                       "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
+                       "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT","EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
+                       "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE","LREMOVE",
                        "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
 #endif // DEBUG && !BBZ_XTREME_MEMORY
 
@@ -297,16 +297,28 @@ static void bbzvm_exec_instr() {
             bbzvm_unm();
             break;
         }
-        case BBZVM_INSTR_AND: {
-            bbzvm_and();
+        case BBZVM_INSTR_LAND: {
+	    bbzvm_land();
             break;
         }
-        case BBZVM_INSTR_OR: {
-            bbzvm_or();
+        case BBZVM_INSTR_LOR: {
+            bbzvm_lor();
             break;
         }
-        case BBZVM_INSTR_NOT: {
-            bbzvm_not();
+        case BBZVM_INSTR_BAND: {
+            bbzvm_band();
+            break;
+        }
+        case BBZVM_INSTR_BOR: {
+            bbzvm_bor();
+            break;
+        }
+        case BBZVM_INSTR_BNOT: {
+            bbzvm_bnot();
+            break;
+        }
+        case BBZVM_INSTR_LNOT: {
+            bbzvm_lnot();
             break;
         }
         case BBZVM_INSTR_EQ: {
@@ -401,6 +413,11 @@ static void bbzvm_exec_instr() {
         case BBZVM_INSTR_LSTORE: {
             get_arg(uint16_t);
             bbzvm_lstore(arg);
+            break;
+        }
+        case BBZVM_INSTR_LREMOVE: {
+            get_arg(uint16_t);
+            bbzvm_lremove(arg);
             break;
         }
         case BBZVM_INSTR_JUMP: {
@@ -597,27 +614,44 @@ static void bbzvm_binary_op_logic(binary_op_logic op) {
     bbzvm_pushi((*op)(lhs_bool, rhs_bool));
 }
 
-static uint8_t bbzand(uint8_t lhs, uint8_t rhs) { return lhs & rhs; }
-static uint8_t bbzor (uint8_t lhs, uint8_t rhs) { return lhs | rhs; }
+static uint8_t bbzand(uint8_t lhs, uint8_t rhs) { return lhs && rhs; }
+static uint8_t bbzor (uint8_t lhs, uint8_t rhs) { return lhs || rhs; }
+static uint8_t bbzband(uint8_t lhs, uint8_t rhs) { return lhs & rhs; }
+static uint8_t bbzbor (uint8_t lhs, uint8_t rhs) { return lhs | rhs; }
+
 
 /****************************************/
 /****************************************/
 
-void bbzvm_and() {
+void bbzvm_land() {
     return bbzvm_binary_op_logic(&bbzand);
 }
 
 /****************************************/
 /****************************************/
 
-void bbzvm_or() {
+void bbzvm_lor() {
     return bbzvm_binary_op_logic(&bbzor);
 }
 
 /****************************************/
 /****************************************/
 
-void bbzvm_not() {
+void bbzvm_band() {
+    return bbzvm_binary_op_logic(&bbzband);
+}
+
+/****************************************/
+/****************************************/
+
+void bbzvm_bor() {
+    return bbzvm_binary_op_logic(&bbzbor);
+}
+
+/****************************************/
+/****************************************/
+
+void bbzvm_lnot() {
     bbzvm_assert_stack(1);
     bbzobj_t* operand = bbzheap_obj_at(bbzvm_stack_at(0));
     bbzvm_pop();
@@ -630,6 +664,21 @@ void bbzvm_not() {
 
 /****************************************/
 /****************************************/
+
+void bbzvm_bnot() {
+    bbzvm_assert_stack(1);
+    bbzobj_t* operand = bbzheap_obj_at(bbzvm_stack_at(0));
+    bbzvm_pop();
+    switch(bbztype(*operand)) {
+        case BBZTYPE_NIL: // fallthrough
+        case BBZTYPE_INT: bbzvm_pushi(~operand->i.value); break;
+        default: bbzvm_seterror(BBZVM_ERROR_TYPE);
+    }
+}
+
+/****************************************/
+/****************************************/
+
 
 // --------------------------------
 // - Binary comparison operators  -
@@ -734,6 +783,16 @@ void bbzvm_lstore(uint16_t idx) {
     bbzdarray_set(vm->lsyms, idx, o);
     return bbzvm_pop();
 }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_lremove(uint16_t num) {
+    uint16_t i;
+    for( i = 0 ; i < num ; i++ )
+      bbzvm_assert_exec(bbzdarray_pop(vm->lsyms), BBZVM_ERROR_LNUM);
+}
+
 
 /****************************************/
 /****************************************/

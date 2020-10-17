@@ -53,8 +53,8 @@ char* error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STAC
                       "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM",
                       "BBZVM_ERROR_MATH"};
 char* instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
-                      "UNM", "AND", "OR", "NOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
-                      "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE",
+                      "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
+                      "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE", "LREMOVE",
                       "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
 
 /**
@@ -249,7 +249,7 @@ TEST(vm_set_bytecode) {
     bbzvm_set_error_receiver(&set_last_error);
 
     // 1) Open bytecode file.
-    fbcode = fopen(FILE_TEST4, "rb");
+    fbcode = fopen(FILE_TEST2, "rb");
     REQUIRE(fbcode != NULL);
     REQUIRE(fseek(fbcode, 0, SEEK_END) == 0);
     fsize = ftell(fbcode);
@@ -504,7 +504,7 @@ TEST(vm_arith_logic) {
         const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
         bbzvm_instr instrs[] = {
                 BBZVM_INSTR_ADD, BBZVM_INSTR_SUB, BBZVM_INSTR_MUL, BBZVM_INSTR_DIV, BBZVM_INSTR_MOD,
-                BBZVM_INSTR_AND,  BBZVM_INSTR_OR,  BBZVM_INSTR_EQ, BBZVM_INSTR_NEQ,  BBZVM_INSTR_GT,
+                BBZVM_INSTR_LAND,  BBZVM_INSTR_LOR,  BBZVM_INSTR_EQ, BBZVM_INSTR_NEQ,  BBZVM_INSTR_GT,
                 BBZVM_INSTR_GTE,  BBZVM_INSTR_LT, BBZVM_INSTR_LTE, LAST_INSTR
         };
         const int16_t results[] = {
@@ -561,8 +561,8 @@ TEST(vm_stack_empty) {
         const bbzvm_instr LAST_INSTR = (bbzvm_instr)-1;
         bbzvm_instr failing_instr[] = {
                 BBZVM_INSTR_POP, BBZVM_INSTR_DUP, BBZVM_INSTR_ADD, BBZVM_INSTR_SUB,   BBZVM_INSTR_MUL,
-                BBZVM_INSTR_DIV, BBZVM_INSTR_MOD, BBZVM_INSTR_POW, BBZVM_INSTR_UNM,   BBZVM_INSTR_AND,
-                BBZVM_INSTR_OR,  BBZVM_INSTR_NOT, BBZVM_INSTR_EQ,  BBZVM_INSTR_NEQ,   BBZVM_INSTR_GT,
+                BBZVM_INSTR_DIV, BBZVM_INSTR_MOD, BBZVM_INSTR_POW, BBZVM_INSTR_UNM,   BBZVM_INSTR_LAND,
+                BBZVM_INSTR_LOR,  BBZVM_INSTR_LNOT, BBZVM_INSTR_EQ,  BBZVM_INSTR_NEQ,   BBZVM_INSTR_GT,
                 BBZVM_INSTR_GTE, BBZVM_INSTR_LT,  BBZVM_INSTR_LTE, BBZVM_INSTR_JUMPZ, BBZVM_INSTR_JUMPNZ,
                 LAST_INSTR
         };

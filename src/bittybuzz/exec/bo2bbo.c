@@ -235,7 +235,7 @@ int main(int argc, char **argv) {
 	    case INSTR_LOR:     // fallthrough
 	    case INSTR_LNOT:    // fallthrough
 	    case INSTR_BAND:    // fallthrough
-	    case INSTR_BOR,     // fallthrough
+	    case INSTR_BOR:     // fallthrough
 	    case INSTR_BNOT:    // fallthrough
 	    case INSTR_LSHIFT:  // fallthrough
 	    case INSTR_RSHIFT:  // fallthrough
