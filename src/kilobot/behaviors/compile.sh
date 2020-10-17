@@ -44,6 +44,7 @@ while test $# -gt 0; do
             ;;
         -V|--verbose)
             verbose="1"
+            shift
             ;;
         -b)
             shift

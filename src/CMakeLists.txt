@@ -1,5 +1,5 @@
 project(bittybuzz)
-cmake_minimum_required(VERSION 3.3.2)
+cmake_minimum_required(VERSION 3.5.1)
 
 #
 # Global options and variables
@@ -58,7 +58,7 @@ include(${INCLUDE_FILES_CMAKE}/BittyBuzzFindBuzzPrgms.cmake)
 add_subdirectory(bittybuzz)
 
 if (CMAKE_CROSSCOMPILING)
-    add_subdirectory(kilobot)
+        add_subdirectory(${BBZ_ROBOT})
 endif()
 
 if (NOT CMAKE_CROSSCOMPILING)

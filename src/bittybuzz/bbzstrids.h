@@ -52,6 +52,10 @@ typedef enum __bbzstr_id_t {
     __BBZSTRID_onconflictlost,
     __BBZSTRID_robot,
     __BBZSTRID_timestamp,
+    __BBZSTRID_pos,
+    __BBZSTRID_x,
+    __BBZSTRID_y,
+    __BBZSTRID_orientation,
     __BBZSTRID___INTERNAL_1_DO_NOT_USE__,
     __BBZSTRID___INTERNAL_2_DO_NOT_USE__,
     _BBZSTRID_COUNT_ /**< @brief Number of BittyBuzz string IDs. */

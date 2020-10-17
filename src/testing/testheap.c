@@ -17,86 +17,94 @@ TEST(all) {
 
     bbzvm_construct(0);
     bbzheap_clear();
-    bbzheap_print();
-    uint16_t o;
-    for(int i = 0; i < 5; ++i) {
-        if(bbzheap_obj_alloc(BBZTYPE_INT, &o))
-            printf("[testheap] Allocated int object at position %" PRIu16 "\n", o);
-        else {
-            printf("[testheap] Allocation error\n");
-            break;
-        }
-        bbzheap_obj_at(o)->i.value = i;
-        bbzheap_print();
-    }
-    printf("[testheap] Garbage collection\n");
-    uint16_t stack1[5] = { BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 3, BBZHEAP_RSV_ACTREC_MAX + 2, 0, 0 };
-    bbzheap_gc(stack1, 3);
-    bbzheap_print();
-    for(int i = 0; i < 3; ++i) {
-        if(bbzheap_obj_alloc(BBZTYPE_FLOAT, &o))
-            printf("[testheap] Allocated float object at position %" PRIu16 "\n", o);
-        else {
-            printf("[testheap] Allocation error\n");
-            break;
-        }
-        bbzheap_obj_at(o)->f.value = bbzfloat_fromfloat(i);
-        bbzheap_print();
-    }
-    //uint16_t s1;
-    for(int i = 0; i < 3; ++i) {
-        if(bbzheap_obj_alloc(BBZTYPE_TABLE, &o)) {
-            printf("[testheap] Allocated table object at position %" PRIu16 "\n", o);
-            printf("[testheap] Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(o)->t.value);
-        }
-        else {
-            printf("[testheap] Allocation error\n");
-            break;
-        }/*
-        if(bbzheap_tseg_alloc(&s1)) {
-            printf("[testheap] Allocated table segment at position %" PRIu16 "\n", s1);
-            bbzheap_obj_at(o)->t.value = s1;
-        }
-        else {
-            printf("[testheap] Allocation error\n");
-            break;
-        }*/
-        bbzheap_print();
-    }
-    printf("[testheap] Garbage collection\n");
-    uint16_t stack2[8] = { BBZHEAP_RSV_ACTREC_MAX + 0, BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 2, BBZHEAP_RSV_ACTREC_MAX + 3,
-                           BBZHEAP_RSV_ACTREC_MAX + 4, BBZHEAP_RSV_ACTREC_MAX + 5, BBZHEAP_RSV_ACTREC_MAX + 7, BBZHEAP_RSV_ACTREC_MAX + 8 };
-    bbzheap_gc(stack2, 8);
-    bbzheap_print();
-    for(int i = 0; i < 5; ++i) {
-        for(int j = 0; j < 2; ++j) {
-            printf("[testheap] Adding (#%d, #%d) to the table\n", i, (i+1));
-            if(!bbztable_set(7, i, (i+1)))
-                printf("[testheap] Error inserting (#%d, #%d) in table\n", i, (i+1));
-            else
-                bbzheap_print();
-        }
-    }
-    int sz = bbztable_size(7);
-    printf("[testheap] Table #7 size = %d\n", sz);
-    sz = bbztable_size(8);
-    printf("[testheap] Table #8 size = %d\n", sz);
-    printf("[testheap] Garbage collection\n");
+//     bbzheap_print();
+    
+//     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
+//     if(bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms))
+// {
+//     printf("[testheap_WJ] Allocated table object at position %" PRIu16 "\n", vm->gsyms);
+//     printf("[testheap_WJ] Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(vm->gsyms)->t.value);    
+// }
+//     bbzheap_print();
+//     uint16_t o;
+//     for(int i = 0; i < 5; ++i) {
+//         if(bbzheap_obj_alloc(BBZTYPE_INT, &o))
+//             printf("[testheap] Allocated int object at position %" PRIu16 "\n", o);
+//         else {
+//             printf("[testheap] Allocation error\n");
+//             break;
+//         }
+//         bbzheap_obj_at(o)->i.value = i;
+//         bbzheap_print();
+//     }
+//     printf("[testheap] Garbage collection\n");
+//     uint16_t stack1[5] = { BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 3, BBZHEAP_RSV_ACTREC_MAX + 2, 0, 0 };
+//     bbzheap_gc(stack1, 3);
+//     bbzheap_print();
+//     for(int i = 0; i < 3; ++i) {
+//         if(bbzheap_obj_alloc(BBZTYPE_FLOAT, &o))
+//             printf("[testheap] Allocated float object at position %" PRIu16 "\n", o);
+//         else {
+//             printf("[testheap] Allocation error\n");
+//             break;
+//         }
+//         bbzheap_obj_at(o)->f.value = bbzfloat_fromfloat(i);
+//         bbzheap_print();
+//     }
+//     //uint16_t s1;
+//     for(int i = 0; i < 3; ++i) {
+//         if(bbzheap_obj_alloc(BBZTYPE_TABLE, &o)) {
+//             printf("[testheap] Allocated table object at position %" PRIu16 "\n", o);
+//             printf("[testheap] Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(o)->t.value);
+//         }
+//         else {
+//             printf("[testheap] Allocation error\n");
+//             break;
+//         }/*
+//         if(bbzheap_tseg_alloc(&s1)) {
+//             printf("[testheap] Allocated table segment at position %" PRIu16 "\n", s1);
+//             bbzheap_obj_at(o)->t.value = s1;
+//         }
+//         else {
+//             printf("[testheap] Allocation error\n");
+//             break;
+//         }*/
+//         bbzheap_print();
+//     }
+//     printf("[testheap] Garbage collection\n");
+//     uint16_t stack2[8] = { BBZHEAP_RSV_ACTREC_MAX + 0, BBZHEAP_RSV_ACTREC_MAX + 1, BBZHEAP_RSV_ACTREC_MAX + 2, BBZHEAP_RSV_ACTREC_MAX + 3,
+//                            BBZHEAP_RSV_ACTREC_MAX + 4, BBZHEAP_RSV_ACTREC_MAX + 5, BBZHEAP_RSV_ACTREC_MAX + 7, BBZHEAP_RSV_ACTREC_MAX + 8 };
+//     bbzheap_gc(stack2, 8);
+//     bbzheap_print();
+//     for(int i = 0; i < 5; ++i) {
+//         for(int j = 0; j < 2; ++j) {
+//             printf("[testheap] Adding (#%d, #%d) to the table\n", i, (i+1));
+//             if(!bbztable_set(7, i, (i+1)))
+//                 printf("[testheap] Error inserting (#%d, #%d) in table\n", i, (i+1));
+//             else
+//                 bbzheap_print();
+//         }
+//     }
+//     int sz = bbztable_size(7);
+//     printf("[testheap] Table #7 size = %d\n", sz);
+//     sz = bbztable_size(8);
+//     printf("[testheap] Table #8 size = %d\n", sz);
+//     printf("[testheap] Garbage collection\n");
     uint16_t stack3[2] = { BBZHEAP_RSV_ACTREC_MAX + 7, BBZHEAP_RSV_ACTREC_MAX + 8 };
-    bbzheap_gc(stack3, 2);
-    bbzheap_print();
-    if(bbzheap_obj_alloc(BBZTYPE_NIL, &o))
-        printf("[testheap] Allocated nil object at position %" PRIu16 "\n", o);
-    else {
-        printf("[testheap] Allocation error\n");
-    }
-    for(int i = 0; i < 4; ++i) {
-        printf("[testheap] Adding (#%d, #%d) to the table\n", i, o);
-        if(!bbztable_set(7, i, o))
-            printf("[testheap] Error inserting (#%d, #%d) in table\n", i, o);
-        else
-            bbzheap_print();
-    }
+//     bbzheap_gc(stack3, 2);
+//     bbzheap_print();
+//     if(bbzheap_obj_alloc(BBZTYPE_NIL, &o))
+//         printf("[testheap] Allocated nil object at position %" PRIu16 "\n", o);
+//     else {
+//         printf("[testheap] Allocation error\n");
+//     }
+//     for(int i = 0; i < 4; ++i) {
+//         printf("[testheap] Adding (#%d, #%d) to the table\n", i, o);
+//         if(!bbztable_set(7, i, o))
+//             printf("[testheap] Error inserting (#%d, #%d) in table\n", i, o);
+//         else
+//             bbzheap_print();
+//     }
     printf("[testheap] Garbage collection\n");
     bbzheap_gc(stack3, 2);
     bbzheap_print();

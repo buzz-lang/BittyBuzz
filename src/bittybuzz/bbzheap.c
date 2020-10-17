@@ -97,14 +97,18 @@ uint8_t bbzheap_tseg_alloc(bbzheap_idx_t* s) {
         if(!bbzheap_tseg_isvalid(*bbzheap_tseg_at(i))) {
             /* Empty slot found */
             /* Set result */
-            *s = (uint16_t)i;
+            bbzvm_assign(s, &i);
+            // *(uint8_t*)s = (uint8_t)i;
+            // *((uint8_t*)s + 1) = (uint8_t)(i >> 8);
             return bbzheap_tseg_alloc_prepare_seg(bbzheap_tseg_at(i));
         }
     }
     /* Make sure there is room */
     if(vm->heap.ltseg - sizeof(bbzheap_tseg_t) < vm->heap.rtobj) return 0;
     /* Set result */
-    *s = (uint16_t)qot;
+    bbzvm_assign(s, &qot);
+    // *(uint8_t*)s = (uint8_t)qot;
+    // *((uint8_t*)s + 1) = (uint8_t)(qot >> 8);
     /* Update pointer to leftmost valid segment */
     vm->heap.ltseg -= sizeof(bbzheap_tseg_t);
     return bbzheap_tseg_alloc_prepare_seg((bbzheap_tseg_t*)vm->heap.ltseg);

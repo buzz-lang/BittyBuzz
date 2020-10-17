@@ -1,4 +1,7 @@
-# Generates a BittyBuzz object file.
+find_program(CAT "cat")
+find_program(PRINTF "printf")
+
+# Generates a BittyBuzz object file. (produce a target that will generate the .bbo when needed)
 # bst_source is optional. You may specify a nonexistent file (such as the
 # empty string "") in order not to use any BST file.
 function(generate_bbo _TARGET bzz_outdir bzz_source bst_source)
@@ -12,18 +15,23 @@ function(generate_bbo _TARGET bzz_outdir bzz_source bst_source)
     set(BBO_FILE  ${BZZ_BASEPATH}.bbo)
 
     # .bzz -> .basm
-    file(READ   "${BBZ_BASE_BST_FILE}" BBZ_BASE_BST)
-    file(READ   "${bst_source}" USER_BST)
-    file(WRITE  "${BST_FILE}" "${BBZ_BASE_BST}")
-    file(APPEND "${BST_FILE}" "${USER_BST}")
+    # file(READ   "${BBZ_BASE_BST_FILE}" BBZ_BASE_BST)
+    # file(READ   "${bst_source}" USER_BST)
+    # file(WRITE  "${BST_FILE}" "${BBZ_BASE_BST}")
+    # file(APPEND "${BST_FILE}" "${USER_BST}")
+    add_custom_command(OUTPUT ${BST_FILE}
+        COMMAND ${PRINTF} "\"\"" | ${CAT} ${BBZ_BASE_BST_FILE} > ${BST_FILE}
+        COMMAND ${PRINTF} "\"\"" | ${CAT} ${bst_source} >> ${BST_FILE}
+        DEPENDS ${PRINTF} ${CAT} ${BBZ_BASE_BST_FILE} ${bst_source})
 
     add_custom_command(OUTPUT ${BASM_FILE}
-        COMMAND ${BZZPAR} ${bzz_source} ${BASM_FILE} ${BST_FILE})
+        COMMAND ${BZZPAR} ${bzz_source} ${BASM_FILE} ${BST_FILE}
+        DEPENDS ${BZZPAR} ${bzz_source} ${BST_FILE})
 
     # .basm -> .bo ; .basm -> .bdb
     add_custom_command(OUTPUT ${BO_FILE} ${BDB_FILE}
             COMMAND ${BZZASM} ${BASM_FILE} ${BO_FILE} ${BDB_FILE}
-            DEPENDS ${BASM_FILE})
+            DEPENDS ${BZZASM} ${BASM_FILE})
 
     # .bo -> .bbo
     add_custom_command(OUTPUT ${BBO_FILE}

@@ -1,4 +1,7 @@
 #include "bbzvm.h"
+#include "bbzheap.h"
+#include <stdio.h>
+#include "bbztype.h"
 
 bbzvm_t* vm; // Global extern variable 'vm'.
 
@@ -93,7 +96,7 @@ ALWAYS_INLINE void dftl_error_receiver(bbzvm_error errcode) {
 #endif // DEBUG
 }
 
-void bbzvm_construct(bbzrobot_id_t robot) {
+int bbzvm_construct(bbzrobot_id_t robot) {
     vm->bcode_fetch_fun = NULL;
     vm->bcode_size = 0;
     vm->pc = 0;
@@ -126,6 +129,22 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     // Create global symbols table
     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->gsyms));
+    
+    // For debugging purposes:
+    //     bbzheap_obj_at(vm->gsyms)->i.value = 4;
+        int16_t si = bbzheap_obj_at(vm->gsyms)->t.value;
+    /* Get segment data */
+    bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
+    if(bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms))
+{
+    bbzheap_print();
+    printf("[BBZVM] is bbzheap_obj_at(vm->gsyms) a table? -> %d [1 if yes].\n)", bbztype_istable(*bbzheap_obj_at(vm->gsyms)));
+    printf("[BBZVM] is  bbzheap_tseg_hasnext(sd) true? -> %d [1 if yes].\n)", bbzheap_tseg_hasnext(sd));
+    printf("[testheap] Allocated table object at position %" PRIu16 "\n", vm->gsyms);
+    printf("[testheap] Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(vm->gsyms)->t.value);     
+}
+    printf("[BBZVM] Done\n");
+    // End of debugging block
 
     bbzvm_register_globals();
 
@@ -133,6 +152,15 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzvstig_register();
     bbzswarm_register();
     bbzneighbors_register();
+    
+    // Debugging:
+    if(bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms) == 0 || bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil) == 0)
+{
+    return 0;
+}
+    else
+    return 1;
+    // End debugging.
 }
 
 /****************************************/
@@ -188,7 +216,7 @@ void bbzvm_set_bcode(bbzvm_bcode_fetch_fun bcode_fetch_fun, uint16_t bcode_size)
 
 #define inc_pc() assert_pc(vm->pc); ++vm->pc;
 
-#define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg = *((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); vm->pc += sizeof(TYPE);
+#define get_arg(TYPE) assert_pc(vm->pc + sizeof(TYPE)); TYPE arg; {TYPE* parg = ((TYPE*)vm->bcode_fetch_fun(vm->pc, sizeof(TYPE))); bbzvm_assign(&arg, parg);} vm->pc += sizeof(TYPE);
 
 void bbzvm_gc() {
     bbzheap_gc(vm->stack, (uint16_t)bbzvm_stack_size());

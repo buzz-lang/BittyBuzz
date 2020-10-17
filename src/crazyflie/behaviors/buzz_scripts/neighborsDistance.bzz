@@ -1,0 +1,44 @@
+dist = -1
+
+function init() {
+    neighbors.listen("Hello world!",
+        function(vid, value, rid) {
+            dist = neighbors.get(rid).distance
+            if (dist < 0) {
+                led(0) # Off
+            }
+            else if (dist > 200) {
+                led(5) # Magenta
+            }
+            else if (dist > 160) {
+                led(4) # Blue
+            }
+            else if (dist > 120) {
+                led(6) # Cyan
+            }
+            else if (dist > 80) {
+                led(2) # Green
+            }
+            else if (dist > 40) {
+                led(3) # Yellow
+            }
+            else {
+                led(1) # Red
+            }
+            led(0) # Off
+        }
+    )
+    led(7) # White
+    delay(500)
+    led(0) # Off
+    delay(100)
+}
+
+function step() {
+    if(id == 0) {
+        neighbors.broadcast("Hello world!", 42)
+        led(4) # Blue
+        led(0) # Off
+        delay(200)
+    }
+}

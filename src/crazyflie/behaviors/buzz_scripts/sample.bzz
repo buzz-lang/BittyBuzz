@@ -1,0 +1,8 @@
+function step() {
+	takeoff(1)
+}
+
+function destroy() {
+
+}
+

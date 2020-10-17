@@ -59,13 +59,15 @@ For kilobots
 Currently, BittyBuzz does not support global installation. Behaviors must thus be
 implemented under `src/kilobot/behaviors` directly.
 
-The C source file should be placed inside `src/kilobot/behaviors`,
+The C source file should be placed inside `src/<robot_name>/behaviors`,
 whereas the Buzz script is expected to have the same name and be
-placer under `src/kilobot/behaviors/buzz_scripts`. You should also place a
+placer under `src/<robot_name>/behaviors/buzz_scripts`. You should also place a
 Buzz String Table (`.bst`) file (which allows BittyBuzz to generate a
 string ID corresponding to each string) next to your Buzz script, which
 should contain any string used within the C code and that does not appear
 in the Buzz script. Look at existing files if you are unsure.
+
+*EDIT: It is no longer required to put any thing in the `.bst` file. However, the file itself is still required to be there. It will eventualy become optional.*
 
 At this point, you may run `make` inside your kilobot build directory to
 generate a HEX file that can be sent to the kilobots. You will find it
@@ -75,6 +77,18 @@ This file can be sent to the kilobots using the
 
 _Important:_ After adding new files, be sure to run `cmake ../src` inside
 your kilobot build directory for CMake to take them into account.
+
+For Zooids
+----------
+
+See `src/zooids/README.md`
+
+
+For Crazyflie
+----------
+
+See `src/crazyflie/README.md`
+
 
 Options
 -------

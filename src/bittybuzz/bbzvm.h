@@ -92,7 +92,7 @@ extern "C" {
 #endif
         int16_t stackptr;          /**< @brief Stack pointer (Index of the last valid element of the stack) */
         int16_t blockptr;          /**< @brief Block pointer (Index of the previous block pointer in the stack) */
-        bbzheap_idx_t stack[BBZSTACK_SIZE]; /**< @brief Current stack content */
+        bbzheap_idx_t stack[BBZSTACK_SIZE] __attribute__((aligned(2))); /**< @brief Current stack content */
     } bbzvm_t;
 
     /**
@@ -110,7 +110,7 @@ extern "C" {
      * @brief Sets up the VM.
      * @param[in] robot The robot id.
      */
-    void bbzvm_construct(bbzrobot_id_t robot);
+    int bbzvm_construct(bbzrobot_id_t robot);
 
     /**
      * @brief Destroys the VM.
@@ -717,6 +717,18 @@ extern "C" {
      */
     #define bbzvm_assert_state(RET...)                                  \
         if(vm->state == BBZVM_STATE_ERROR) return RET
+
+#ifdef BBZ_BYTEWISE_ASSIGNMENT
+    #define bbzvm_assign(lvalue, rvalue) {                              \
+        if (sizeof(*(lvalue)) == sizeof(*(rvalue))) {                   \
+            for (uint8_t bbzvm_assign_i = 0; bbzvm_assign_i < sizeof(*(rvalue)); ++bbzvm_assign_i) {           \
+                *((uint8_t*)(lvalue) + bbzvm_assign_i) = *((uint8_t*)(rvalue) + bbzvm_assign_i);  \
+            }                                                           \
+        }                                                               \
+    }
+#else
+    #define bbzvm_assign(lvalue, rvalue) {*(lvalue) = *(rvalue);}
+#endif
 
 #ifdef __cplusplus
 }

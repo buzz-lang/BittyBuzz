@@ -7,7 +7,7 @@
 void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
     int16_t pos = 0;
     bbzmsg_t* m = vm->inmsgs.buf+vm->inmsgs.queue.capacity;
-    m->base.type = 0;
+    m->base.type = (bbzmsg_payload_type_t)0;
     bbzmsg_deserialize_u8((uint8_t*)&m->base.type, payload, &pos);
     if (pos < 0) return;
     bbzmsg_deserialize_u16(&m->base.rid, payload, &pos);
@@ -52,6 +52,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             // Unknown type of message, the message is dropped.
             return;
     }
+#ifndef BBZ_DISABLE_NEIGHBORS
     if (m->base.type == BBZMSG_BROADCAST) {
         for (uint8_t i = 0; i < bbzringbuf_size(&vm->inmsgs.queue); ++i) {
             bbzmsg_t* msg = (bbzmsg_t*)bbzringbuf_at(&vm->inmsgs.queue, i);
@@ -63,6 +64,7 @@ void bbzinmsg_queue_append(bbzmsg_payload_t* payload) {
             }
         }
     }
+#endif
     // If everything succeed, we push the ring buffer forward.
     if (bbzringbuf_full(&vm->inmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.

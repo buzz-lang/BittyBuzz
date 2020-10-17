@@ -11,6 +11,10 @@
 #include "bbzstrids.h"
 #include "bbzvm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 /**
  * @brief Registers a function in a table.
  * @details The stack is expected to have the table as stack top.
@@ -136,5 +140,9 @@ bbzheap_idx_t bbztable_get_subfield(uint16_t strid);
  * @param[in] size The number of bytes to swap in each array.
  */
 void bbzutil_swapArrays(uint8_t *arr1, uint8_t *arr2, uint8_t size);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif // !BBZUTIL_H

@@ -1,0 +1,47 @@
+###############################################################################
+# NOTE This behavior requires the CMake BBZ_DISABLE_SWARMS option to          #
+#      be OFF. Disable neighbors and sitgmergies if you run out of RAM.       #
+###############################################################################
+
+# EXPECTED BEHAVIOR :
+#
+# LED color depends on swarm memberships.
+# Robots with IDs (modulo 3) equal to:
+# - 0: red color ;
+# - 1: green color ;
+# - 2: red and green successively.
+
+# ========================================
+# =            MAIN CLOSURES             =
+# ========================================
+
+function init() {
+    # Create swarms
+    s0 = swarm.create(0)
+    s1 = swarm.create(1)
+
+    # Join one or both swarms depending on ID value
+    s0.select(id % 3 != 1)
+    s1.select(id % 3 != 0)
+}
+
+function step() {
+    # Make swarm execute behaviors
+    s0.exec(swarm_behavior)
+    s1.exec(swarm_behavior)
+}
+
+# ========================================
+# =         CLOSURE DEFINITIONS          =
+# ========================================
+
+function swarm_behavior() {
+    # Switch behavior depending on the swarm executing the closure
+    if (swarm.id() == 0) {
+        led(1) # RED
+    }
+    else {
+        led(2) # GREEN
+    }
+    delay(200)
+}

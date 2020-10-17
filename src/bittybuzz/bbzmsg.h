@@ -9,12 +9,12 @@
 #include "bbzinclude.h"
 #include "bbzringbuf.h"
 
-#ifdef BBZ_XTREME_MEMORY
+//#ifdef BBZ_XTREME_MEMORY
 #define htons(x) (x)
 #define ntohs(x) (x)
-#else
-#include <netinet/in.h>
-#endif
+//#else
+//#include <netinet/in.h>
+//#endif
 
 #ifdef __cplusplus
 extern "C" {

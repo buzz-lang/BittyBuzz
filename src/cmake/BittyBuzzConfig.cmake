@@ -12,7 +12,7 @@ else()
 endif ()
 config_value(BBZHEAP_ELEMS_PER_TSEG 5)
 config_value(BBZSTACK_SIZE 96)
-config_value(BBZVSTIG_CAP 3)
+config_value(BBZVSTIG_CAP 4)
 config_value(BBZNEIGHBORS_CAP 15)
 config_value(BBZINMSG_QUEUE_CAP 10)
 config_value(BBZOUTMSG_QUEUE_CAP 10)
@@ -32,6 +32,7 @@ option(BBZ_DISABLE_VSTIGS "Whether to disable usage of virtual stigmergies' data
 option(BBZ_DISABLE_SWARMS "Whether to disable usage of swarms' data structure and messages." OFF)
 option(BBZ_DISABLE_MESSAGES "Whether to disable usage and transfer of any kind of Buzz message." OFF)
 option(BBZ_DISABLE_PY_BEHAV "Whether to disable Python behaviors of closures (make closure behave like in JavaScript)." OFF)
+option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte." OFF)
 
 # TODO Currently, there is no implementation of swarmlist broadcasts because
 # neighbors.kin and neighbors.nonkin, which are the only closures that would

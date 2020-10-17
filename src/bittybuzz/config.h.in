@@ -132,4 +132,9 @@
  */
 #cmakedefine BBZ_DISABLE_SWARMLIST_BROADCASTS
 
+/**
+ * @brief Wether to make assignment byte per byte.
+ */
+#cmakedefine BBZ_BYTEWISE_ASSIGNMENT
+
 #endif // !CONFIG_H
