@@ -26,10 +26,15 @@ typedef enum {
     INSTR_DIV,
     INSTR_MOD,
     INSTR_POW,
-    INSTR_UNM,
-    INSTR_AND,
-    INSTR_OR,
-    INSTR_NOT,
+    INSTR_UNM,  
+    INSTR_LAND,
+    INSTR_LOR,
+    INSTR_LNOT,
+    INSTR_BAND,
+    INSTR_BOR,
+    INSTR_BNOT,
+    INSTR_LSHIFT,
+    INSTR_RSHIFT,
     INSTR_EQ,
     INSTR_NEQ,
     INSTR_GT,
@@ -54,9 +59,11 @@ typedef enum {
     INSTR_PUSHL,
     INSTR_LLOAD,
     INSTR_LSTORE,
+    INSTR_LREMOVE,
     INSTR_JUMP,
     INSTR_JUMPZ,
-    INSTR_JUMPNZ
+    INSTR_JUMPNZ,
+    INSTR_COUNT
 } instr;
 
 typedef struct PACKED darray {
@@ -224,9 +231,14 @@ int main(int argc, char **argv) {
             case INSTR_MOD:     // fallthrough
             case INSTR_POW:     // fallthrough
             case INSTR_UNM:     // fallthrough
-            case INSTR_AND:     // fallthrough
-            case INSTR_OR:      // fallthrough
-            case INSTR_NOT:     // fallthrough
+	    case INSTR_LAND:    // fallthrough
+	    case INSTR_LOR:     // fallthrough
+	    case INSTR_LNOT:    // fallthrough
+	    case INSTR_BAND:    // fallthrough
+	    case INSTR_BOR,     // fallthrough
+	    case INSTR_BNOT:    // fallthrough
+	    case INSTR_LSHIFT:  // fallthrough
+	    case INSTR_RSHIFT:  // fallthrough
             case INSTR_EQ:      // fallthrough
             case INSTR_NEQ:     // fallthrough
             case INSTR_GT:      // fallthrough
@@ -250,6 +262,7 @@ int main(int argc, char **argv) {
             case INSTR_PUSHS:   // fallthrough
             case INSTR_LLOAD:   // fallthrough
             case INSTR_LSTORE:  // fallthrough
+	    case INSTR_LREMOVE: // fallthrough
                 (void)fread(&argi,sizeof(argi),1,f_in);
                 bufi = (uint16_t)argi;
                 fwrite(&bufi,sizeof(bufi),1,f_out);
@@ -266,6 +279,7 @@ int main(int argc, char **argv) {
             case INSTR_JUMP:    // fallthrough
             case INSTR_JUMPZ:   // fallthrough
             case INSTR_JUMPNZ:  // fallthrough
+	    case INSTR_COUNT:   // fallthrough
             case INSTR_PUSHL:   // fallthrough
             case INSTR_PUSHCN:  // fallthrough
             case INSTR_PUSHCC:
