@@ -110,7 +110,7 @@ extern "C" {
      * @brief Sets up the VM.
      * @param[in] robot The robot id.
      */
-    int bbzvm_construct(bbzrobot_id_t robot);
+    void bbzvm_construct(bbzrobot_id_t robot);
 
     /**
      * @brief Destroys the VM.

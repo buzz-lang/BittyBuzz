@@ -80,7 +80,7 @@ char* _error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STA
                        "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM",
                        "BBZVM_ERROR_MATH"};
 char* _instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
-                       "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT","EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
+                       "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT","LSHIFT","RSHIFT","EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
                        "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE","LREMOVE",
                        "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
 #endif // DEBUG && !BBZ_XTREME_MEMORY
@@ -96,7 +96,7 @@ ALWAYS_INLINE void dftl_error_receiver(bbzvm_error errcode) {
 #endif // DEBUG
 }
 
-int bbzvm_construct(bbzrobot_id_t robot) {
+void bbzvm_construct(bbzrobot_id_t robot) {
     vm->bcode_fetch_fun = NULL;
     vm->bcode_size = 0;
     vm->pc = 0;
@@ -129,22 +129,6 @@ int bbzvm_construct(bbzrobot_id_t robot) {
     // Create global symbols table
     bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms);
     bbzheap_obj_make_permanent(*bbzheap_obj_at(vm->gsyms));
-    
-    // For debugging purposes:
-    //     bbzheap_obj_at(vm->gsyms)->i.value = 4;
-        int16_t si = bbzheap_obj_at(vm->gsyms)->t.value;
-    /* Get segment data */
-    bbzheap_tseg_t* sd = bbzheap_tseg_at(si);
-    if(bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms))
-{
-    bbzheap_print();
-    printf("[BBZVM] is bbzheap_obj_at(vm->gsyms) a table? -> %d [1 if yes].\n)", bbztype_istable(*bbzheap_obj_at(vm->gsyms)));
-    printf("[BBZVM] is  bbzheap_tseg_hasnext(sd) true? -> %d [1 if yes].\n)", bbzheap_tseg_hasnext(sd));
-    printf("[testheap] Allocated table object at position %" PRIu16 "\n", vm->gsyms);
-    printf("[testheap] Allocated table segment at position %" PRIu16 "\n", bbzheap_obj_at(vm->gsyms)->t.value);     
-}
-    printf("[BBZVM] Done\n");
-    // End of debugging block
 
     bbzvm_register_globals();
 
@@ -153,14 +137,6 @@ int bbzvm_construct(bbzrobot_id_t robot) {
     bbzswarm_register();
     bbzneighbors_register();
     
-    // Debugging:
-    if(bbzheap_obj_alloc(BBZTYPE_TABLE, &vm->gsyms) == 0 || bbzheap_obj_alloc(BBZTYPE_NIL, &vm->nil) == 0)
-{
-    return 0;
-}
-    else
-    return 1;
-    // End debugging.
 }
 
 /****************************************/
@@ -305,6 +281,10 @@ static void bbzvm_exec_instr() {
             bbzvm_lor();
             break;
         }
+        case BBZVM_INSTR_LNOT: {
+            bbzvm_lnot();
+            break;
+        }
         case BBZVM_INSTR_BAND: {
             bbzvm_band();
             break;
@@ -317,10 +297,14 @@ static void bbzvm_exec_instr() {
             bbzvm_bnot();
             break;
         }
-        case BBZVM_INSTR_LNOT: {
-            bbzvm_lnot();
+	  /*    case BBZVM_INSTR_LSHIFT: {
+            bbzvm_lshift();
             break;
         }
+        case BBZVM_INSTR_RSHIFT: {
+            bbzvm_rshift();
+            break;
+	    }  */
         case BBZVM_INSTR_EQ: {
             bbzvm_eq();
             break;

@@ -53,7 +53,7 @@ char* error_desc[] = {"BBZVM_ERROR_NONE", "BBZVM_ERROR_INSTR", "BBZVM_ERROR_STAC
                       "BBZVM_ERROR_RET", "BBZVM_ERROR_STRING", "BBZVM_ERROR_SWARM", "BBZVM_ERROR_VSTIG", "BBZVM_ERROR_MEM",
                       "BBZVM_ERROR_MATH"};
 char* instr_desc[] = {"NOP", "DONE", "PUSHNIL", "DUP", "POP", "RET0", "RET1", "ADD", "SUB", "MUL", "DIV", "MOD", "POW",
-                      "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
+                      "UNM", "LAND", "LOR", "LNOT","BAND","BOR","BNOT", "LSHIFT", "RSHIFT", "EQ", "NEQ", "GT", "GTE", "LT", "LTE", "GLOAD", "GSTORE", "PUSHT", "TPUT",
                       "TGET", "CALLC", "CALLS", "PUSHF", "PUSHI", "PUSHS", "PUSHCN", "PUSHCC", "PUSHL", "LLOAD", "LSTORE", "LREMOVE",
                       "JUMP", "JUMPZ", "JUMPNZ", "COUNT"};
 
@@ -223,7 +223,7 @@ int8_t bbzvm_register_functions() {
 #define FILE_TEST1 "resources/1_InstrTest.bbo"
 #define FILE_TEST2 "resources/2_IfTest.bbo"
 #define FILE_TEST3 "resources/3_test1.bbo"
-#define FILE_TEST4 "resources/sample.bbo"
+#define FILE_TEST4 "resources/4_AllFeauresTest.bbo"
 
 TEST(vm_construct) {
     vm = &vmObj;
