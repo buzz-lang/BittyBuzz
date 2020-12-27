@@ -1264,6 +1264,8 @@ void bbzvm_ret0() {
     vm->pc = (bbzpc_t)bbzheap_obj_at(bbzvm_stack_at(0))->i.value;
     /* Pop the return address */
     bbzvm_pop();
+    /* Push nil as the return value */
+    return bbzvm_pushnil(vm);
 }
 
 /****************************************/

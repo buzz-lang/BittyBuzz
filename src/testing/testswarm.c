@@ -946,6 +946,7 @@ TEST(swarm_script) {
         bbzvm_gload();
         REQUIRE(bbztype_isclosure(*bbzheap_obj_at(bbzvm_stack_at(0))));
         bbzvm_closure_call(0);
+	bbzvm_pop();
         ++i;
     }
     REQUIRE(vm->state != BBZVM_STATE_ERROR);

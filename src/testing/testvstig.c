@@ -47,13 +47,14 @@ TEST(vstig_put) {
     bbzvm_tget();
     bbzvm_pushi(0);
     bbzvm_closure_call(1);
-
+    REQUIRE(vm->state != BBZVM_STATE_ERROR);
     bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_put);
     bbzvm_tget();
     bbzvm_pushs(__BBZSTRID_data);
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
+    bbzvm_pop();
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(vm->vstig.size, 1);
     ASSERT_EQUAL(vm->vstig.data[0].key, __BBZSTRID_data);
@@ -84,7 +85,8 @@ TEST(vstig_get) {
     bbzvm_pushs(__BBZSTRID_data);
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
-
+    bbzvm_pop();
+    
     bbzvm_push(vs);
     bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_get);
@@ -118,13 +120,14 @@ TEST(vstig_size) {
     bbzvm_pushs(__BBZSTRID_data);
     bbzvm_pushi(42);
     bbzvm_closure_call(2);
-
+    bbzvm_pop();
+    
     bbzvm_dup(); // Push self table
     bbzvm_pushs(__BBZSTRID_size);
     bbzvm_tget();
     bbzvm_closure_call(0);
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
-    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, 1);
+    ASSERT_EQUAL(bbzheap_obj_at(bbzvm_stack_at(0))->i.value, 1); 
 
     bbzvm_gc();
     bbzvm_destruct();

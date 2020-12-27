@@ -187,10 +187,10 @@ void bbzvm_log() {
     for (uint16_t i = 0; i < nArg; ++i) {
         bbzvm_lload(nArg - i);
     }
-#ifdef DEBUG
+    //#ifdef DEBUG
     bbzvm_pushi(nArg);
     logfunc();fflush(stdout);
-#endif
+    //#endif
     return bbzvm_ret0();
 }
 
@@ -223,7 +223,7 @@ int8_t bbzvm_register_functions() {
 #define FILE_TEST1 "resources/1_InstrTest.bbo"
 #define FILE_TEST2 "resources/2_IfTest.bbo"
 #define FILE_TEST3 "resources/3_test1.bbo"
-#define FILE_TEST4 "resources/4_AllFeauresTest.bbo"
+#define FILE_TEST4 "resources/4_AllFeaturesTest.bbo"
 
 TEST(vm_construct) {
     vm = &vmObj;
@@ -685,9 +685,10 @@ TEST(vm_closures) {
     bbzvm_pushnil(); // Push self table
     bbzvm_pushi(123);
     bbzvm_function_call(BBZVM_SYMID_PRINT, 1);
+    bbzvm_pop();
     ASSERT(vm->state != BBZVM_STATE_ERROR);
     ASSERT_EQUAL(bbzvm_stack_size(), 0);
-
+    
     // D) Execute the rest of the script to check if a call from a buzz script works properly
     REQUIRE(vm->state != BBZVM_STATE_ERROR);
     while(vm->state == BBZVM_STATE_READY) {

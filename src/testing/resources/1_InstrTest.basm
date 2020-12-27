@@ -1,0 +1,6 @@
+!0
+2:	nop
+3:	done
+4:	pushnil
+5:	pop
+6:	tput
