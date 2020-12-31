@@ -5,7 +5,6 @@
 #include "testingconfig.h"
 
 bbzvm_t vmObj;
-bbzvm_t* vm = &vmObj;
 
 uint8_t buf[4] = {0,0,0,0};
 const uint8_t* bcodefetcher(bbzpc_t offset, uint8_t size) {
@@ -15,6 +14,7 @@ const uint8_t* bcodefetcher(bbzpc_t offset, uint8_t size) {
 
 uint8_t createWorks = 0;
 TEST(vstig_create) {
+    vm = &vmObj;
     bbzvm_construct(0);
     bbzvm_set_bcode(bcodefetcher, 4);
 

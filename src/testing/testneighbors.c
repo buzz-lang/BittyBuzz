@@ -5,9 +5,9 @@
 #include "testingconfig.h"
 
 bbzvm_t vmObj;
-bbzvm_t* vm = &vmObj;
 
 TEST(nadd) {
+    vm = &vmObj;
     bbzvm_construct(0);
 
     bbzneighbors_elem_t elem = {.robot=1,.distance=127,.azimuth=0,.elevation=0};
