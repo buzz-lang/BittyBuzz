@@ -78,7 +78,7 @@ void bbz_func_call(uint16_t strid) {
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
 //     DEBUG_PRINT("The value of bbztable_get1: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
-    if(bbztable_get(vmObj.gsyms, l, &l)) {
+    if(bbztable_get(vm->gsyms, l, &l)) {
         bbzvm_pushnil(); // Push self table
         bbzvm_push(l);
         bbzvm_closure_call(0);
@@ -89,8 +89,8 @@ void bbzcrazyflie_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
     bbzheap_idx_t l = bbzvm_stack_at(0);
     bbzvm_pop();
-    DEBUG_PRINT("The value of bbztable_get2: %d.\n", bbztable_get(vmObj.gsyms, l, &l));
-    if(bbztable_get(vmObj.gsyms, l, &l)) {
+    // DEBUG_PRINT("The value of bbztable_get2: %d.\n", bbztable_get(vm->gsyms, l, &l));
+    if(bbztable_get(vm->gsyms, l, &l)) {
         DEBUG_PRINT("bbztable_get called.\n");
         bbzvm_pushnil(); // Push self table
         bbzvm_push(l);
@@ -189,7 +189,6 @@ void bbzTask(void * param)
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());
     DEBUG_PRINT("Value of has_setup: %d.\n", has_setup);
-    DEBUG_PRINT("Value of bbzvm_construct: %s.\n", (bbzvm_construct(getRobotId()))?"Success":"Fail");
     
     uint8_t init_done = 0;
     while (1)
