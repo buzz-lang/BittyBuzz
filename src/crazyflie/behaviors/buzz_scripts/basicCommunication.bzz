@@ -1,0 +1,30 @@
+# EXPECTED BEHAVIOR :
+#
+# LED color depends on swarm memberships.
+# Robots with IDs equal to:
+# - 0: red color blinking ;
+# - any other id: blink green when they receive a message 
+
+
+function init() {
+    neighbors.listen("test",
+        function(vid, value, rid) {
+            if (value == 42) {
+                led(1, 1) # Green ON
+                delay(1000)
+                led(1, 0) # Green OFF
+                delay(1000)
+            }
+        }
+    )
+}
+
+function step() {
+    if (id == 0) {
+        neighbors.broadcast("test", 42)
+        led(0, 1) # RED ON
+        delay(1000)
+        led(0, 0)
+        delay(1000)
+    }
+}
