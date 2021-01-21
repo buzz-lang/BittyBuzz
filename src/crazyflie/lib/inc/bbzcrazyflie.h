@@ -11,6 +11,7 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __BBZCRAZYFLIE_H
 #define __BBZCRAZYFLIE_H
+#define BROADCAST_PORT 0
 
 /* Includes ------------------------------------------------------------------*/
 // #include "functions.h"
@@ -20,6 +21,7 @@
 #include "memcpy_fast.h"
 #include "qfplib.h"
 #include "config.h"
+#include "radiolink.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,8 +55,8 @@ uint64_t getMicroSeconds();
 void setRobotId(uint8_t _id);
 uint8_t getRobotId();
 
-// void handleIncomingRadioMessage();
-// void handleOutgoingRadioMessage();
+void handleIncomingRadioMessage(P2PPacket *p);
+void handleOutgoingRadioMessage();
 
 void bbz_createPosObject();
 void bbz_updatePosObject();

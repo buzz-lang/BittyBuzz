@@ -85,6 +85,20 @@ void bbz_func_call(uint16_t strid) {
     }
 }
 
+void handleOutgoingRadioMessage() {
+    Message *msg = message_tx();
+    while (msg!=NULL) {
+        msg = message_tx();
+        P2PPacket pk;
+        pk.port = BROADCAST_PORT;
+        // Max size possible for a broadcast packet
+        pk.size = PAYLOAD_MAX_SIZE - 2;
+        memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE - 2);
+        DEBUG_PRINT("Broadcast: %s\n", radiolinkSendP2PPacketBroadcast(&pk) ? "Success" : "Failed");
+        message_tx_success();
+    }
+}
+
 void bbzcrazyflie_func_call(uint16_t strid) {
     bbzvm_pushs(strid);
     bbzheap_idx_t l = bbzvm_stack_at(0);
@@ -103,8 +117,19 @@ void bbzcrazyflie_func_call(uint16_t strid) {
             if(vm->state != BBZVM_STATE_READY) return;
             bbzvm_step();
             DEBUG_PRINT("VM: Stepping\n");
+            handleOutgoingRadioMessage();
         }
     }
+}
+
+void handleIncomingRadioMessage(P2PPacket *p)
+{
+  DEBUG_PRINT("Broadcast listener\n");
+  Message msg;
+  memset(&msg, 0, sizeof(msg));
+  memcpy(&msg, p->data, p->size);
+  // No distance or azimuth information
+  message_rx(&msg, 0, 0);
 }
 
 Message* bbzwhich_msg_tx() {
@@ -209,6 +234,8 @@ void bbzTask(void * param)
                 message_tx = bbzwhich_msg_tx;
                 message_tx_success = bbzoutmsg_queue_next;
                 message_rx = bbzprocess_msg_rx;
+                // Register the callback function so that the CF can receive packets as well.
+                p2pRegisterCB(handleIncomingRadioMessage);
 #endif
             }
         }
