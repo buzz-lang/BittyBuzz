@@ -177,7 +177,7 @@
 #define RADIO_DATARATE                        RADIO_RATE_250K
 #define RADIO_ADDRESS                         0xE7E7E7E7E7ULL
 #define PAYLOAD_SIZE                          8  //size of the data from master to slave
-#define PAYLOAD_MAX_SIZE                      32
+#define PAYLOAD_MAX_SIZE                      31 // The SyslinkPacket length (= payload size + 1) has to be  <= SYSLINK_MTU
 #define COMMUNICATION_TIMEOUT                 2000 //in ms
 
 #define RECEIVER_ID                           250
