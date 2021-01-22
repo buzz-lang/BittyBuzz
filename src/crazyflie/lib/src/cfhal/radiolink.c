@@ -57,6 +57,8 @@ static int radiolinkReceiveCRTPPacket(CRTPPacket *p);
 //Local RSSI variable used to enable logging of RSSI values from Radio
 static uint8_t rssi;
 
+static volatile P2PCallback p2p_callback;
+
 static struct crtpLinkOperations radiolinkOp =
 {
   .setEnable         = radiolinkSetEnable,
@@ -156,7 +158,17 @@ void radiolinkSyslinkDispatch(SyslinkPacket *slp)
 	{
 		//Extract RSSI sample sent from radio
 		memcpy(&rssi, slp->data, sizeof(uint8_t));
-	}
+	}else if (slp->type == SYSLINK_RADIO_P2P_BROADCAST)
+  {
+    ledseqRun(LINK_LED, seq_linkup);
+    P2PPacket p2pp;
+    p2pp.port=slp->data[0];
+    p2pp.rssi = slp->data[1];
+    memcpy(&p2pp.data[0], &slp->data[2],slp->length-2);
+    p2pp.size=slp->length;
+    if (p2p_callback)
+        p2p_callback(&p2pp);
+  }
 }
 
 static int radiolinkReceiveCRTPPacket(CRTPPacket *p)
@@ -167,6 +179,11 @@ static int radiolinkReceiveCRTPPacket(CRTPPacket *p)
   }
 
   return -1;
+}
+
+void p2pRegisterCB(P2PCallback cb)
+{
+    p2p_callback = cb;
 }
 
 static int radiolinkSendCRTPPacket(CRTPPacket *p)
@@ -185,6 +202,22 @@ static int radiolinkSendCRTPPacket(CRTPPacket *p)
   }
 
   return false;
+}
+
+bool radiolinkSendP2PPacketBroadcast(P2PPacket *p)
+{
+  static SyslinkPacket slp;
+
+  ASSERT(p->size <= P2P_MAX_DATA_SIZE);
+
+  slp.type = SYSLINK_RADIO_P2P_BROADCAST;
+  slp.length = p->size + 1;
+  memcpy(slp.data, p->raw, p->size + 1);
+
+  syslinkSendPacket(&slp);
+  ledseqRun(LINK_DOWN_LED, seq_linkup);
+
+  return true;
 }
 
 struct crtpLinkOperations * radiolinkGetLink()
