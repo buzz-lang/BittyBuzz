@@ -92,8 +92,9 @@ void handleOutgoingRadioMessage() {
         P2PPacket pk;
         pk.port = BROADCAST_PORT;
         // Max size possible for a broadcast packet
-        pk.size = PAYLOAD_MAX_SIZE - 2;
-        memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE - 2);
+        pk.size = PAYLOAD_MAX_SIZE;
+        memset(pk.data, 0, PAYLOAD_MAX_SIZE);
+        memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE);
         DEBUG_PRINT("Broadcast: %s\n", radiolinkSendP2PPacketBroadcast(&pk) ? "Success" : "Failed");
         message_tx_success();
     }
