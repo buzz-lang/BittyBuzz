@@ -1,0 +1,26 @@
+# EXPECTED BEHAVIOR :
+#
+# Robots with IDs equal to:
+# - 0: Takeoff on start, wait 3 secconds, send landing message and land 2 seconds after;
+# - any other id: Takeoff on start and land after receiving the landing message
+
+
+function init() {
+    neighbors.listen("land",
+        function(vid, value, rid) {
+            if (value == 1) {
+                land()
+            }
+        }
+    )
+    takeoff()
+}
+
+function step() {
+    if (id == 0) {
+        delay(3000) # Wait for a random delay
+        neighbors.broadcast("land", 1)
+        delay(2000) # Wait for a random delay and land
+        land()
+    }
+}
