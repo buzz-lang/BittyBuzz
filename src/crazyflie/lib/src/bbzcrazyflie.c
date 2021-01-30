@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "radiolink.h"
 
 // #include "led.h"
 
@@ -91,7 +92,7 @@ void handleOutgoingRadioMessage() {
         msg = message_tx();
         P2PPacket pk;
         pk.port = BROADCAST_PORT;
-        // Max size possible for a broadcast packet
+        // Max size possible for a broadcast packet: has to be small or equal to 30
         pk.size = PAYLOAD_MAX_SIZE;
         memset(pk.data, 0, PAYLOAD_MAX_SIZE);
         memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE);
