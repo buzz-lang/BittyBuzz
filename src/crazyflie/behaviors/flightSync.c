@@ -7,20 +7,58 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOSConfig.h"
+#include "stabilizer_types.h"
+#include "commander.h"
 
 void bbz_takeoff() {
 #ifndef DEBUG
-    uint16_t speed = (uint16_t)(0.6*(1<<16));
-    motorsSetRatio(MOTOR_M1, speed);
-    motorsSetRatio(MOTOR_M2, speed);
-    motorsSetRatio(MOTOR_M3, speed);
-    motorsSetRatio(MOTOR_M4, speed);
+    // setpoint_t *setpoint = malloc(sizeof(setpoint_t));
+    // memset(setpoint, 0, sizeof(setpoint_t));
+    // for (int i =0; i< 60; i++){ //takeoff;
+    //     setpoint->mode.z = modeAbs;
+    //     setpoint->position.z = 0.4;
+
+    //     setpoint->mode.yaw = modeVelocity;
+    //     setpoint->attitudeRate.yaw = 0;
+
+    //     setpoint->mode.x = modeVelocity;
+    //     setpoint->mode.y = modeVelocity;
+    //     setpoint->velocity.x = 0;
+    //     setpoint->velocity.y = 0;
+
+    //     setpoint->velocity_body = true;
+
+    //     commanderSetSetpoint(setpoint, 3);
+	// 	vTaskDelay(M2T(100));
+	// }
+    // memset(setpoint, 0, sizeof(setpoint_t));
+    // commanderSetSetpoint(setpoint, 3);
+    // uint16_t speed = (uint16_t)(0.6*(1<<16));
+    // motorsSetRatio(MOTOR_M1, speed);
+    // motorsSetRatio(MOTOR_M2, speed);
+    // motorsSetRatio(MOTOR_M3, speed);
+    // motorsSetRatio(MOTOR_M4, speed);
 #endif
     bbzvm_ret0();
 }
 
 void bbz_land() {
 #ifndef DEBUG
+    // for (int i =0; i< 10; i++){ //takeoff;
+    //     setpoint_t *setpoint = malloc(sizeof(setpoint_t));
+    //     memset(setpoint, 0, sizeof(setpoint_t));
+    //     setpoint->mode.z = modeAbs;
+    //     setpoint->position.z = 0.0;
+
+    //     setpoint->mode.x = modeVelocity;   			
+    //     setpoint->mode.y = modeVelocity;			
+    //     setpoint->velocity.x = 0;					
+    //     setpoint->velocity.y = 0;	
+    //     setpoint->velocity_body = true;
+
+    //     commanderSetSetpoint(setpoint, 3);
+	// 	vTaskDelay(M2T(100));
+	// }
     motorsSetRatio(MOTOR_M1, 0);
     motorsSetRatio(MOTOR_M2, 0);
     motorsSetRatio(MOTOR_M3, 0);

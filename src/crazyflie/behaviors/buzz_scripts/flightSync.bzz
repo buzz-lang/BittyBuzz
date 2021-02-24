@@ -13,14 +13,9 @@ function init() {
             }
         }
     )
-    takeoff()
+    #takeoff()
 }
 
 function step() {
-    if (id == 0) {
-        delay(3000) # Wait for a random delay
-        neighbors.broadcast("land", 1)
-        delay(2000) # Wait for a random delay and land
-        land()
-    }
+    
 }
