@@ -43,6 +43,7 @@
 #include "config.h"
 #include "system.h"
 #include "platform.h"
+#include "storage.h"
 #include "configblock.h"
 #include "worker.h"
 #include "freeRTOSdebug.h"
@@ -61,18 +62,32 @@
 #include "buzzer.h"
 #include "sound.h"
 #include "sysload.h"
+#include "estimator_kalman.h"
 #include "deck.h"
 #include "extrx.h"
+#include "app.h"
+#include "static_mem.h"
+#include "peer_localization.h"
+#include "cfassert.h"
+#include "i2cdev.h"
 
-#include "bbzcrazyflie.h"
+#ifndef START_DISARMED
+#define ARM_INIT true
+#else
+#define ARM_INIT false
+#endif
 
 /* Private variable */
 static bool selftestPassed;
-static bool canFly;
+static bool armed = ARM_INIT;
+static bool forceArm;
 static bool isInit;
+
+STATIC_MEM_TASK_ALLOC(systemTask, SYSTEM_TASK_STACKSIZE);
 
 /* System wide synchronisation */
 xSemaphoreHandle canStartMutex;
+static StaticSemaphore_t canStartMutexBuffer;
 
 /* Private functions */
 static void systemTask(void *arg);
@@ -80,9 +95,7 @@ static void systemTask(void *arg);
 /* Public functions */
 void systemLaunch(void)
 {
-  xTaskCreate(systemTask, SYSTEM_TASK_NAME,
-              SYSTEM_TASK_STACKSIZE, NULL,
-              SYSTEM_TASK_PRI, NULL);
+  STATIC_MEM_TASK_CREATE(systemTask, systemTask, SYSTEM_TASK_NAME, NULL, SYSTEM_TASK_PRI);
 }
 
 // This must be the first module to be initialized!
@@ -91,18 +104,18 @@ void systemInit(void)
   if(isInit)
     return;
 
-  canStartMutex = xSemaphoreCreateMutex();
+  canStartMutex = xSemaphoreCreateMutexStatic(&canStartMutexBuffer);
   xSemaphoreTake(canStartMutex, portMAX_DELAY);
 
   usblinkInit();
   sysLoadInit();
 
-  /* Initialized hear and early so that DEBUG_PRINT (buffered) can be used early */
+  /* Initialized here so that DEBUG_PRINT (buffered) can be used early */
+  debugInit();
   crtpInit();
   consoleInit();
 
   DEBUG_PRINT("----------------------------\n");
-//   DEBUG_PRINT(P_NAME " is up and running!\n");
   DEBUG_PRINT("%s is up and running!\n", platformConfigGetDeviceTypeName());
   DEBUG_PRINT("Build %s:%s (%s) %s\n", V_SLOCAL_REVISION,
               V_SREVISION, V_STAG, (V_MODIFIED)?"MODIFIED":"CLEAN");
@@ -111,11 +124,17 @@ void systemInit(void)
               *((int*)(MCU_ID_ADDRESS+0)), *((short*)(MCU_FLASH_SIZE_ADDRESS)));
 
   configblockInit();
+  storageInit();
   workerInit();
   adcInit();
   ledseqInit();
   pmInit();
   buzzerInit();
+  peerLocalizationInit();
+
+#ifdef APP_ENABLED
+  appInit();
+#endif
 
   isInit = true;
 }
@@ -145,11 +164,15 @@ void systemTask(void *arg)
 #endif
 
 #ifdef ENABLE_UART1
-  uart1Init();
+  uart1Init(9600);
 #endif
 #ifdef ENABLE_UART2
-  uart2Init();
+  uart2Init(115200);
 #endif
+
+  initUsecTimer();
+  i2cdevInit(I2C3_DEV);
+  i2cdevInit(I2C1_DEV);
 
   //Init the high-levels modules
   systemInit();
@@ -157,6 +180,7 @@ void systemTask(void *arg)
   commanderInit();
 
   StateEstimatorType estimator = anyEstimator;
+  estimatorKalmanTaskInit();
   deckInit();
   estimator = deckGetRequiredEstimator();
   stabilizerInit(estimator);
@@ -174,13 +198,17 @@ void systemTask(void *arg)
   //Test the modules
   pass &= systemTest();
   pass &= configblockTest();
+  pass &= storageTest();
   pass &= commTest();
   pass &= commanderTest();
   pass &= stabilizerTest();
+  pass &= estimatorKalmanTaskTest();
   pass &= deckTest();
   pass &= soundTest();
   pass &= memTest();
   pass &= watchdogNormalStartTest();
+  pass &= cfAssertNormalStartTest();
+  pass &= peerLocalizationTest();
 
   //Start the firmware
   if(pass)
@@ -188,8 +216,8 @@ void systemTask(void *arg)
     selftestPassed = 1;
     systemStart();
     soundSetEffect(SND_STARTUP);
-    ledseqRun(SYS_LED, seq_alive);
-    ledseqRun(LINK_LED, seq_testPassed);
+    ledseqRun(&seq_alive);
+    ledseqRun(&seq_testPassed);
   }
   else
   {
@@ -198,12 +226,12 @@ void systemTask(void *arg)
     {
       while(1)
       {
-        ledseqRun(ERR_LED2, seq_testPassed); //Red passed == not passed!
+        ledseqRun(&seq_testFailed);
         vTaskDelay(M2T(2000));
         // System can be forced to start by setting the param to 1 from the cfclient
         if (selftestPassed)
         {
-          DEBUG_PRINT("Start forced.\n");
+	        DEBUG_PRINT("Start forced.\n");
           systemStart();
           break;
         }
@@ -212,7 +240,7 @@ void systemTask(void *arg)
     else
     {
       ledInit();
-      ledSet(ERR_LED2, true);
+      ledSet(SYS_LED, true);
     }
   }
   DEBUG_PRINT("Free heap: %d bytes\n", xPortGetFreeHeapSize());
@@ -228,7 +256,7 @@ void systemTask(void *arg)
 /* Global system variables */
 void systemStart()
 {
-  xSemaphoreGive(canStartMutex);  
+  xSemaphoreGive(canStartMutex);
 #ifndef DEBUG
   watchdogInit();
 #endif
@@ -245,14 +273,15 @@ void systemWaitStart(void)
   xSemaphoreGive(canStartMutex);
 }
 
-void systemSetCanFly(bool val)
+void systemSetArmed(bool val)
 {
-  canFly = val;
+  armed = val;
 }
 
-bool systemCanFly(void)
+bool systemIsArmed()
 {
-  return canFly;
+
+  return armed || forceArm;
 }
 
 void vApplicationIdleHook( void )
@@ -283,10 +312,11 @@ PARAM_ADD(PARAM_UINT32 | PARAM_RONLY, id2, MCU_ID_ADDRESS+8)
 PARAM_GROUP_STOP(cpu)
 
 PARAM_GROUP_START(system)
-PARAM_ADD(PARAM_INT8, selftestPassed, &selftestPassed)
+PARAM_ADD(PARAM_INT8 | PARAM_RONLY, selftestPassed, &selftestPassed)
+PARAM_ADD(PARAM_INT8, forceArm, &forceArm)
 PARAM_GROUP_STOP(sytem)
 
 /* Loggable variables */
 LOG_GROUP_START(sys)
-LOG_ADD(LOG_INT8, canfly, &canFly)
+LOG_ADD(LOG_INT8, armed, &armed)
 LOG_GROUP_STOP(sys)

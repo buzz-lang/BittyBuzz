@@ -18,12 +18,12 @@ function init() {
         }
     )
     takeoff()
-    delay(4000)
+    move_to()
     land()
 }
 
 function step() {
-    if (id == 1) {
+    if (id == 0) {
         neighbors.broadcast("test", 42)
         led(0, 1) # RED ON
         delay(1000)

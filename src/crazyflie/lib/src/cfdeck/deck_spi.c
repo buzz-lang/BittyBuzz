@@ -37,11 +37,11 @@
 #include "config.h"
 #include "nvicconf.h"
 
-#define SPI                           SPI1
-#define SPI_CLK                       RCC_APB2Periph_SPI1
-#define SPI_CLK_INIT                  RCC_APB2PeriphClockCmd
-#define SPI_IRQ_HANDLER               SPI1_IRQHandler
-#define SPI_IRQn                      SPI1_IRQn
+#define SPI                     SPI1
+#define SPI_CLK                 RCC_APB2Periph_SPI1
+#define SPI_CLK_INIT            RCC_APB2PeriphClockCmd
+#define SPI_IRQ_HANDLER         SPI1_IRQHandler
+#define SPI_IRQn                SPI1_IRQn
 
 #define SPI_DMA_IRQ_PRIO        (NVIC_HIGH_PRI)
 #define SPI_DMA                 DMA2
@@ -60,23 +60,24 @@
 #define SPI_RX_DMA_CHANNEL      DMA_Channel_3
 #define SPI_RX_DMA_FLAG_TCIF    DMA_FLAG_TCIF0
 
-#define SPI_SCK_PIN                   GPIO_Pin_5
-#define SPI_SCK_GPIO_PORT             GPIOA
-#define SPI_SCK_GPIO_CLK              RCC_AHB1Periph_GPIOA
-#define SPI_SCK_SOURCE                GPIO_PinSource5
-#define SPI_SCK_AF                    GPIO_AF_SPI1
+#define SPI_SCK_PIN             GPIO_Pin_5
+#define SPI_SCK_GPIO_PORT       GPIOA
+#define SPI_SCK_GPIO_CLK        RCC_AHB1Periph_GPIOA
+#define SPI_SCK_SOURCE          GPIO_PinSource5
+#define SPI_SCK_AF              GPIO_AF_SPI1
 
-#define SPI_MISO_PIN                  GPIO_Pin_6
-#define SPI_MISO_GPIO_PORT            GPIOA
-#define SPI_MISO_GPIO_CLK             RCC_AHB1Periph_GPIOA
-#define SPI_MISO_SOURCE               GPIO_PinSource6
-#define SPI_MISO_AF                   GPIO_AF_SPI1
+#define SPI_MISO_PIN            GPIO_Pin_6
+#define SPI_MISO_GPIO_PORT      GPIOA
+#define SPI_MISO_GPIO_CLK       RCC_AHB1Periph_GPIOA
+#define SPI_MISO_SOURCE         GPIO_PinSource6
+#define SPI_MISO_AF             GPIO_AF_SPI1
 
-#define SPI_MOSI_PIN                  GPIO_Pin_7
-#define SPI_MOSI_GPIO_PORT            GPIOA
-#define SPI_MOSI_GPIO_CLK             RCC_AHB1Periph_GPIOA
-#define SPI_MOSI_SOURCE               GPIO_PinSource7
-#define SPI_MOSI_AF                   GPIO_AF_SPI1
+#define SPI_MOSI_PIN            GPIO_Pin_7
+#define SPI_MOSI_GPIO_PORT      GPIOA
+#define SPI_MOSI_GPIO_CLK       RCC_AHB1Periph_GPIOA
+#define SPI_MOSI_SOURCE         GPIO_PinSource7
+#define SPI_MOSI_AF             GPIO_AF_SPI1
+
 
 #define DUMMY_BYTE         0xA5
 
@@ -88,6 +89,7 @@ static SemaphoreHandle_t spiMutex;
 
 static void spiDMAInit();
 static void spiConfigureWithSpeed(uint16_t baudRatePrescaler);
+
 
 void spiBegin(void)
 {
@@ -119,7 +121,11 @@ void spiBegin(void)
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+#ifdef DECK_SPI_MODE3
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+#else
   GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
+#endif
 
   /*!< SPI SCK pin configuration */
   GPIO_InitStructure.GPIO_Pin = SPI_SCK_PIN;
@@ -195,8 +201,13 @@ static void spiConfigureWithSpeed(uint16_t baudRatePrescaler)
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
   SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
+#ifdef DECK_SPI_MODE3
+  SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;
+  SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;
+#else
   SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
   SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+#endif
   SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
   SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
   SPI_InitStructure.SPI_CRCPolynomial = 0; // Not used
@@ -212,6 +223,9 @@ bool spiTest(void)
 
 bool spiExchange(size_t length, const uint8_t * data_tx, uint8_t * data_rx)
 {
+  ASSERT_DMA_SAFE(data_tx);
+  ASSERT_DMA_SAFE(data_rx);
+
   // DMA already configured, just need to set memory addresses
   SPI_TX_DMA_STREAM->M0AR = (uint32_t)data_tx;
   SPI_TX_DMA_STREAM->NDTR = length;

@@ -38,14 +38,13 @@
 #include "crtp_localization_service.h"
 
 #include "stabilizer_types.h"
-#include "estimator_kalman.h"
+#include "estimator.h"
 #include "cf_math.h"
 
 #include "physicalConstants.h"
 #include "configblock.h"
 #include "lpsTdma.h"
-
-#define ANTENNA_OFFSET 154.6   // In meter
+#include "static_mem.h"
 
 // Config
 static lpsTwrAlgoOptions_t defaultOptions = {
@@ -64,7 +63,7 @@ static lpsTwrAlgoOptions_t defaultOptions = {
      0xbccf000000000007,
  #endif
    },
-   .antennaDelay = (ANTENNA_OFFSET*499.2e6*128)/299792458.0, // In radio tick
+   .antennaDelay = LOCODECK_ANTENNA_DELAY,
    .rangingFailedThreshold = 6,
 
    .combinedAnchorPositionOk = false,
@@ -100,7 +99,7 @@ static lpsTwrAlgoOptions_t* options = &defaultOptions;
 // Outlier rejection
 #define RANGING_HISTORY_LENGTH 32
 #define OUTLIER_TH 4
-static struct {
+NO_DMA_CCM_SAFE_ZERO_INIT static struct {
   float32_t history[RANGING_HISTORY_LENGTH];
   size_t ptr;
 } rangingStats[LOCODECK_NR_OF_TWR_ANCHORS];
@@ -258,7 +257,7 @@ static uint32_t rxcallback(dwDevice_t *dev) {
         dist.y = options->anchorPosition[current_anchor].y;
         dist.z = options->anchorPosition[current_anchor].z;
         dist.stdDev = 0.25;
-        estimatorKalmanEnqueueDistance(&dist);
+        estimatorEnqueueDistance(&dist);
       }
 
       if (options->useTdma && current_anchor == 0) {

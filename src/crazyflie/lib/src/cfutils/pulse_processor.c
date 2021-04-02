@@ -1,237 +1,157 @@
+/**
+ * ,---------,       ____  _ __
+ * |  ,-^-,  |      / __ )(_) /_______________ _____  ___
+ * | (  O  ) |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
+ * | / ,--´  |    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
+ *    +------`   /_____/_/\__/\___/_/   \__,_/ /___/\___/
+ *
+ * Crazyflie control firmware
+ *
+ * Copyright (C) 2019 - 2020 Bitcraze AB
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, in version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * pulse_processor.c - pulse decoding for lighthouse V1 base stations
+ *
+ */
+
 #include "pulse_processor.h"
-
-#include <math.h>
-#include "test_support.h"
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-// Decoding contants
-// Times are expressed in a 48MHz clock
-#define FRAME_LENGTH 400000    // 8.333ms
-#define SWEEP_MAX_WIDTH 1024    // 20us
-#define SWEEP_CENTER 192000    // 4ms
-#define SYNC_BASE_WIDTH 2750
-#define SYNC_DIVIDER 500
-#define SYNC_MAX_SEPARATION 25000   // More than 400us (400us is 19200)
-#define SYNC_SEPARATION 19200
-#define SENSOR_MAX_DISPERTION 10
-#define MAX_FRAME_LENGTH_NOISE 40
-
-// Utility functions and macros
-#define TS_DIFF(X, Y) ((X-Y)&((1<<TIMESTAMP_BITWIDTH)-1))
-
-
-TESTABLE_STATIC bool findSyncTime(const pulseProcessorPulse_t pulseHistory[], uint32_t *foundSyncTime);
-TESTABLE_STATIC bool getSystemSyncTime(const uint32_t syncTimes[], size_t nSyncTimes, uint32_t *syncTime);
-
-
-// static bool resetSynchonization(pulseProcessor_t *state)
-// {
-//   state->synchronized = false;
-//   memset(state->pulseHistoryPtr, 0, sizeof(state->pulseHistoryPtr));
-// }
-
-static void synchronize(pulseProcessor_t *state, int sensor, uint32_t timestamp, uint32_t width)
-{
-  state->pulseHistory[sensor][state->pulseHistoryPtr[sensor]].timestamp = timestamp;
-  state->pulseHistory[sensor][state->pulseHistoryPtr[sensor]].width = width;
-
-  state->pulseHistoryPtr[sensor] += 1;
-
-  // As soon as one of the history buffer is full, run the syncrhonization algorithm!
-  if (state->pulseHistoryPtr[sensor] == PULSE_PROCESSOR_HISTORY_LENGTH) {
-    static uint32_t syncTimes[PULSE_PROCESSOR_HISTORY_LENGTH];
-    size_t nSyncTimes = 0;
-
-    for (int i=0; i<PULSE_PROCESSOR_HISTORY_LENGTH; i++) {
-      if (findSyncTime(state->pulseHistory[i], &syncTimes[nSyncTimes])) {
-        nSyncTimes += 1;
-      }
-
-      if (getSystemSyncTime(syncTimes, nSyncTimes, &state->currentSync0)) {
-        state->synchronized = true;
-        state->lastSync = state->currentSync0;
-        state->currentSync1 = state->currentSync0 + SYNC_SEPARATION;
-      }
-    }
-  }
-}
-
-static bool isSweep(pulseProcessor_t *state, unsigned int timestamp, int width)
-{
-  int delta = TS_DIFF(timestamp, state->lastSync);
-  return ((delta > SYNC_MAX_SEPARATION) && (delta < (FRAME_LENGTH - (2*SYNC_MAX_SEPARATION)))) || (width < SWEEP_MAX_WIDTH);
-}
-
-static bool getAxis(int width)
-{
-  return (((width-SYNC_BASE_WIDTH)/SYNC_DIVIDER)&0x01) != 0;
-}
-
-static bool getSkip(int width)
-{
-  return (((width-SYNC_BASE_WIDTH)/SYNC_DIVIDER)&0x04) != 0;
-}
-
-
-static bool processWhenSynchronized(pulseProcessor_t *state, unsigned int timestamp, unsigned int width, float *angle, int *baseStation, int *axis) {
-  bool angleMeasured = false;
-
-  if (isSweep(state, timestamp, width)) {
-    int delta = TS_DIFF(timestamp, state->currentSync);
-
-    if (delta < FRAME_LENGTH) {
-      *angle = (delta - SWEEP_CENTER)*(float)M_PI/FRAME_LENGTH;
-      *baseStation = state->currentBs;
-      *axis = state->currentAxis;
-      angleMeasured = true;
-    }
-
-    state->currentSync = 0;
-  } else {
-    if (TS_DIFF(timestamp, state->lastSync) > SYNC_MAX_SEPARATION) {
-      // This is sync0
-      if (!getSkip(width)) {
-        state->currentBs = 0;
-        state->currentAxis = getAxis(width);
-        state->currentSync = timestamp;
-      }
-    } else {
-      // this is sync1
-      if (!getSkip(width)) {
-        state->currentBs = 1;
-        state->currentAxis = getAxis(width);
-        state->currentSync = timestamp;
-      }
-    }
-
-    state->lastSync = timestamp;
-  }
-
-  return angleMeasured;
-}
-
-
-bool pulseProcessorProcessPulse(pulseProcessor_t *state, unsigned int timestamp, unsigned int width, float *angle, int *baseStation, int *axis)
-{
-  bool angleMeasured = false;
-
-  if (!state->synchronized) {
-    synchronize(state, 0, timestamp, width);
-  } else {
-    angleMeasured = processWhenSynchronized(state, timestamp, width, angle, baseStation, axis);
-  }
-
-  return angleMeasured;
-}
+#include "pulse_processor_v1.h"
+#include "pulse_processor_v2.h"
+#include "cf_math.h"
 
 
 /**
- * @brief Find the timestamp of a SYNC0 pulse detectable in pulseHistory
+ * @brief Apply calibration data to the raw angles and write it to the correctedAngles member.
+ * If no calibration data is available, the raw angles are simply copied to correctedAngles.
  *
- * @param pulseHistory PULSE_PROCESSOR_HISTORY_LENGTH pulses
- * @param[out] foundSyncTime Timestamp of the fist Sync0 written in this variable
- * @return true if the Sync0 was found
- * @return false if no Sync0 found
+ * @param state State that contains the calibration data
+ * @param angles The raw and calibrated angles
+ * @param baseStation The base station in question
  */
-TESTABLE_STATIC bool findSyncTime(const pulseProcessorPulse_t pulseHistory[], uint32_t *foundSyncTime)
-{
-  int nFound = 0;
-  bool wasSweep = false;
-  uint32_t foundTimes[2];
-  
-  for (int i=0; i<PULSE_PROCESSOR_HISTORY_LENGTH; i++) {
-    if (wasSweep && pulseHistory[i].width > SWEEP_MAX_WIDTH) {
-      foundTimes[nFound] = pulseHistory[i].timestamp;
+bool pulseProcessorApplyCalibration(pulseProcessor_t *state, pulseProcessorResult_t* angles, int baseStation){
+  const lighthouseCalibration_t* calibrationData = &state->bsCalibration[baseStation];
+  const bool doApplyCalibration = calibrationData->valid;
 
-      nFound++;
-      if (nFound == 2) {
-        break;
+  pulseProcessorSensorMeasurement_t* sensorMeasurements = angles->sensorMeasurementsLh1;
+  if (lighthouseBsTypeV2 == angles->measurementType) {
+    sensorMeasurements = angles->sensorMeasurementsLh2;
+  }
+
+  for (int sensor = 0; sensor < PULSE_PROCESSOR_N_SENSORS; sensor++) {
+    pulseProcessorBaseStationMeasuremnt_t* bsMeasurement = &sensorMeasurements[sensor].baseStatonMeasurements[baseStation];
+    if (doApplyCalibration) {
+      if (lighthouseBsTypeV2 == angles->measurementType) {
+        lighthouseCalibrationApplyV2(calibrationData, bsMeasurement->angles, bsMeasurement->correctedAngles);
+      } else {
+        lighthouseCalibrationApplyV1(calibrationData, bsMeasurement->angles, bsMeasurement->correctedAngles);
       }
-    }
-    
-    if (pulseHistory[i].width < SWEEP_MAX_WIDTH) {
-      wasSweep = true;
     } else {
-      wasSweep = false;
+      lighthouseCalibrationApplyNothing(bsMeasurement->angles, bsMeasurement->correctedAngles);
     }
   }
 
-  *foundSyncTime = foundTimes[0];
-
-  uint32_t delta = TS_DIFF(foundTimes[1], foundTimes[0]);
-
-  return (nFound == 2 && delta < (FRAME_LENGTH + MAX_FRAME_LENGTH_NOISE) && delta > (FRAME_LENGTH - MAX_FRAME_LENGTH_NOISE));
+  return doApplyCalibration;
 }
 
 /**
- * @brief Get the System Sync time from sampled Sync0 time from multiple sensors
+ * Clear angles information when we know that data became old when it wasn't updated anymore.
+ * For example when basestations or sensors are hidden for crazyflie
  *
- * This function places the Sync0 timestamps modulo the lighthouse V1 frame length
- * to estimate if they can possibly be coming from the same lighthouse system.
- * This allows to check that the sampling done on multiple receiving sensor is
- * consistent.
- *
- * @param syncTimes Array of Sync0 timestamps
- * @param nSyncTimes Number of timestamps in syncTimes array
- * @param[out] syncTime Pointer to the variable where the resulting sync time is written
- * @return true If an acceptable sync time could be calculated
- * @return false If the sampled Sync0 timestamps do not make sense
+ * @param appState State that contains the calibration data
+ * @param angles The raw and calibrated angles
+ * @param baseStation The base station in question
  */
-TESTABLE_STATIC bool getSystemSyncTime(const uint32_t syncTimes[], size_t nSyncTimes, uint32_t *syncTime)
+void pulseProcessorClearOutdated(pulseProcessor_t *appState, pulseProcessorResult_t* angles, int basestation) {
+  // Repeated sweep from the same basestation. So in theory we did a cycle, so we should have had all basestations.
+  // If not, cleanup the basestation that we didn't receive.
+  if(appState->receivedBsSweep[basestation]) {
+    for(int bs=0; bs != PULSE_PROCESSOR_N_BASE_STATIONS; bs++){
+      if(!appState->receivedBsSweep[bs]){
+        pulseProcessorClear(angles, bs);
+      }
+      appState->receivedBsSweep[bs] = false;
+    }
+  }
+  appState->receivedBsSweep[basestation] = true;
+}
+
+/**
+ * @brief Update the information about what angles and what basestations are having correct data
+ *
+ * @param angles The result struct to clear
+ * @param baseStation The base station
+ */
+void processValidAngles(pulseProcessorResult_t* angles, int baseStation)
 {
-  if (nSyncTimes == 0) {
-    return false;
+  switch(angles->measurementType) {
+    case lighthouseBsTypeV1:
+      pulseProcessorV1ProcessValidAngles(angles, baseStation);
+      break;
+    default:
+      // Do nothing
+      break;
   }
+}
 
-  // Detect if samples are wrapping
-  // If the samples are wrapping, all samples bellow TIMESTAMP_MAX/2 will
-  // be pushed by (1<<TIMESTAMP_BITWIDTH) to correct the wrapping
-  bool isWrapping = false;
-  int wref = syncTimes[0];
-  for (size_t i=0; i<nSyncTimes; i++) {
-    if (abs(wref - (int)syncTimes[i]) > (TIMESTAMP_MAX/2)) {
-      isWrapping = true;
+/**
+ * @brief Clear the result struct for one base station when the sensor data invalidated
+ *
+ * @param angles The result struct to clear
+ * @param baseStation The base station
+ */
+void pulseProcessorClear(pulseProcessorResult_t* angles, int baseStation)
+{
+  for (size_t sensor = 0; sensor < PULSE_PROCESSOR_N_SENSORS; sensor++) {
+    angles->sensorMeasurementsLh1[sensor].baseStatonMeasurements[baseStation].validCount = 0;
+    angles->sensorMeasurementsLh2[sensor].baseStatonMeasurements[baseStation].validCount = 0;
+  }
+  processValidAngles(angles, baseStation);
+}
+
+/**
+ * @brief Clear result struct when the sensor data is invalidated
+ *
+ * @param angles
+ */
+void pulseProcessorAllClear(pulseProcessorResult_t* angles)
+{
+  for (int baseStation = 0; baseStation < PULSE_PROCESSOR_N_BASE_STATIONS; baseStation++) {
+    for (size_t sensor = 0; sensor < PULSE_PROCESSOR_N_SENSORS; sensor++) {
+      angles->sensorMeasurementsLh1[sensor].baseStatonMeasurements[baseStation].validCount = 0;
+      angles->sensorMeasurementsLh2[sensor].baseStatonMeasurements[baseStation].validCount = 0;
     }
+    processValidAngles(angles, baseStation);
   }
+}
 
-  int32_t differenceSum = 0;
-  int32_t reference = syncTimes[0] % FRAME_LENGTH;
-  if (isWrapping && syncTimes[0] < (TIMESTAMP_MAX/2)) {
-    reference = (syncTimes[0] + (1<<TIMESTAMP_BITWIDTH)) % FRAME_LENGTH;
+/**
+ * @brief Clear the result struct for one base station when the data is processed and converted to measurements
+ *
+ * @param angles The result struct to clear
+ * @param baseStation The base station
+ */
+void pulseProcessorProcessed(pulseProcessorResult_t* angles, int baseStation)
+{
+  processValidAngles(angles, baseStation);
+
+  for (size_t sensor = 0; sensor < PULSE_PROCESSOR_N_SENSORS; sensor++) {
+    angles->sensorMeasurementsLh1[sensor].baseStatonMeasurements[baseStation].validCount = 0;
+    angles->sensorMeasurementsLh2[sensor].baseStatonMeasurements[baseStation].validCount = 0;
   }
+}
 
-  int minDiff = INT32_MAX;
-  int maxDiff = INT32_MIN;
-
-  for (size_t i=1; i<nSyncTimes; i++) {
-    int diff;
-    
-    if (isWrapping && (syncTimes[i] < (TIMESTAMP_MAX/2))) {
-      diff = ((syncTimes[i] + (1<<TIMESTAMP_BITWIDTH)) % FRAME_LENGTH) - reference;
-    } else {
-      diff = (syncTimes[i] % FRAME_LENGTH) - reference;
-    }
-     
-
-    if (diff < minDiff) {
-      minDiff = diff;
-    }
-    if (diff > maxDiff) {
-      maxDiff = diff;
-    }
-
-    differenceSum += diff;
-  }
-
-  if ((maxDiff - minDiff) > MAX_FRAME_LENGTH_NOISE) {
-    return false;
-  }
-
-  *syncTime = ((int)syncTimes[0] + ((int)differenceSum / (int)nSyncTimes)) & (TIMESTAMP_MAX);
-  
-
-  return true;
+uint8_t pulseProcessorAnglesQuality() {
+  return MAX(pulseProcessorV1AnglesQuality(), pulseProcessorV2AnglesQuality());
 }

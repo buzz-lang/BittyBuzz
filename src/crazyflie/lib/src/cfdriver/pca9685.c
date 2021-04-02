@@ -104,10 +104,6 @@ static uint16_t dutyToDuration(float duty)
 
 bool pca9685init(int addr, float pwmFreq)
 {
-  if (!i2cdevInit(I2C1_DEV)) {
-    return false;
-  }
-
   // initial state is sleeping.
   // must be asleep to set PWM freq.
 
@@ -137,7 +133,7 @@ bool pca9685setDuties(
     durationToBytes(duration, data + 4*i);
   }
   int const reg = channelReg(chanBegin);
-  return i2cdevWrite(&deckBus, addr, reg, 4*nChan, data);
+  return i2cdevWriteReg8(&deckBus, addr, reg, 4*nChan, data);
 }
 
 bool pca9685setDurations(
@@ -148,7 +144,7 @@ bool pca9685setDurations(
     durationToBytes(durations[i], data + 4*i);
   }
   int const reg = channelReg(chanBegin);
-  return i2cdevWrite(&deckBus, addr, reg, 4*nChan, data);
+  return i2cdevWriteReg8(&deckBus, addr, reg, 4*nChan, data);
 }
 
 //
@@ -160,6 +156,7 @@ bool pca9685setDurations(
 #include "task.h"
 #include "queue.h"
 #include "config.h"
+#include "static_mem.h"
 
 struct asyncRequest
 {
@@ -173,7 +170,10 @@ struct asyncRequest
 static struct asyncRequest reqPop;
 
 static TaskHandle_t task;
-static QueueHandle_t queue;
+STATIC_MEM_TASK_ALLOC(task, PCA9685_TASK_STACKSIZE);
+
+static xQueueHandle queue;
+STATIC_MEM_QUEUE_ALLOC(queue, 1, sizeof(struct asyncRequest));
 
 static void asyncTask(__attribute__((unused)) void *param)
 {
@@ -189,20 +189,13 @@ static void asyncTask(__attribute__((unused)) void *param)
 
 bool pca9685startAsyncTask()
 {
-  queue = xQueueCreate(1, sizeof(struct asyncRequest));
+  queue = STATIC_MEM_QUEUE_CREATE(queue);
   if (queue == 0) {
     return false;
   }
 
-  BaseType_t xReturned = xTaskCreate(
-    &asyncTask,
-    PCA9685_TASK_NAME,
-    PCA9685_TASK_STACKSIZE,
-    NULL,
-    PCA9685_TASK_PRI - 1,
-    &task);
-
-  return xReturned == pdPASS;
+  task = STATIC_MEM_TASK_CREATE(task, asyncTask, PCA9685_TASK_NAME, NULL, PCA9685_TASK_PRI);
+  return true;
 }
 
 bool pca9685setDutiesAsync(

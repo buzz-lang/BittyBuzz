@@ -13,6 +13,8 @@
 #include "commander.h"
 #include "stabilizer_types.h"
 
+#include <string.h>
+
 void bbz_led() {
     bbzvm_assert_lnum(2);
 #ifndef DEBUG
@@ -26,64 +28,104 @@ void bbz_led() {
 
 void bbz_takeoff() {
 #ifndef DEBUG
-    setpoint_t setpoint;
-    memset(&setpoint, 0, sizeof(setpoint_t));
-    setpoint.mode.x = modeAbs;
-    setpoint.mode.y = modeAbs;
-    setpoint.mode.z = modeAbs;
+    setpoint_t *setpoint = malloc(sizeof(sizeof(setpoint_t)));
+    memset(setpoint, 0, sizeof(setpoint_t));
 
-    setpoint.position.x = 0;
-    setpoint.position.y = 0;
-    setpoint.position.z = 2;
+    for (int i = 0; i <= 10; i++) {
 
-    setpoint.mode.yaw = modeAbs;
-    setpoint.attitude.yaw = 0;
-    commanderSetSetpoint(&setpoint, COMMANDER_PRIORITY_EXTRX);
-    // uint16_t speed = (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 250;
-    // for(int i = 1; i <= speed; i += 2) {
-    //     motorsBeep(MOTOR_M1, false, G6, i);
-    //     motorsBeep(MOTOR_M2, false, G6, i);
-    //     motorsBeep(MOTOR_M3, false, G6, i);
-    //     motorsBeep(MOTOR_M4, false, G6, i);
-    //     vTaskDelay(M2T(100));
-    // }
-    // motorsBeep(MOTOR_M1, false, G6, speed);
-    // motorsBeep(MOTOR_M2, false, G6, speed);
-    // motorsBeep(MOTOR_M3, false, G6, speed);
-    // motorsBeep(MOTOR_M4, false, G6, speed);
-    
+        setpoint-> mode.z = modeAbs;
+        setpoint->position.z = i/25.0;
+
+        setpoint->mode.yaw = modeVelocity;
+        setpoint->attitudeRate.yaw = 0.0;
+
+        setpoint->mode.x = modeVelocity;
+        setpoint->mode.y = modeVelocity;
+        setpoint->velocity.x = 0.0;
+        setpoint->velocity.y = 0.0;
+        setpoint->velocity_body = true;
+
+        commanderSetSetpoint(setpoint, 3);
+
+        vTaskDelay(M2T(100));
+    }    
     
 #endif
     bbzvm_ret0();
 }
 
+void bbz_move_to() {
+#ifndef DEBUG
+
+    setpoint_t *setpoint = malloc(sizeof(sizeof(setpoint_t)));
+    memset(setpoint, 0, sizeof(setpoint_t));
+    
+    for (int i = 0; i < 20; i++) {
+
+        setpoint-> mode.z = modeAbs;
+        setpoint->position.z = 0.4;
+
+        setpoint->mode.yaw = modeVelocity;
+        setpoint->attitudeRate.yaw = 0.0;
+
+        setpoint->mode.x = modeVelocity;
+        setpoint->mode.y = modeVelocity;
+        setpoint->velocity.x = 0.0;
+        setpoint->velocity.y = 0.0;
+        setpoint->velocity_body = true;
+
+        commanderSetSetpoint(setpoint, 3);
+
+        vTaskDelay(M2T(100));
+    }
+
+    for (int i = 0; i < 50; i++) {
+
+        setpoint-> mode.z = modeAbs;
+        setpoint->position.z = 0.4;
+
+        setpoint->mode.yaw = modeVelocity;
+        setpoint->attitudeRate.yaw = 36*2;
+
+        setpoint->mode.x = modeVelocity;
+        setpoint->mode.y = modeVelocity;
+        setpoint->velocity.x = 0.5;
+        setpoint->velocity.y = 0.0;
+        setpoint->velocity_body = true;
+
+        commanderSetSetpoint(setpoint, 3);
+
+        vTaskDelay(M2T(100));
+    }
+
+    for (int i = 0; i < 10; i++) {
+
+        setpoint-> mode.z = modeAbs;
+        setpoint->position.z = (10.0-i)/25.0;
+
+        setpoint->mode.yaw = modeVelocity;
+        setpoint->attitudeRate.yaw = 0;
+
+        setpoint->mode.x = modeVelocity;
+        setpoint->mode.y = modeVelocity;
+        setpoint->velocity.x = 0.0;
+        setpoint->velocity.y = 0.0;
+        setpoint->velocity_body = true;
+
+        commanderSetSetpoint(setpoint, 3);
+
+        vTaskDelay(M2T(100));
+    }
+    
+#endif
+}
+
 void bbz_land() {
 #ifndef DEBUG
-    // uint16_t speed = (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 250;
-    // for(int i = speed; i >= 0; i -= 2) {
-    //     motorsBeep(MOTOR_M1, false, G6, i);
-    //     motorsBeep(MOTOR_M2, false, G6, i);
-    //     motorsBeep(MOTOR_M3, false, G6, i);
-    //     motorsBeep(MOTOR_M4, false, G6, i);
-    //     vTaskDelay(M2T(100));
-    // }
-    // motorsBeep(MOTOR_M1, false, G6, 0);
-    // motorsBeep(MOTOR_M2, false, G6, 0);
-    // motorsBeep(MOTOR_M3, false, G6, 0);
-    // motorsBeep(MOTOR_M4, false, G6, 0);
-    setpoint_t setpoint;
-    memset(&setpoint, 0, sizeof(setpoint_t));
-    setpoint.mode.x = modeAbs;
-    setpoint.mode.y = modeAbs;
-    setpoint.mode.z = modeAbs;
-
-    setpoint.position.x = 0;
-    setpoint.position.y = 0;
-    setpoint.position.z = 0;
-
-    setpoint.mode.yaw = modeAbs;
-    setpoint.attitude.yaw = 0;
-    commanderSetSetpoint(&setpoint, COMMANDER_PRIORITY_EXTRX);
+    motorsBeep(MOTOR_M1, false, G6, 0);
+    motorsBeep(MOTOR_M2, false, G6, 0);
+    motorsBeep(MOTOR_M3, false, G6, 0);
+    motorsBeep(MOTOR_M4, false, G6, 0);
 #endif
     bbzvm_ret0();
 }
@@ -102,6 +144,7 @@ void setup() {
     bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(takeoff), bbz_takeoff);
     bbzvm_function_register(BBZSTRING_ID(land), bbz_land);
+    bbzvm_function_register(BBZSTRING_ID(move_to), bbz_move_to);
 }
 
 int main() {

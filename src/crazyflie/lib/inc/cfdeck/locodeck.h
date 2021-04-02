@@ -44,6 +44,8 @@
 // Timestamp counter frequency
 #define LOCODECK_TS_FREQ (499.2e6 * 128)
 
+#define LOCODECK_ANTENNA_OFFSET 154.6   // In meters
+#define LOCODECK_ANTENNA_DELAY  ((LOCODECK_ANTENNA_OFFSET * LOCODECK_TS_FREQ) / SPEED_OF_LIGHT) // In radio ticks
 
 typedef enum uwbEvent_e {
   eventTimeout,
@@ -72,12 +74,12 @@ typedef struct {
   volatile uint16_t rangingState;
 
   // Requested and current ranging mode
-  lpsMode_t rangingMode;
+  lpsMode_t userRequestedMode;
   lpsMode_t currentRangingMode;
 
   // State of the ranging mode auto detection
-  bool rangingModeDetected;
-  bool autoStarted;
+  bool modeAutoSearchDoInitialize;
+  bool modeAutoSearchActive;
   uint32_t nextSwitchTick;
 } lpsAlgoOptions_t;
 

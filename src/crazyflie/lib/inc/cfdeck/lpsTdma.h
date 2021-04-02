@@ -33,7 +33,7 @@
 #define __LPS_TDMA_H__
 
 #ifndef TDMA_NSLOTS_BITS
-#if LPS_TDMA_ENABLE
+#ifdef LPS_TDMA_ENABLE
 #warning "Number of slots bits for TDMA not defined! Defaulting to 1 (2 slots)."
 #endif
 #define TDMA_NSLOTS_BITS 1

@@ -41,42 +41,30 @@
 
 #ifndef CONFIG_H_
 #define CONFIG_H_
-
 #include "nrf24l01.h"
 
 #include "trace.h"
 #include "usec_time.h"
 
-#include <stdarg.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include "__cross_studio_io.h"
-
-/* Exported macro ------------------------------------------------------------*/
-#define BIT(x) (1<<(x))
-#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
-
-
 #define PROTOCOL_VERSION 4
 
 #ifdef STM32F4XX
- // #ifndef P_NAME
- //   #define P_NAME "Crazyflie 2.0"
- // #endif
   #define QUAD_FORMATION_X
 
   #define CONFIG_BLOCK_ADDRESS    (2048 * (64-1))
   #define MCU_ID_ADDRESS          0x1FFF7A10
   #define MCU_FLASH_SIZE_ADDRESS  0x1FFF7A22
-  #define FREERTOS_HEAP_SIZE      40000
-  #define FREERTOS_MIN_STACK_SIZE 150       // M4-FPU register setup is bigger so stack needs to be bigger. Originally: 150
+  #ifndef FREERTOS_HEAP_SIZE
+    #define FREERTOS_HEAP_SIZE      30000
+  #endif
+  #define FREERTOS_MIN_STACK_SIZE 150       // M4-FPU register setup is bigger so stack needs to be bigger
   #define FREERTOS_MCU_CLOCK_HZ   168000000
 
   #define configGENERATE_RUN_TIME_STATS 1
   #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() initUsecTimer()
   #define portGET_RUN_TIME_COUNTER_VALUE() usecTimestamp()
 #endif
+
 
 // Task priorities. Higher number higher priority
 #define STABILIZER_TASK_PRI     5
@@ -97,12 +85,26 @@
 #define PM_TASK_PRI             0
 #define USDLOG_TASK_PRI         1
 #define USDWRITE_TASK_PRI       0
-#define PCA9685_TASK_PRI        3
+#define PCA9685_TASK_PRI        2
 #define CMD_HIGH_LEVEL_TASK_PRI 2
+#define BQ_OSD_TASK_PRI         1
+#define GTGPS_DECK_TASK_PRI     1
+#define LIGHTHOUSE_TASK_PRI     3
+#define LPS_DECK_TASK_PRI       3
+#define OA_DECK_TASK_PRI        3
+#define UART1_TEST_TASK_PRI     1
+#define UART2_TEST_TASK_PRI     1
+#define KALMAN_TASK_PRI         2
+#define LEDSEQCMD_TASK_PRI      1
 #define BBZ_TASK_PRI            4
 
 #define SYSLINK_TASK_PRI        3
 #define USBLINK_TASK_PRI        3
+#define ACTIVE_MARKER_TASK_PRI  3
+#define AI_DECK_TASK_PRI        3
+#define UART2_TASK_PRI          3
+#define CRTP_SRV_TASK_PRI       0
+#define PLATFORM_SRV_TASK_PRI   0
 
 // Not compiled
 #if 0
@@ -113,6 +115,7 @@
 
 // Task names
 #define SYSTEM_TASK_NAME        "SYSTEM"
+#define LEDSEQCMD_TASK_NAME     "LEDSEQCMD"
 #define ADC_TASK_NAME           "ADC"
 #define PM_TASK_NAME            "PWRMGNT"
 #define CRTP_TX_TASK_NAME       "CRTP-TX"
@@ -138,23 +141,38 @@
 #define PCA9685_TASK_NAME       "PCA9685"
 #define CMD_HIGH_LEVEL_TASK_NAME "CMDHL"
 #define MULTIRANGER_TASK_NAME   "MR"
+#define BQ_OSD_TASK_NAME        "BQ_OSDTASK"
+#define GTGPS_DECK_TASK_NAME    "GTGPS"
+#define LIGHTHOUSE_TASK_NAME    "LH"
+#define LPS_DECK_TASK_NAME      "LPS"
+#define OA_DECK_TASK_NAME       "OA"
+#define UART1_TEST_TASK_NAME    "UART1TEST"
+#define UART2_TEST_TASK_NAME    "UART2TEST"
+#define KALMAN_TASK_NAME        "KALMAN"
+#define ACTIVE_MARKER_TASK_NAME "ACTIVEMARKER-DECK"
+#define AI_DECK_GAP_TASK_NAME   "AI-DECK-GAP"
+#define AI_DECK_NINA_TASK_NAME  "AI-DECK-NINA"
+#define UART2_TASK_NAME         "UART2"
+#define CRTP_SRV_TASK_NAME      "CRTP-SRV"
+#define PLATFORM_SRV_TASK_NAME  "PLATFORM-SRV"
 #define BBZ_TASK_NAME            "BBZ"
 
 //Task stack sizes
 #define SYSTEM_TASK_STACKSIZE         (2* configMINIMAL_STACK_SIZE)
+#define LEDSEQCMD_TASK_STACKSIZE      configMINIMAL_STACK_SIZE
 #define ADC_TASK_STACKSIZE            configMINIMAL_STACK_SIZE
 #define PM_TASK_STACKSIZE             configMINIMAL_STACK_SIZE
 #define CRTP_TX_TASK_STACKSIZE        configMINIMAL_STACK_SIZE
 #define CRTP_RX_TASK_STACKSIZE        (2* configMINIMAL_STACK_SIZE)
 #define CRTP_RXTX_TASK_STACKSIZE      configMINIMAL_STACK_SIZE
-#define LOG_TASK_STACKSIZE            configMINIMAL_STACK_SIZE
+#define LOG_TASK_STACKSIZE            (2 * configMINIMAL_STACK_SIZE)
 #define MEM_TASK_STACKSIZE            (2 * configMINIMAL_STACK_SIZE)
 #define PARAM_TASK_STACKSIZE          configMINIMAL_STACK_SIZE
 #define SENSORS_TASK_STACKSIZE        (2 * configMINIMAL_STACK_SIZE)
 #define STABILIZER_TASK_STACKSIZE     (3 * configMINIMAL_STACK_SIZE)
 #define NRF24LINK_TASK_STACKSIZE      configMINIMAL_STACK_SIZE
 #define ESKYLINK_TASK_STACKSIZE       configMINIMAL_STACK_SIZE
-#define SYSLINK_TASK_STACKSIZE        configMINIMAL_STACK_SIZE
+#define SYSLINK_TASK_STACKSIZE        (2 * configMINIMAL_STACK_SIZE)
 #define USBLINK_TASK_STACKSIZE        configMINIMAL_STACK_SIZE
 #define PROXIMITY_TASK_STACKSIZE      configMINIMAL_STACK_SIZE
 #define EXTRX_TASK_STACKSIZE          configMINIMAL_STACK_SIZE
@@ -163,10 +181,15 @@
 #define ZRANGER2_TASK_STACKSIZE       (2 * configMINIMAL_STACK_SIZE)
 #define FLOW_TASK_STACKSIZE           (2 * configMINIMAL_STACK_SIZE)
 #define USDLOG_TASK_STACKSIZE         (2 * configMINIMAL_STACK_SIZE)
-#define USDWRITE_TASK_STACKSIZE       (2 * configMINIMAL_STACK_SIZE)
+#define USDWRITE_TASK_STACKSIZE       (3 * configMINIMAL_STACK_SIZE)
 #define PCA9685_TASK_STACKSIZE        (2 * configMINIMAL_STACK_SIZE)
-#define CMD_HIGH_LEVEL_TASK_STACKSIZE configMINIMAL_STACK_SIZE
+#define CMD_HIGH_LEVEL_TASK_STACKSIZE (2 * configMINIMAL_STACK_SIZE)
 #define MULTIRANGER_TASK_STACKSIZE    (2 * configMINIMAL_STACK_SIZE)
+#define ACTIVEMARKER_TASK_STACKSIZE   configMINIMAL_STACK_SIZE
+#define AI_DECK_TASK_STACKSIZE        configMINIMAL_STACK_SIZE
+#define UART2_TASK_STACKSIZE          configMINIMAL_STACK_SIZE
+#define CRTP_SRV_TASK_STACKSIZE       configMINIMAL_STACK_SIZE
+#define PLATFORM_SRV_TASK_STACKSIZE   configMINIMAL_STACK_SIZE
 #define BBZ_TASK_STACKSIZE            (3 * configMINIMAL_STACK_SIZE)
 
 ///////////////////////////////////
@@ -199,6 +222,14 @@
 #define PROPELLER_BALANCE_TEST_THRESHOLD  2.5f
 
 /**
+ * \def BAT_LOADING_SAG_THESHOLD
+ * This is the threshold for a battery and connector to pass. It loads the power path by spinning all 4 motors
+ * and measure the voltage sag. The threshold is very experimental and dependent on stock configuration. It is
+ * fairly constant over the battery voltage range but testing with fully changed battery is best.
+ */
+#define BAT_LOADING_SAG_THRESHOLD  0.95f
+
+/**
  * \def ACTIVATE_AUTO_SHUTDOWN
  * Will automatically shot of system if no radio activity
  */
@@ -207,11 +238,8 @@
 /**
  * \def ACTIVATE_STARTUP_SOUND
  * Playes a startup melody using the motors and PWM modulation
- * ACTIVATE_STARTUP_SOUND2 for fun. Choose either 1.
  */
-
-// #define ACTIVATE_STARTUP_SOUND
-#define ACTIVATE_STARTUP_SOUND2
+#define ACTIVATE_STARTUP_SOUND
 
 // Define to force initialization of expansion board drivers. For test-rig and programming.
 //#define FORCE_EXP_DETECT

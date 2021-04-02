@@ -4,23 +4,30 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct usdLogDataPtr_s {
-  uint32_t* tick;
-  uint8_t* data;
-} usdLogQueuePtr_t;
+enum usddeckLoggingMode_e
+{
+  usddeckLoggingMode_Disabled = 0,
+  usddeckLoggingMode_SynchronousStabilizer,
+  usddeckLoggingMode_Asynchronous,
+};
 
-typedef struct usdLogConfig_s {
-  char filename[13];
-  uint8_t items;
-  uint16_t frequency;
-  uint8_t bufferSize;
-  uint16_t numSlots;
-  uint16_t numBytes;
-  int* varIds; // dynamically allocated
-} usdLogConfig_t;
+// returns true if logging is enabled
+bool usddeckLoggingEnabled(void);
 
-#define USD_WRITE(FILE, MESSAGE, BYTES, BYTES_WRITTEN, CRC_VALUE, CRC_FINALXOR, CRC_TABLE) \
-  f_write(FILE, MESSAGE, BYTES, BYTES_WRITTEN); \
-  CRC_VALUE = crcByByte(MESSAGE, BYTES, CRC_VALUE, CRC_FINALXOR, CRC_TABLE);
+// returns the current logging mode
+enum usddeckLoggingMode_e usddeckLoggingMode(void);
+
+// returns the desired logging frequency
+int usddeckFrequency(void);
+
+// For synchronous logging: add a new log entry
+void usddeckTriggerLogging(void);
+
+// returns size of current file if logging is stopped (0 otherwise)
+uint32_t usddeckFileSize(void);
+
+// Read "length" number of bytes at "offset" into "buffer" of current file
+// Only works if logging is stopped
+bool usddeckRead(uint32_t offset, uint8_t* buffer, uint16_t length);
 
 #endif //__USDDECK_H__

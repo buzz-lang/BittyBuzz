@@ -117,7 +117,6 @@ extern "C"
 /* Test for an endian machine */
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define LITTLE_ENDIAN   1
-#define BIG_ENDIAN      0
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define BIG_ENDIAN   1
 #else

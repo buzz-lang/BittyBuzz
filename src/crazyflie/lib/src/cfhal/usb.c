@@ -1,6 +1,6 @@
 /**
- *    ||          ____  _ __                           
- * +------+      / __ )(_) /_______________ _____  ___ 
+ *    ||          ____  _ __
+ * +------+      / __ )(_) /_______________ _____  ___
  * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
  * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
  *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
@@ -46,14 +46,20 @@
 #include "usb_dcd.h"
 
 #include "crtp.h"
+#include "static_mem.h"
 
 
-__ALIGN_BEGIN USB_OTG_CORE_HANDLE    USB_OTG_dev __ALIGN_END ;
+NO_DMA_CCM_SAFE_ZERO_INIT __ALIGN_BEGIN USB_OTG_CORE_HANDLE    USB_OTG_dev __ALIGN_END ;
 
 static bool isInit = false;
+static bool doingTransfer = false;
+static bool rxStopped = true;
 
+// This should probably be reduced to a CRTP packet size
 static xQueueHandle usbDataRx;
+STATIC_MEM_QUEUE_ALLOC(usbDataRx, 5, sizeof(USBPacket)); /* Buffer USB packets (max 64 bytes) */
 static xQueueHandle usbDataTx;
+STATIC_MEM_QUEUE_ALLOC(usbDataTx, 1, sizeof(USBPacket)); /* Buffer USB packets (max 64 bytes) */
 
 /* Endpoints */
 #define IN_EP                       0x81  /* EP1 for data IN */
@@ -141,11 +147,36 @@ USBD_Usr_cb_TypeDef USR_cb =
 
 int command = 0xFF;
 
+static void resetUSB(void) {
+  portBASE_TYPE xTaskWokenByReceive = pdFALSE;
+
+  crtpSetLink(radiolinkGetLink());
+
+  if (isInit == true) {
+    // Empty queue
+    while (xQueueReceiveFromISR(usbDataTx, &outPacket, &xTaskWokenByReceive) == pdTRUE)
+      ;
+  }
+
+  USB_OTG_FlushTxFifo(&USB_OTG_dev, IN_EP);
+
+  rxStopped = true;
+  doingTransfer = false;
+}
+
 static uint8_t usbd_cf_Setup(void *pdev , USB_SETUP_REQ  *req)
 {
   command = req->wIndex;
   if (command == 0x01) {
     crtpSetLink(usblinkGetLink());
+
+    if (rxStopped && !xQueueIsQueueFullFromISR(usbDataRx)) {
+      DCD_EP_PrepareRx(&USB_OTG_dev,
+                      OUT_EP,
+                      (uint8_t*)(inPacket.data),
+                      USB_RX_TX_PACKET_SIZE);
+      rxStopped = false;
+    }
   } else {
     crtpSetLink(radiolinkGetLink());
   }
@@ -173,6 +204,7 @@ static uint8_t  usbd_cf_Init (void  *pdev,
                    OUT_EP,
                    (uint8_t*)(inPacket.data),
                    USB_RX_TX_PACKET_SIZE);
+  rxStopped = false;
 
   return USBD_OK;
 }
@@ -207,13 +239,18 @@ static uint8_t  usbd_cf_DataIn (void *pdev, uint8_t epnum)
 {
   portBASE_TYPE xTaskWokenByReceive = pdFALSE;
 
+  doingTransfer = false;
+
   if (xQueueReceiveFromISR(usbDataTx, &outPacket, &xTaskWokenByReceive) == pdTRUE)
   {
+    doingTransfer = true;
     DCD_EP_Tx (pdev,
-               IN_EP,
-               (uint8_t*)outPacket.data,
-               outPacket.size);
+              IN_EP,
+              (uint8_t*)outPacket.data,
+              outPacket.size);
   }
+
+  portYIELD_FROM_ISR(xTaskWokenByReceive);
 
   return USBD_OK;
 }
@@ -222,13 +259,18 @@ static uint8_t  usbd_cf_SOF (void *pdev)
 {
   portBASE_TYPE xTaskWokenByReceive = pdFALSE;
 
-  if (xQueueReceiveFromISR(usbDataTx, &outPacket, &xTaskWokenByReceive) == pdTRUE)
-  {
-    DCD_EP_Tx (pdev,
-               IN_EP,
-               (uint8_t*)outPacket.data,
-               outPacket.size);
+  if (!doingTransfer) {
+    if (xQueueReceiveFromISR(usbDataTx, &outPacket, &xTaskWokenByReceive) == pdTRUE)
+    {
+      doingTransfer = true;
+      DCD_EP_Tx (pdev,
+                IN_EP,
+                (uint8_t*)outPacket.data,
+                outPacket.size);
+    }
   }
+
+  portYIELD_FROM_ISR(xTaskWokenByReceive);
 
   return USBD_OK;
 }
@@ -242,20 +284,30 @@ static uint8_t  usbd_cf_SOF (void *pdev)
   */
 static uint8_t  usbd_cf_DataOut (void *pdev, uint8_t epnum)
 {
+  uint8_t result;
   portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
   /* Get the received data buffer and update the counter */
   inPacket.size = ((USB_OTG_CORE_HANDLE*)pdev)->dev.out_ep[epnum].xfer_count;
 
-  xQueueSendFromISR(usbDataRx, &inPacket, &xHigherPriorityTaskWoken);
+  if (xQueueSendFromISR(usbDataRx, &inPacket, &xHigherPriorityTaskWoken) == pdTRUE) {
+    result = USBD_OK;
+  } else {
+    result = USBD_BUSY;
+  }
 
-  /* Prepare Out endpoint to receive next packet */
-  DCD_EP_PrepareRx(pdev,
-                   OUT_EP,
-                   (uint8_t*)(inPacket.data),
-                   USB_RX_TX_PACKET_SIZE);
+  if (!xQueueIsQueueFullFromISR(usbDataRx)) {
+    /* Prepare Out endpoint to receive next packet */
+    DCD_EP_PrepareRx(pdev,
+                     OUT_EP,
+                     (uint8_t*)(inPacket.data),
+                     USB_RX_TX_PACKET_SIZE);
+    rxStopped = false;
+  } else {
+    rxStopped = true;
+  }
 
-  return USBD_OK;
+  return result;
 }
 
 /**
@@ -288,6 +340,7 @@ void USBD_USR_Init(void)
 */
 void USBD_USR_DeviceReset(uint8_t speed)
 {
+  resetUSB();
 }
 
 
@@ -308,7 +361,7 @@ void USBD_USR_DeviceConfigured(void)
 void USBD_USR_DeviceSuspended(void)
 {
   /* USB communication suspended (probably USB unplugged). Switch back to radiolink */
-  crtpSetLink(radiolinkGetLink());
+  resetUSB();
 }
 
 
@@ -339,7 +392,7 @@ void USBD_USR_DeviceConnected(void)
 */
 void USBD_USR_DeviceDisconnected(void)
 {
-  crtpSetLink(radiolinkGetLink());
+  resetUSB();
 }
 
 void usbInit(void)
@@ -350,10 +403,9 @@ void usbInit(void)
             &cf_usb_cb,
             &USR_cb);
 
-  // This should probably be reduced to a CRTP packet size
-  usbDataRx = xQueueCreate(5, sizeof(USBPacket)); /* Buffer USB packets (max 64 bytes) */
+  usbDataRx = STATIC_MEM_QUEUE_CREATE(usbDataRx);
   DEBUG_QUEUE_MONITOR_REGISTER(usbDataRx);
-  usbDataTx = xQueueCreate(1, sizeof(USBPacket)); /* Buffer USB packets (max 64 bytes) */
+  usbDataTx = STATIC_MEM_QUEUE_CREATE(usbDataTx);
   DEBUG_QUEUE_MONITOR_REGISTER(usbDataTx);
 
   isInit = true;
@@ -368,6 +420,19 @@ bool usbGetDataBlocking(USBPacket *in)
 {
   while (xQueueReceive(usbDataRx, in, portMAX_DELAY) != pdTRUE)
     ; // Don't return until we get some data on the USB
+
+  // Disabling USB interrupt to make sure we can check and re-enable the endpoint
+  // if it is not currently accepting data (ie. can happen if the RX queue was full)
+  NVIC_DisableIRQ(OTG_FS_IRQn);
+  if (rxStopped) {
+    DCD_EP_PrepareRx(&USB_OTG_dev,
+                    OUT_EP,
+                    (uint8_t*)(inPacket.data),
+                    USB_RX_TX_PACKET_SIZE);
+    rxStopped = false;
+  }
+  NVIC_EnableIRQ(OTG_FS_IRQn);
+
   return true;
 }
 
