@@ -9,6 +9,8 @@
 #include "FreeRTOSConfig.h"
 #include "debug.h"
 
+#include <string.h>
+
 void bbz_led() {
     bbzvm_assert_lnum(2);
 #ifndef DEBUG

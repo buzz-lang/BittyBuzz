@@ -114,7 +114,7 @@ static int itoa10(putc_t putcf, long long int num, int precision)
     }
   }
 
-  return itoa10Unsigned(putcf, n);
+  return itoa10Unsigned(putcf, n) + len;
 }
 
 static int itoa16(putc_t putcf, uint64_t num, int width, char padChar)
@@ -151,7 +151,7 @@ static int itoa16(putc_t putcf, uint64_t num, int width, char padChar)
   return len;
 }
 
-static int handleLongLong(putc_t putcf, char** fmt, unsigned long long int val, int width, char padChar)
+static int handleLongLong(putc_t putcf, const char** fmt, unsigned long long int val, int width, char padChar)
 {
   int len = 0;
 
@@ -176,7 +176,7 @@ static int handleLongLong(putc_t putcf, char** fmt, unsigned long long int val, 
   return len;
 }
 
-static int handleLong(putc_t putcf, char** fmt, unsigned long int val, int width, char padChar)
+static int handleLong(putc_t putcf, const char** fmt, unsigned long int val, int width, char padChar)
 {
   int len = 0;
 
@@ -201,7 +201,7 @@ static int handleLong(putc_t putcf, char** fmt, unsigned long int val, int width
   return len;
 }
 
-int evprintf(putc_t putcf, char * fmt, va_list ap)
+int evprintf(putc_t putcf, const char * fmt, va_list ap)
 {
   int len=0;
   float num;
@@ -287,6 +287,10 @@ int evprintf(putc_t putcf, char * fmt, va_list ap)
             len++;
           }
           break;
+        case 'c':
+          putcf((char)va_arg(ap, int));
+          len++;
+          break;
         default:
           break;
       }
@@ -301,7 +305,7 @@ int evprintf(putc_t putcf, char * fmt, va_list ap)
   return len;
 }
 
-int eprintf(putc_t putcf, char * fmt, ...)
+int eprintf(putc_t putcf, const char * fmt, ...)
 {
   va_list ap;
   int len;

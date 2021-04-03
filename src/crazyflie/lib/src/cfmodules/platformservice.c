@@ -7,7 +7,7 @@
  *
  * Crazyflie control firmware
  *
- * Copyright (C) 2011-2012 Bitcraze AB
+ * Copyright (C) 2011-2021 Bitcraze AB
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,27 +21,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * crtpservice.c - Implements low level services for CRTP
+ * platformservice.c - Implements platform services for CRTP
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 /* FreeRtos includes */
 #include "FreeRTOS.h"
-#include <stdint.h>
-#include <string.h>
+#include "task.h"
 
 #include "config.h"
 #include "crtp.h"
 #include "platformservice.h"
 #include "syslink.h"
 #include "version.h"
+#include "platform.h"
+#include "app_channel.h"
+#include "static_mem.h"
 
 static bool isInit=false;
+STATIC_MEM_TASK_ALLOC_STACK_NO_DMA_CCM_SAFE(platformSrvTask, PLATFORM_SRV_TASK_STACKSIZE);
 
 typedef enum {
   platformCommand   = 0x00,
   versionCommand    = 0x01,
+  appChannel        = 0x02,
 } Channel;
 
 typedef enum {
@@ -51,9 +57,10 @@ typedef enum {
 typedef enum {
   getProtocolVersion = 0x00,
   getFirmwareVersion = 0x01,
+  getDeviceTypeName  = 0x02,
 } VersionCommand;
 
-void platformserviceHandler(CRTPPacket *p);
+static void platformSrvTask(void*);
 static void platformCommandProcess(uint8_t command, uint8_t *data);
 static void versionCommandProcess(CRTPPacket *p);
 
@@ -62,8 +69,10 @@ void platformserviceInit(void)
   if (isInit)
     return;
 
-  // Register a callback to service the Platform port
-  crtpRegisterPortCB(CRTP_PORT_PLATFORM, platformserviceHandler);
+  appchannelInit();
+
+  //Start the task
+  STATIC_MEM_TASK_CREATE(platformSrvTask, platformSrvTask, PLATFORM_SRV_TASK_NAME, NULL, PLATFORM_SRV_TASK_PRI);
 
   isInit = true;
 }
@@ -73,24 +82,36 @@ bool platformserviceTest(void)
   return isInit;
 }
 
-void platformserviceHandler(CRTPPacket *p)
+static void platformSrvTask(void* prm)
 {
-  switch (p->channel)
-  {
-    case platformCommand:
-      platformCommandProcess(p->data[0], &p->data[1]);
-      crtpSendPacket(p);
-      break;
-    case versionCommand:
-      versionCommandProcess(p);
-    default:
-      break;
+  static CRTPPacket p;
+
+  crtpInitTaskQueue(CRTP_PORT_PLATFORM);
+
+  while(1) {
+    crtpReceivePacketBlock(CRTP_PORT_PLATFORM, &p);
+
+    switch (p.channel)
+    {
+      case platformCommand:
+        platformCommandProcess(p.data[0], &p.data[1]);
+        crtpSendPacketBlock(&p);
+        break;
+      case versionCommand:
+        versionCommandProcess(&p);
+        break;
+      case appChannel:
+        appchannelIncomingPacket(&p);
+        break;
+      default:
+        break;
+    }
   }
 }
 
 static void platformCommandProcess(uint8_t command, uint8_t *data)
 {
-  SyslinkPacket slp;
+  static SyslinkPacket slp;
 
   switch (command) {
     case setContinousWave:
@@ -104,18 +125,33 @@ static void platformCommandProcess(uint8_t command, uint8_t *data)
   }
 }
 
+void platformserviceSendAppchannelPacket(CRTPPacket *p)
+{
+  p->port = CRTP_PORT_PLATFORM;
+  p->channel = appChannel;
+  crtpSendPacketBlock(p);
+}
+
 static void versionCommandProcess(CRTPPacket *p)
 {
   switch (p->data[0]) {
     case getProtocolVersion:
       *(int*)&p->data[1] = PROTOCOL_VERSION;
       p->size = 5;
-      crtpSendPacket(p);
+      crtpSendPacketBlock(p);
       break;
     case getFirmwareVersion:
       strncpy((char*)&p->data[1], V_STAG, CRTP_MAX_DATA_SIZE-1);
       p->size = (strlen(V_STAG)>CRTP_MAX_DATA_SIZE-1)?CRTP_MAX_DATA_SIZE:strlen(V_STAG)+1;
-      crtpSendPacket(p);
+      crtpSendPacketBlock(p);
+      break;
+    case getDeviceTypeName:
+      {
+      const char* name = platformConfigGetDeviceTypeName();
+      strncpy((char*)&p->data[1], name, CRTP_MAX_DATA_SIZE-1);
+      p->size = (strlen(name)>CRTP_MAX_DATA_SIZE-1)?CRTP_MAX_DATA_SIZE:strlen(name)+1;
+      crtpSendPacketBlock(p);
+      }
       break;
     default:
       break;

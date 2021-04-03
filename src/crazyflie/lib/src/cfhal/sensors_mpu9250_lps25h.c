@@ -29,13 +29,11 @@
 #include "sensors_mpu9250_lps25h.h"
 
 #include <math.h>
-#include "stm32f4xx.h"
+#include <stm32f4xx.h>
 
 #include "lps25h.h"
 #include "mpu6500.h"
 #include "ak8963.h"
-#include "zranger.h"
-#include "zranger2.h"
 
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -51,6 +49,7 @@
 #include "ledseq.h"
 #include "sound.h"
 #include "filter.h"
+#include "static_mem.h"
 
 /**
  * Enable 250Hz digital LPF mode. However does not work with
@@ -106,19 +105,26 @@ typedef struct
 } BiasObj;
 
 static xQueueHandle accelerometerDataQueue;
+STATIC_MEM_QUEUE_ALLOC(accelerometerDataQueue, 1, sizeof(Axis3f));
 static xQueueHandle gyroDataQueue;
+STATIC_MEM_QUEUE_ALLOC(gyroDataQueue, 1, sizeof(Axis3f));
 static xQueueHandle magnetometerDataQueue;
+STATIC_MEM_QUEUE_ALLOC(magnetometerDataQueue, 1, sizeof(Axis3f));
 static xQueueHandle barometerDataQueue;
+STATIC_MEM_QUEUE_ALLOC(barometerDataQueue, 1, sizeof(baro_t));
+
 static xSemaphoreHandle sensorsDataReady;
+static StaticSemaphore_t sensorsDataReadyBuffer;
 static xSemaphoreHandle dataReady;
+static StaticSemaphore_t dataReadyBuffer;
 
 static bool isInit = false;
 static sensorData_t sensorData;
-static uint64_t imuIntTimestamp;
+static volatile uint64_t imuIntTimestamp;
 
 static Axis3i16 gyroRaw;
 static Axis3i16 accelRaw;
-static BiasObj gyroBiasRunning;
+NO_DMA_CCM_SAFE_ZERO_INIT static BiasObj gyroBiasRunning;
 static Axis3f  gyroBias;
 #if defined(SENSORS_GYRO_BIAS_CALCULATE_STDDEV) && defined (GYRO_BIAS_LIGHT_WEIGHT)
 static Axis3f  gyroBiasStdDev;
@@ -142,10 +148,10 @@ static bool isAK8963TestPassed = false;
 static bool isLPS25HTestPassed = false;
 
 // Pre-calculated values for accelerometer alignment
-float cosPitch_mpu9250;
-float sinPitch_mpu9250;
-float cosRoll_mpu9250;
-float sinRoll_mpu9250;
+static float cosPitch;
+static float sinPitch;
+static float cosRoll;
+static float sinRoll;
 
 // This buffer needs to hold data from all sensors
 static uint8_t buffer[SENSORS_MPU6500_BUFF_LEN + SENSORS_MAG_BUFF_LEN + SENSORS_BARO_BUFF_LEN] = {0};
@@ -167,6 +173,8 @@ static void sensorsCalculateBiasMean(BiasObj* bias, Axis3i32* meanOut);
 static void sensorsAddBiasValue(BiasObj* bias, int16_t x, int16_t y, int16_t z);
 static bool sensorsFindBiasValue(BiasObj* bias);
 static void sensorsAccAlignToGravity(Axis3f* in, Axis3f* out);
+
+STATIC_MEM_TASK_ALLOC(sensorsTask, SENSORS_TASK_STACKSIZE);
 
 bool sensorsMpu9250Lps25hReadGyro(Axis3f *gyro)
 {
@@ -194,9 +202,6 @@ void sensorsMpu9250Lps25hAcquire(sensorData_t *sensors, const uint32_t tick)
   sensorsReadAcc(&sensors->acc);
   sensorsReadMag(&sensors->mag);
   sensorsReadBaro(&sensors->baro);
-  if (!zRangerReadRange(&sensors->zrange, tick)) {
-    zRanger2ReadRange(&sensors->zrange, tick);
-  }
   sensors->interruptTimestamp = sensorData.interruptTimestamp;
 }
 
@@ -220,7 +225,7 @@ static void sensorsTask(void *param)
               (isMagnetometerPresent ? SENSORS_MAG_BUFF_LEN : 0) +
               (isBarometerPresent ? SENSORS_BARO_BUFF_LEN : 0));
 
-      i2cdevRead(I2C3_DEV, MPU6500_ADDRESS_AD0_HIGH, MPU6500_RA_ACCEL_XOUT_H, dataLen, buffer);
+      i2cdevReadReg8(I2C3_DEV, MPU6500_ADDRESS_AD0_HIGH, MPU6500_RA_ACCEL_XOUT_H, dataLen, buffer);
       // these functions process the respective data and queue it on the output queues
       processAccGyroMeasurements(&(buffer[0]));
       if (isMagnetometerPresent)
@@ -329,7 +334,6 @@ static void sensorsDeviceInit(void)
   // Wait for sensors to startup
   while (xTaskGetTickCount() < 1000);
 
-  i2cdevInit(I2C3_DEV);
   mpu6500Init(I2C3_DEV);
   if (mpu6500TestConnection() == true)
   {
@@ -363,7 +367,7 @@ static void sensorsDeviceInit(void)
   // Set accelerometer digital low-pass bandwidth
   mpu6500SetAccelDLPF(MPU6500_ACCEL_DLPF_BW_41);
 
-#ifdef SENSORS_MPU6500_DLPF_256HZ
+#if SENSORS_MPU6500_DLPF_256HZ
   // 256Hz digital low-pass filter only works with little vibrations
   // Set output rate (15): 8000 / (1 + 7) = 1000Hz
   mpu6500SetRate(7);
@@ -414,10 +418,10 @@ static void sensorsDeviceInit(void)
   }
 #endif
 
-//   cosPitch_mpu9250 = cosf(configblockGetCalibPitch() * (float) M_PI/180);
-//   sinPitch_mpu9250 = sinf(configblockGetCalibPitch() * (float) M_PI/180);
-//   cosRoll_mpu9250 = cosf(configblockGetCalibRoll() * (float) M_PI/180);
-//   sinRoll_mpu9250 = sinf(configblockGetCalibRoll() * (float) M_PI/180);
+  cosPitch = cosf(configblockGetCalibPitch() * (float) M_PI/180);
+  sinPitch = sinf(configblockGetCalibPitch() * (float) M_PI/180);
+  cosRoll = cosf(configblockGetCalibRoll() * (float) M_PI/180);
+  sinRoll = sinf(configblockGetCalibRoll() * (float) M_PI/180);
 }
 
 
@@ -481,12 +485,12 @@ static void sensorsSetupSlaveRead(void)
 
 static void sensorsTaskInit(void)
 {
-  accelerometerDataQueue = xQueueCreate(1, sizeof(Axis3f));
-  gyroDataQueue = xQueueCreate(1, sizeof(Axis3f));
-  magnetometerDataQueue = xQueueCreate(1, sizeof(Axis3f));
-  barometerDataQueue = xQueueCreate(1, sizeof(baro_t));
+  accelerometerDataQueue = STATIC_MEM_QUEUE_CREATE(accelerometerDataQueue);
+  gyroDataQueue = STATIC_MEM_QUEUE_CREATE(gyroDataQueue);
+  magnetometerDataQueue = STATIC_MEM_QUEUE_CREATE(magnetometerDataQueue);
+  barometerDataQueue = STATIC_MEM_QUEUE_CREATE(barometerDataQueue);
 
-  xTaskCreate(sensorsTask, SENSORS_TASK_NAME, SENSORS_TASK_STACKSIZE, NULL, SENSORS_TASK_PRI, NULL);
+  STATIC_MEM_TASK_CREATE(sensorsTask, sensorsTask, SENSORS_TASK_NAME, NULL, SENSORS_TASK_PRI);
 }
 
 static void sensorsInterruptInit(void)
@@ -494,8 +498,8 @@ static void sensorsInterruptInit(void)
   GPIO_InitTypeDef GPIO_InitStructure;
   EXTI_InitTypeDef EXTI_InitStructure;
 
-  sensorsDataReady = xSemaphoreCreateBinary();
-  dataReady = xSemaphoreCreateBinary();
+  sensorsDataReady = xSemaphoreCreateBinaryStatic(&sensorsDataReadyBuffer);
+  dataReady = xSemaphoreCreateBinaryStatic(&dataReadyBuffer);
 
   // FSYNC "shall not be floating, must be set high or low by the MCU"
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
@@ -668,7 +672,7 @@ static bool processGyroBias(int16_t gx, int16_t gy, int16_t gz, Axis3f *gyroBias
     if (gyroBiasRunning.isBiasValueFound)
     {
       soundSetEffect(SND_CALIB);
-      ledseqRun(SYS_LED, seq_calibrated);
+      ledseqRun(&seq_calibrated);
     }
   }
 
@@ -864,13 +868,13 @@ static void sensorsAccAlignToGravity(Axis3f* in, Axis3f* out)
 
   // Rotate around x-axis
   rx.x = in->x;
-  rx.y = in->y * cosRoll_mpu9250 - in->z * sinRoll_mpu9250;
-  rx.z = in->y * sinRoll_mpu9250 + in->z * cosRoll_mpu9250;
+  rx.y = in->y * cosRoll - in->z * sinRoll;
+  rx.z = in->y * sinRoll + in->z * cosRoll;
 
   // Rotate around y-axis
-  ry.x = rx.x * cosPitch_mpu9250 - rx.z * sinPitch_mpu9250;
+  ry.x = rx.x * cosPitch - rx.z * sinPitch;
   ry.y = rx.y;
-  ry.z = -rx.x * sinPitch_mpu9250 + rx.z * cosPitch_mpu9250;
+  ry.z = -rx.x * sinPitch + rx.z * cosPitch;
 
   out->x = ry.x;
   out->y = ry.y;

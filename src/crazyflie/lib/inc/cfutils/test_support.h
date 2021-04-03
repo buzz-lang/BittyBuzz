@@ -29,7 +29,7 @@
 
 // UNIT_TEST_MODE is defined by the unit test framework when unit tests are running
 
-#ifdef UNIT_TEST_MODE
+#if UNIT_TEST_MODE
   #define TESTABLE_STATIC
 #else
   #define TESTABLE_STATIC static

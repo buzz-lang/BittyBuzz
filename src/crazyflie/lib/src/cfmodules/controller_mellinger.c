@@ -42,10 +42,9 @@ We added the following:
 #include "math3d.h"
 #include "position_controller.h"
 #include "controller_mellinger.h"
+#include "physicalConstants.h"
 
-#define GRAVITY_MAGNITUDE (9.81f)
-
-static float g_vehicleMass = 0.032; // TODO: should be CF global for other modules
+static float g_vehicleMass = CF_MASS;
 static float massThrust = 132000;
 
 // XY Position PID
@@ -93,6 +92,15 @@ static float i_error_m_z = 0;
 // Logging variables
 static struct vec z_axis_desired;
 
+static float cmd_thrust;
+static float cmd_roll;
+static float cmd_pitch;
+static float cmd_yaw;
+static float r_roll;
+static float r_pitch;
+static float r_yaw;
+static float accelz;
+
 void controllerMellingerReset(void)
 {
   i_error_x = 0;
@@ -111,12 +119,6 @@ void controllerMellingerInit(void)
 bool controllerMellingerTest(void)
 {
   return true;
-}
-
-float clamp(float value, float min, float max) {
-  if (value < min) return min;
-  if (value > max) return max;
-  return value;
 }
 
 void controllerMellinger(control_t *control, setpoint_t *setpoint,
@@ -202,7 +204,7 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
     x_yaw = vnormalize(x_yaw);
     struct vec y_yaw = vcross(mkvec(0, 0, 1), x_yaw);
     struct mat33 R_yaw_only = mcolumns(x_yaw, y_yaw, mkvec(0, 0, 1));
-    target_thrust = mvmult(R_yaw_only, target_thrust);
+    target_thrust = mvmul(R_yaw_only, target_thrust);
   }
 
   // Current thrust [F]
@@ -291,14 +293,30 @@ void controllerMellinger(control_t *control, setpoint_t *setpoint,
     control->thrust = massThrust * current_thrust;
   }
 
+  cmd_thrust = control->thrust;
+  r_roll = radians(sensors->gyro.x);
+  r_pitch = -radians(sensors->gyro.y);
+  r_yaw = radians(sensors->gyro.z);
+  accelz = sensors->acc.z;
+
   if (control->thrust > 0) {
     control->roll = clamp(M.x, -32000, 32000);
     control->pitch = clamp(M.y, -32000, 32000);
     control->yaw = clamp(-M.z, -32000, 32000);
+
+    cmd_roll = control->roll;
+    cmd_pitch = control->pitch;
+    cmd_yaw = control->yaw;
+
   } else {
     control->roll = 0;
     control->pitch = 0;
     control->yaw = 0;
+
+    cmd_roll = control->roll;
+    cmd_pitch = control->pitch;
+    cmd_yaw = control->yaw;
+
     controllerMellingerReset();
   }
 }
@@ -326,6 +344,14 @@ PARAM_ADD(PARAM_FLOAT, i_range_m_z, &i_range_m_z)
 PARAM_GROUP_STOP(ctrlMel)
 
 LOG_GROUP_START(ctrlMel)
+LOG_ADD(LOG_FLOAT, cmd_thrust, &cmd_thrust)
+LOG_ADD(LOG_FLOAT, cmd_roll, &cmd_roll)
+LOG_ADD(LOG_FLOAT, cmd_pitch, &cmd_pitch)
+LOG_ADD(LOG_FLOAT, cmd_yaw, &cmd_yaw)
+LOG_ADD(LOG_FLOAT, r_roll, &r_roll)
+LOG_ADD(LOG_FLOAT, r_pitch, &r_pitch)
+LOG_ADD(LOG_FLOAT, r_yaw, &r_yaw)
+LOG_ADD(LOG_FLOAT, accelz, &accelz)
 LOG_ADD(LOG_FLOAT, zdx, &z_axis_desired.x)
 LOG_ADD(LOG_FLOAT, zdy, &z_axis_desired.y)
 LOG_ADD(LOG_FLOAT, zdz, &z_axis_desired.z)
