@@ -1,6 +1,6 @@
 /*
- *    ||          ____  _ __                           
- * +------+      / __ )(_) /_______________ _____  ___ 
+ *    ||          ____  _ __
+ * +------+      / __ )(_) /_______________ _____  ___
  * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
  * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
  *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
@@ -39,23 +39,26 @@
 #include "queue.h"
 #include "queuemonitor.h"
 #include "semphr.h"
+#include "static_mem.h"
 
 #include "usb.h"
 
 static bool isInit = false;
 static xQueueHandle crtpPacketDelivery;
+STATIC_MEM_QUEUE_ALLOC(crtpPacketDelivery, 16, sizeof(CRTPPacket));
 static uint8_t sendBuffer[64];
 
 static int usblinkSendPacket(CRTPPacket *p);
 static int usblinkSetEnable(bool enable);
-static int usblinkReceiveCRTPPacket(CRTPPacket *p);
+static int usblinkReceivePacket(CRTPPacket *p);
 
+STATIC_MEM_TASK_ALLOC(usblinkTask, USBLINK_TASK_STACKSIZE);
 
 static struct crtpLinkOperations usblinkOp =
 {
   .setEnable         = usblinkSetEnable,
   .sendPacket        = usblinkSendPacket,
-  .receivePacket     = usblinkReceiveCRTPPacket,
+  .receivePacket     = usblinkReceivePacket,
 };
 
 /* Radio task handles the CRTP packet transfers as well as the radio link
@@ -73,16 +76,16 @@ static void usblinkTask(void *param)
     p.size = usbIn.size - 1;
     memcpy(&p.raw, usbIn.data, usbIn.size);
     // This queuing will copy a CRTP packet size from usbIn
-    xQueueSend(crtpPacketDelivery, &p, 0);
+    xQueueSend(crtpPacketDelivery, &p, portMAX_DELAY);
   }
 
 }
 
-static int usblinkReceiveCRTPPacket(CRTPPacket *p)
+static int usblinkReceivePacket(CRTPPacket *p)
 {
   if (xQueueReceive(crtpPacketDelivery, p, M2T(100)) == pdTRUE)
   {
-    ledseqRun(LINK_LED, seq_linkup);
+    ledseqRun(&seq_linkUp);
     return 0;
   }
 
@@ -104,7 +107,7 @@ static int usblinkSendPacket(CRTPPacket *p)
   dataSize = p->size + 1;
 
 
-  ledseqRun(LINK_DOWN_LED, seq_linkup);
+  ledseqRun(&seq_linkDown);
 
   return usbSendData(dataSize, sendBuffer);
 }
@@ -126,11 +129,10 @@ void usblinkInit()
   // Initialize the USB peripheral
   usbInit();
 
-  crtpPacketDelivery = xQueueCreate(5, sizeof(CRTPPacket));
+  crtpPacketDelivery = STATIC_MEM_QUEUE_CREATE(crtpPacketDelivery);
   DEBUG_QUEUE_MONITOR_REGISTER(crtpPacketDelivery);
 
-  xTaskCreate(usblinkTask, USBLINK_TASK_NAME,
-              USBLINK_TASK_STACKSIZE, NULL, USBLINK_TASK_PRI, NULL);
+  STATIC_MEM_TASK_CREATE(usblinkTask, usblinkTask, USBLINK_TASK_NAME, NULL, USBLINK_TASK_PRI);
 
   isInit = true;
 }
@@ -144,4 +146,3 @@ struct crtpLinkOperations * usblinkGetLink()
 {
   return &usblinkOp;
 }
-

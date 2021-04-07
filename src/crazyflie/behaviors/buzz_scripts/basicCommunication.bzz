@@ -1,6 +1,5 @@
 # EXPECTED BEHAVIOR :
 #
-# LED color depends on swarm memberships.
 # Robots with IDs equal to:
 # - 0: red color blinking ;
 # - any other id: blink green when they receive a message 

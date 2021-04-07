@@ -12,6 +12,7 @@ MEMORY
 {
   RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
   FLASH (rx) : ORIGIN = 0x8004000, LENGTH = 1008K
+  CCMRAM (xrw) : ORIGIN = 0x10000000, LENGTH = 64K
   FLASHPATCH (r) : ORIGIN = 0x00000000, LENGTH = 0
   ENDFLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 0
   FLASHB1  (rx)  : ORIGIN = 0x00000000, LENGTH = 0
@@ -23,4 +24,3 @@ MEMORY
 
 /* higher address of the user mode stack */
 _estack = 0x2001FFFF;
-

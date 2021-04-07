@@ -69,24 +69,24 @@ set(INCLUDE_DIR "-I${CRAZYFLIE_LIB_DIR}/incL \
 -I${CMAKE_BINARY_DIR}/crazyflie/lib/inc \
 -I${CRAZYFLIE_DRIVER_DIR}/qfplib")
 
-set(CF_STDPERI_SOURCES stm32f4xx_gpio.c stm32f4xx_tim.c stm32f4xx_syscfg.c stm32f4xx_rcc.c stm32f4xx_adc.c stm32f4xx_dbgmcu.c stm32f4xx_dma.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_misc.c stm32f4xx_spi.c stm32f4xx_usart.c stm32f4xx_cryp.c stm32f4xx_hash.c stm32f4xx_rng.c stm32f4xx_can.c stm32f4xx_dac.c stm32f4xx_dcmi.c stm32f4xx_fsmc.c stm32f4xx_wwdg.c stm32f4xx_sdio.c stm32f4xx_rtc.c stm32f4xx_pwr.c stm32f4xx_crc.c stm32f4xx_sai.c)
+set(CF_STDPERI_SOURCES stm32f4xx_adc.c stm32f4xx_dbgmcu.c stm32f4xx_dma.c stm32f4xx_exti.c stm32f4xx_flash.c stm32f4xx_gpio.c stm32f4xx_i2c.c stm32f4xx_iwdg.c stm32f4xx_rcc.c stm32f4xx_spi.c stm32f4xx_tim.c stm32f4xx_usart.c stm32f4xx_misc.c stm32f4xx_syscfg.c)
 #Removed after usart: stm32f4xx_can.c stm32f4xx_crc.c stm32f4xx_dac.c stm32f4xx_fsmc.c stm32f4xx_hash.c stm32f4xx_dma2d.c stm32f4xx_hash_md5.c stm32f4xx_hash_sha1.c stm32f4xx_ltdc.c stm32f4xx_pwr.c stm32f4xx_rtc.c stm32f4xx_sdio.c stm32f4xx_wwdg.c stm32f4xx_sai.c stm32f4xx_rng.c stm32f4xx_dcmi.c stm32f4xx_cryp_tdes.c stm32f4xx_cryp_aes.c stm32f4xx_cryp_des.c stm32f4xx_cryp.c
 
 set(CFPLATFORM_SOURCES platform_cf2.c platform.c platform_stm32f4.c platform_utils.c)
 
-set(CFMODULES_SOURCES attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem_cf2.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sitaw.c sound_cf2.c stabilizer.c sysload.c system.c trigger.c worker.c)
+set(CFMODULES_SOURCES lighthouse_storage.c health.c mm_sweep_angles.c mm_distance.c mm_flow.c mm_tdoa.c mm_pose.c mm_yaw_error.c mm_position.c mm_absolute_height.c mm_tof.c mm_tdoa_robust.c lighthouse_deck_flasher.c kalman_supervisor.c lighthouse_position_est.c app_channel.c collision_avoidance.c peer_localization.c position_controller_indi.c kalman_core.c pptraj_compressed.c controller_indi.c static_mem.c tdoaEngineInstance.c lighthouse_core.c attitude_pid_controller.c comm.c commander.c console.c controller.c controller_mellinger.c controller_pid.c crtp.c crtp_commander.c crtp_commander_generic.c crtp_commander_high_level.c crtp_commander_rpyt.c crtp_localization_service.c crtpservice.c estimator.c estimator_complementary.c estimator_kalman.c extrx.c log.c mem.c msp.c outlierFilter.c param.c pid.c planner.c platformservice.c position_controller_pid.c position_estimator_altitude.c power_distribution_stock.c pptraj.c queuemonitor.c range.c sensfusion6.c sound_cf2.c stabilizer.c sysload.c system.c worker.c eventtrigger.c supervisor.c)
 
-set(CFDECK_SOURCES locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c lpsTwrTag.c lpsTdoa2Tag.c lpsTdoa3Tag.c zranger.c zranger2.c bigquad.c buzzdeck.c cppmdeck.c gtgps.c lighthouse.c multiranger.c oa.c rzr.c usddeck.c exptest.c exptestRR.c)
+set(CFDECK_SOURCES activeMarkerDeck.c activeMarkerUartTest.c aideck.c aidecktest.c deck_spi3.c exptestBolt.c lhtesterdeck.c uart1test.c uart2test.c uarttest.c locodeck.c flowdeck_v1v2.c deck.c deck_drivers.c deck_info.c deck_test.c deck_analog.c deck_constants.c deck_digital.c deck_spi.c ledring12.c lpsTwrTag.c lpsTdoa2Tag.c lpsTdoa3Tag.c zranger.c zranger2.c bigquad.c buzzdeck.c cppmdeck.c gtgps.c lighthouse.c multiranger.c oa.c usddeck.c exptest.c exptestRR.c deck_memory.c)
 
-set(CFDRIVER_SOURCES exti.c nvic.c motors.c diskio.c fatfs_sd.c led_f405.c ak8963.c cppm.c eeprom.c i2cdev_f405.c i2c_drv.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c)
+set(CFDRIVER_SOURCES lh_bootloader.c exti.c nvic.c motors.c fatfs_sd.c ak8963.c cppm.c eeprom.c i2cdev.c i2c_drv.c led.c lps25h.c maxsonar.c mpu6500.c pca9685.c piezo.c pmw3901.c swd.c uart1.c uart2.c uart_syslink.c vl53l0x.c vl53l1x.c watchdog.c ws2812_cf2.c)
 
 set(CFBOSCH_SOURCES bmi055_accel.c bmi055_gyro.c bmi160.c bmp280.c bstdr_comm_support.c bmm150.c bmi088_accel.c bmi088_gyro.c bmi088_fifo.c bmp3.c)
 
-Set(CFUTILS_SOURCES abort.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc.c crc_bosch.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c lighthouse_geometry.c pulse_processor.c)
+Set(CFUTILS_SOURCES kve_storage.c kve.c rateSupervisor.c pulse_processor_v1.c ootx_decoder.c lighthouse_calibration.c pulse_processor_v2.c cfassert.c clockCorrectionEngine.c configblockeeprom.c cpuid.c crc32.c eprintf.c filter.c FreeRTOS-openocd.c num.c sleepus.c debug.c version.c tdoaEngine.c tdoaStats.c tdoaStorage.c lighthouse_geometry.c pulse_processor.c statsCnt.c)
 
-set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c)
+set(CFFREERTOS_SOURCES croutine.c event_groups.c list.c queue.c tasks.c timers.c port.c heap_4.c stream_buffer.c)
 
-set(CFHAL_SOURCES sensors.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_stm32f4.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c)
+set(CFHAL_SOURCES amg8833.c storage.c ow_common.c sensors.c buzzer.c freeRTOSdebug.c ledseq.c ow_syslink.c pca95x4.c pm_stm32f4.c proximity.c radiolink.c syslink.c usb.c usb_bsp.c usbd_desc.c usblink.c usec_time.c pca9555.c sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c sensors_bmi088_i2c.c)
 #sensors_bmi088_bmp388.c sensors_mpu9250_lps25h.c
 
 set(STM32_SYS_SOURCE system_stm32f4xx.c startup_stm32f40xx.s)
@@ -97,7 +97,7 @@ set(STM32_USBOTG_DRIVER_SOURCE usb_core.c usb_dcd.c usb_dcd_int.c)
 
 set(VL53L1_SOURCE vl53l1_api.c vl53l1_api_calibration.c vl53l1_api_core.c vl53l1_api_debug.c vl53l1_api_preset_modes.c vl53l1_api_strings.c vl53l1_core.c vl53l1_core_support.c vl53l1_error_strings.c vl53l1_register_funcs.c vl53l1_silicon_core.c vl53l1_wait.c)
 
-set(FATFS_SOURCES ff.c syscall.c unicode.c)
+set(FATFS_SOURCES ffunicode.c ff.c)
 
 set(LIBDW1000_SOURCES libdw1000.c libdw1000Spi.c)
 
@@ -161,14 +161,14 @@ endif(LOCODECK_USE_ALT_PINS)
 
 set(PROCESSOR "-mthumb -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
 
-set(DEFS "-DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -DSTM32F4XX -DSTM32F40_41xxx -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DUSE_RADIOLINK_CRTP -DENABLE_UART -DBOARD_REV_${REV} -DESTIMATOR_NAME=${ESTIMATOR}Estimator -DCONTROLLER_NAME=ControllerType${CONTROLLER} -DPOWER_DISTRIBUTION_TYPE_${POWER_DISTRIBUTION}")
+set(DEFS "-DCRAZYFLIE_FW -DARM_MATH_CM4 -D__FPU_PRESENT=1 -D__TARGET_FPU_VFP -DSTM32F4XX -DSTM32F40_41xxx -DHSE_VALUE=8000000 -DUSE_STDPERIPH_DRIVER -DUSE_RADIOLINK_CRTP -DENABLE_UART -DBOARD_REV_${REV} -DESTIMATOR_NAME=${ESTIMATOR}Estimator -DCONTROLLER_NAME=ControllerType${CONTROLLER} -DPOWER_DISTRIBUTION_TYPE_${POWER_DISTRIBUTION}")
 
 set(SENSOR_CONFIG "-DSENSORS_IGNORE_BAROMETER_FAIL -DSENSOR_INCLUDED_MPU9250_LPS25H -DSENSORS_FORCE=SensorImplementation_mpu9250_lps25h -DSENSOR_INCLUDED_BMI088_BMP388")
 #-DSENSOR_INCLUDED_BMI088_BMP388 -DSENSOR_INCLUDED_MPU9250_LPS25H
 
 #set(FORCEDEVICE "-DDEVICE_TYPE_STRING_FORCE=CF20 -DDECK_FORCE=bcDWM1000")
 
-set(CFLAGS "-Os -std=gnu11 -g3")
+set(CFLAGS "-Os -std=gnu11 -g3 -mfp16-format=ieee")
 #originally: uses -std=gnu99 -Os -g3
 #set(CFLAGS "${CFLAGS} -Wextra -Wshadow -Wimplicit-function-declaration")
 #set(CFLAGS "${CFLAGS} -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wno-comment -Wno-unused-variable -Wno-unused-function")
@@ -264,7 +264,7 @@ function(crazyflie_add_executable _TARGET)
         DEPENDS ${_ELF_TARGET})
     # .elf -> .bin
     add_custom_command(OUTPUT ${_BIN_TARGET}
-        COMMAND ${OBJCOPY} -Obinary ${_ELF_TARGET} ${_BIN_TARGET}
+        COMMAND ${OBJCOPY} -Obinary --pad-to 0 --remove-section=.bss --remove-section=.nzds  --remove-section=._usrstack ${_ELF_TARGET} ${_BIN_TARGET}
         DEPENDS ${_ELF_TARGET})
     # Compile .elf file
     add_executable(${_ELF_TARGET} EXCLUDE_FROM_ALL ${ARGN})

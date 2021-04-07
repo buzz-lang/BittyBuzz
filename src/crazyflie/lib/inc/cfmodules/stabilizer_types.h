@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "imu_types.h"
+#include "lighthouse_calibration.h"
 
 /* Data structure used by the stabilizer subsystem.
  * All have a timestamp to be set when the data is calculated.
@@ -42,6 +43,11 @@ typedef struct attitude_s {
   float pitch;
   float yaw;
 } attitude_t;
+
+/* vector */
+#define vec3d_size 3
+typedef float vec3d[vec3d_size];
+typedef float mat3d[vec3d_size][vec3d_size];
 
 /* x,y,z vector */
 struct vec3_s {
@@ -101,6 +107,20 @@ typedef struct positionMeasurement_s {
   float stdDev;
 } positionMeasurement_t;
 
+typedef struct poseMeasurement_s {
+  union {
+    struct {
+      float x;
+      float y;
+      float z;
+    };
+    float pos[3];
+  };
+  quaternion_t quat;
+  float stdDevPos;
+  float stdDevQuat;
+} poseMeasurement_t;
+
 typedef struct distanceMeasurement_s {
   union {
     struct {
@@ -124,8 +144,6 @@ typedef struct sensorData_s {
   Axis3f gyro;              // deg/s
   Axis3f mag;               // gauss
   baro_t baro;
-  zDistance_t zrange;
-  point_t position;         // m
 #ifdef LOG_SEC_IMU
   Axis3f accSec;            // Gs
   Axis3f gyroSec;           // deg/s
@@ -219,6 +237,27 @@ typedef struct heightMeasurement_s {
   float height;
   float stdDev;
 } heightMeasurement_t;
+
+/** Yaw error measurement */
+typedef struct {
+  uint32_t timestamp;
+  float yawError;
+  float stdDev;
+} yawErrorMeasurement_t;
+
+/** Sweep angle measurement */
+typedef struct {
+  uint32_t timestamp;
+  const vec3d* sensorPos;    // Sensor position in the CF reference frame
+  const vec3d* rotorPos;     // Pos of rotor origin in global reference frame
+  const mat3d* rotorRot;     // Rotor rotation matrix
+  const mat3d* rotorRotInv;  // Inverted rotor rotation matrix
+  float t;                   // t is the tilt angle of the light plane on the rotor
+  float measuredSweepAngle;
+  float stdDev;
+  const lighthouseCalibrationSweep_t* calib;
+  lighthouseCalibrationMeasurementModel_t calibrationMeasurementModel;
+} sweepAngleMeasurement_t;
 
 // Frequencies to bo used with the RATE_DO_EXECUTE_HZ macro. Do NOT use an arbitrary number.
 #define RATE_1000_HZ 1000

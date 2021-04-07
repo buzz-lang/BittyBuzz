@@ -67,7 +67,7 @@ function(generate_hex c_source bzz_source)
     # .elf -> .bin (Generate a .bin file so that we can use cfloader to upload wirelessly to CF) 
     add_custom_command(TARGET ${ELF_TARGET} POST_BUILD
         BYPRODUCTS ${BIN_FILE}
-        COMMAND ${OBJCOPY} -Obinary ${ELF_TARGET} ${BIN_TARGET}
+        COMMAND ${OBJCOPY} -Obinary  --pad-to 0 --remove-section=.bss --remove-section=.nzds  --remove-section=._usrstack ${ELF_TARGET} ${BIN_TARGET}
         COMMENT "Generating BIN file: \n  >> ${BIN_TARGET}"
         DEPENDS ${ELF_TARGET})
     

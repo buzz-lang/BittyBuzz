@@ -1,7 +1,7 @@
 BittyBuzz on Crazyflie
 ===================
 
-This is a documentation on how to setup the development environment to run **BittyBuzz** on **Crazyflie**. This was only tested on **Ubuntu 16.04**
+This is a documentation on how to setup the development environment to run **BittyBuzz** on **Crazyflie**. This was only tested on **Ubuntu 16.04** and **Ubuntu 18.04**
 
 Prerequisites
 =============
@@ -101,3 +101,27 @@ Here are some useful command that could help you debug your scripts:
   * printing the current state of the stack: `p vm->stack`
   * printing the value of an object on the heap: `p *bbzheap_obj_at(<idx>)` (replace `<idx>` with the Heap Index of the object you're looking for)
   * printing the address of the current instruction: `p vm->pc`
+
+Firmware update steps
+=====================
+
+**Note:**
+In cases where there is a sub-folder in the firmware but not one the BittyBuzz file system, do not add a sub-folder.
+
+1. Replace all header files in `crazyflie/lib/inc/cf<source_type>` by all the header files (.h) in `crazyflie-firmware/src/<source_type>`.
+2. Replace all source files in `crazyflie/lib/src/cf<source_type>` by all the source files (.c) in `crazyflie-firmware/src/<source_type>`.
+3. Put back BittyBuzz macros that were in `crazyflie/lib/inc/cfconfig/FreeRTOSConfig.h` and `crazyflie/lib/inc/cfconfig/config.h` (ex: BBZ_TASK_NAME, BBZ_TASK_STACKSIZE, etc).
+4. Check `crazyflie/lib/src/bbzcrazyflie.c` to make sure all the macros and data types used here have been defined in one of the 2 config files.
+5. Replace all header files in `crazyflie/lib/inc/FreeRTOS/` by all the header files (.h) in `crazyflie-firmware/vendor/FreeRTOS/include`.
+6. Replace all source files in `crazyflie/lib/src/FreeRTOS/` by all the source files (.c) in `crazyflie-firmware/vendor/FreeRTOS/` and `crazyflie-firmware/vendor/FreeRTOS/portable/MemMang`.
+7. Replace the following folders in `crazyflie/drivers/` by the corresponding in `crazyflie-firmware/src/lib`: FatFS, STM32* and vl53l1.
+8. Replace `crazyflie/driver/CMSIS/Device/ST/STM32F4xx` by `crazyflie-firmware/src/lib/CMSIS/STM32F4xx`.
+9. Add `crazyflie-firmware/src/init/startup_stm32f40xx.s` to `crazyflie/driver/CMSIS/Device/ST/STM32F4xx/Source`.
+10. Replace all `.ld` files in `crazyflie/lib/linker/` by the linker scripts in `crazyflie-firmware/tools/make/F405/linker`.
+11. Make sure that all the new files (if any) are added in the corresponding sources variable in `../cmake/Crazyflie.cmake` (ex: set(CFMODULES_SOURCES lighthouse_storage.c ...), etc ).
+12. Remove deleted files name from `../cmake/Crazyflie.cmake`.
+13. Try to build and install a behavior on the crazyflie. (You might have some errors related to the file system structure, simply adapt the include statements to the new structure).
+
+**Trouble shouting**
+- In case of linker errors, you are probably missing some new files in `../cmake/Crazyflie.cmake`.
+- If some variables of functions are undefined or the flashing fails, you might be missing some flags. Compare the flags set in `../cmake/Crazyflie.cmake` and the compilation flags in `crazyflie/behaviors/CMakeLists.txt` to the flags used in `crazyflie-firmware/Makefile` and `crazyflie-firmware/tools/make/targets.mk`.

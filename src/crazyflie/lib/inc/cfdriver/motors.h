@@ -37,8 +37,7 @@
 #include <stdbool.h>
 #include "config.h"
 /* ST includes */
-#include "stm32f4xx.h"
-#include "stm32f4xx_tim.h"
+#include "stm32fxxx.h"
 
 /******** Defines ********/
 
@@ -60,6 +59,7 @@
 
 // Compensate thrust depending on battery voltage so it will produce about the same
 // amount of thrust independent of the battery voltage. Based on thrust measurement.
+// Not applied for brushless motor setup.
 #define ENABLE_THRUST_BAT_COMPENSATED
 
 //#define ENABLE_ONESHOT125
@@ -69,14 +69,30 @@
  * *VARNING* Make sure the brushless driver is configured correctly as on the Crazyflie with normal
  * brushed motors connected they can turn on at full speed when it is powered on!
  *
- * Generates a PWM wave (50 - 400 Hz update rate with 1-2 ms high pulse) using the timer. That way we can use the same
- * base as for the regular PWM driver. This means it will be a PWM with a period of the update rate configured to be high
- * only in the 1-2 ms range.
+ * Generates a PWM wave at 2000 Hz update rate, with 125 - 250us high pulse, using the timer.
  */
   #define BLMC_PERIOD 0.0005   // 0.5ms = 2000Hz
+  #define MOTORS_HIGH_PERIOD_ZERO  0.000125 // 125us for zero throttle
+
   #define MOTORS_BL_PWM_PRESCALE_RAW   (uint32_t)((TIM_CLOCK_HZ/0xFFFF) * BLMC_PERIOD + 1) // +1 is to not end up above 0xFFFF in the end
   #define MOTORS_BL_PWM_CNT_FOR_PERIOD (uint32_t)(TIM_CLOCK_HZ * BLMC_PERIOD / MOTORS_BL_PWM_PRESCALE_RAW)
-  #define MOTORS_BL_PWM_CNT_FOR_HIGH   (uint32_t)(TIM_CLOCK_HZ * 0.000125 / MOTORS_BL_PWM_PRESCALE_RAW)
+  #define MOTORS_BL_PWM_CNT_FOR_HIGH   (uint32_t)(TIM_CLOCK_HZ * MOTORS_HIGH_PERIOD_ZERO / MOTORS_BL_PWM_PRESCALE_RAW)
+  #define MOTORS_BL_PWM_PERIOD         MOTORS_BL_PWM_CNT_FOR_PERIOD
+  #define MOTORS_BL_PWM_PRESCALE       (uint16_t)(MOTORS_BL_PWM_PRESCALE_RAW - 1)
+  #define MOTORS_BL_POLARITY           TIM_OCPolarity_Low
+#elif defined(ENABLE_ONESHOT42)
+/**
+ * *VARNING* Make sure the brushless driver is configured correctly as on the Crazyflie with normal
+ * brushed motors connected they can turn on at full speed when it is powered on!
+ *
+ * Generates a PWM wave at 2000 Hz update rate, with 125 - 250us high pulse, using the timer.
+ */
+  #define BLMC_PERIOD 0.000085   // 85us = ~11700Hz
+  #define MOTORS_HIGH_PERIOD_ZERO  0.000042 // 42us for zero throttle
+
+  #define MOTORS_BL_PWM_PRESCALE_RAW   (uint32_t)((TIM_CLOCK_HZ/0xFFFF) * BLMC_PERIOD + 1) // +1 is to not end up above 0xFFFF in the end
+  #define MOTORS_BL_PWM_CNT_FOR_PERIOD (uint32_t)(TIM_CLOCK_HZ * BLMC_PERIOD / MOTORS_BL_PWM_PRESCALE_RAW)
+  #define MOTORS_BL_PWM_CNT_FOR_HIGH   (uint32_t)(TIM_CLOCK_HZ * MOTORS_HIGH_PERIOD_ZERO / MOTORS_BL_PWM_PRESCALE_RAW)
   #define MOTORS_BL_PWM_PERIOD         MOTORS_BL_PWM_CNT_FOR_PERIOD
   #define MOTORS_BL_PWM_PRESCALE       (uint16_t)(MOTORS_BL_PWM_PRESCALE_RAW - 1)
   #define MOTORS_BL_POLARITY           TIM_OCPolarity_Low
@@ -90,9 +106,11 @@
  * only in the 1-2 ms range.
  */
   #define BLMC_PERIOD 0.0025   // 2.5ms = 400Hz
+  #define MOTORS_HIGH_PERIOD_ZERO  0.001 // 1ms for zero throttle
+
   #define MOTORS_BL_PWM_PRESCALE_RAW   (uint32_t)((TIM_CLOCK_HZ/0xFFFF) * BLMC_PERIOD + 1) // +1 is to not end up above 0xFFFF in the end
   #define MOTORS_BL_PWM_CNT_FOR_PERIOD (uint32_t)(TIM_CLOCK_HZ * BLMC_PERIOD / MOTORS_BL_PWM_PRESCALE_RAW)
-  #define MOTORS_BL_PWM_CNT_FOR_HIGH    (uint32_t)(TIM_CLOCK_HZ * 0.001 / MOTORS_BL_PWM_PRESCALE_RAW)
+  #define MOTORS_BL_PWM_CNT_FOR_HIGH    (uint32_t)(TIM_CLOCK_HZ * MOTORS_HIGH_PERIOD_ZERO / MOTORS_BL_PWM_PRESCALE_RAW)
   #define MOTORS_BL_PWM_PERIOD         MOTORS_BL_PWM_CNT_FOR_PERIOD
   #define MOTORS_BL_PWM_PRESCALE       (uint16_t)(MOTORS_BL_PWM_PRESCALE_RAW - 1)
   #define MOTORS_BL_POLARITY           TIM_OCPolarity_Low
@@ -178,10 +196,13 @@ typedef struct
   motorsDrvType drvType;
   uint32_t      gpioPerif;
   GPIO_TypeDef* gpioPort;
-  uint32_t      gpioPin;
-  uint32_t      gpioPinSource;
+  uint16_t      gpioPin;
+  uint16_t      gpioPinSource;
   uint32_t      gpioOType;
-  uint32_t      gpioAF;
+  uint8_t       gpioAF;
+  uint32_t      gpioPowerswitchPerif;
+  GPIO_TypeDef* gpioPowerswitchPort;
+  uint16_t      gpioPowerswitchPin;
   uint32_t      timPerif;
   TIM_TypeDef*  tim;
   uint16_t      timPolarity;
@@ -198,10 +219,11 @@ typedef struct
 /**
  * Motor mapping configurations
  */
+extern const MotorPerifDef* motorMapNoMotors[NBR_OF_MOTORS];
 extern const MotorPerifDef* motorMapDefaultBrushed[NBR_OF_MOTORS];
 extern const MotorPerifDef* motorMapDefaltConBrushless[NBR_OF_MOTORS];
 extern const MotorPerifDef* motorMapBigQuadDeck[NBR_OF_MOTORS];
-extern const MotorPerifDef* motorMapRZRBrushless[NBR_OF_MOTORS];
+extern const MotorPerifDef* motorMapBoltBrushless[NBR_OF_MOTORS];
 
 /**
  * Test sound tones
@@ -224,14 +246,6 @@ void motorsDeInit(const MotorPerifDef** motorMapSelect);
  * the sequence M1 to M4.
  */
 bool motorsTest(void);
-
-bool motorsTestWJ(void);
-
-void motorsWhileIdle(void);
-
-void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
-void motorsPlayMelody(uint16_t *notes);
-void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
 
 /**
  * Set the PWM ratio of the motor 'id'
@@ -260,3 +274,4 @@ void motorsTestTask(void* params);
 void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
 
 #endif /* __MOTORS_H__ */
+

@@ -1,6 +1,6 @@
 /**
- *    ||          ____  _ __                           
- * +------+      / __ )(_) /_______________ _____  ___ 
+ *    ||          ____  _ __
+ * +------+      / __ )(_) /_______________ _____  ___
  * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
  * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
  *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
@@ -39,6 +39,7 @@
 #include "info.h"
 #include "cfassert.h"
 #include "queuemonitor.h"
+#include "static_mem.h"
 
 #include "log.h"
 
@@ -50,18 +51,16 @@ static struct crtpLinkOperations nopLink = {
   .setEnable         = (void*) nopFunc,
   .sendPacket        = (void*) nopFunc,
   .receivePacket     = (void*) nopFunc,
-}; 
+};
 
 static struct crtpLinkOperations *link = &nopLink;
 
 #define STATS_INTERVAL 500
 static struct {
   uint32_t rxCount;
-  uint32_t rxDroppedCount;
   uint32_t txCount;
 
   uint16_t rxRate;
-  uint16_t rxDroppedRate;
   uint16_t txRate;
 
   uint32_t nextStatisticsTime;
@@ -71,8 +70,8 @@ static struct {
 static xQueueHandle  txQueue;
 
 #define CRTP_NBR_OF_PORTS 16
-#define CRTP_TX_QUEUE_SIZE 100
-#define CRTP_RX_QUEUE_SIZE 2
+#define CRTP_TX_QUEUE_SIZE 120
+#define CRTP_RX_QUEUE_SIZE 16
 
 static void crtpTxTask(void *param);
 static void crtpRxTask(void *param);
@@ -80,6 +79,9 @@ static void crtpRxTask(void *param);
 static xQueueHandle queues[CRTP_NBR_OF_PORTS];
 static volatile CrtpCallback callbacks[CRTP_NBR_OF_PORTS];
 static void updateStats();
+
+STATIC_MEM_TASK_ALLOC_STACK_NO_DMA_CCM_SAFE(crtpTxTask, CRTP_TX_TASK_STACKSIZE);
+STATIC_MEM_TASK_ALLOC_STACK_NO_DMA_CCM_SAFE(crtpRxTask, CRTP_RX_TASK_STACKSIZE);
 
 void crtpInit(void)
 {
@@ -89,13 +91,8 @@ void crtpInit(void)
   txQueue = xQueueCreate(CRTP_TX_QUEUE_SIZE, sizeof(CRTPPacket));
   DEBUG_QUEUE_MONITOR_REGISTER(txQueue);
 
-  xTaskCreate(crtpTxTask, CRTP_TX_TASK_NAME,
-              CRTP_TX_TASK_STACKSIZE, NULL, CRTP_TX_TASK_PRI, NULL);
-  xTaskCreate(crtpRxTask, CRTP_RX_TASK_NAME,
-              CRTP_RX_TASK_STACKSIZE, NULL, CRTP_RX_TASK_PRI, NULL);
-
-  /* Start Rx/Tx tasks */
-
+  STATIC_MEM_TASK_CREATE(crtpTxTask, crtpTxTask, CRTP_TX_TASK_NAME, NULL, CRTP_TX_TASK_PRI);
+  STATIC_MEM_TASK_CREATE(crtpRxTask, crtpRxTask, CRTP_RX_TASK_NAME, NULL, CRTP_RX_TASK_PRI);
 
   isInit = true;
 }
@@ -108,8 +105,8 @@ bool crtpTest(void)
 void crtpInitTaskQueue(CRTPPort portId)
 {
   ASSERT(queues[portId] == NULL);
-  
-  queues[portId] = xQueueCreate(1, sizeof(CRTPPacket));
+
+  queues[portId] = xQueueCreate(CRTP_RX_QUEUE_SIZE, sizeof(CRTPPacket));
   DEBUG_QUEUE_MONITOR_REGISTER(queues[portId]);
 }
 
@@ -117,7 +114,7 @@ int crtpReceivePacket(CRTPPort portId, CRTPPacket *p)
 {
   ASSERT(queues[portId]);
   ASSERT(p);
-    
+
   return xQueueReceive(queues[portId], p, 0);
 }
 
@@ -125,7 +122,7 @@ int crtpReceivePacketBlock(CRTPPort portId, CRTPPacket *p)
 {
   ASSERT(queues[portId]);
   ASSERT(p);
-  
+
   return xQueueReceive(queues[portId], p, portMAX_DELAY);
 }
 
@@ -134,7 +131,7 @@ int crtpReceivePacketWait(CRTPPort portId, CRTPPacket *p, int wait)
 {
   ASSERT(queues[portId]);
   ASSERT(p);
-  
+
   return xQueueReceive(queues[portId], p, M2T(wait));
 }
 
@@ -182,12 +179,8 @@ void crtpRxTask(void *param)
       {
         if (queues[p.port])
         {
-          // The queue is only 1 long, so if the last packet hasn't been processed, we just replace it
-          if (uxQueueMessagesWaiting(queues[p.port]) > 0)
-          {
-            stats.rxDroppedCount++;
-          }
-          xQueueOverwrite(queues[p.port], &p);
+          // Block, since we should never drop a packet
+          xQueueSend(queues[p.port], &p, portMAX_DELAY);
         }
 
         if (callbacks[p.port])
@@ -210,13 +203,13 @@ void crtpRegisterPortCB(int port, CrtpCallback cb)
 {
   if (port>CRTP_NBR_OF_PORTS)
     return;
-  
+
   callbacks[port] = cb;
 }
 
 int crtpSendPacket(CRTPPacket *p)
 {
-  ASSERT(p); 
+  ASSERT(p);
   ASSERT(p->size <= CRTP_MAX_DATA_SIZE);
 
   return xQueueSend(txQueue, p, 0);
@@ -224,7 +217,7 @@ int crtpSendPacket(CRTPPacket *p)
 
 int crtpSendPacketBlock(CRTPPacket *p)
 {
-  ASSERT(p); 
+  ASSERT(p);
   ASSERT(p->size <= CRTP_MAX_DATA_SIZE);
 
   return xQueueSend(txQueue, p, portMAX_DELAY);
@@ -268,7 +261,6 @@ static int nopFunc(void)
 static void clearStats()
 {
   stats.rxCount = 0;
-  stats.rxDroppedCount = 0;
   stats.txCount = 0;
 }
 
@@ -278,7 +270,6 @@ static void updateStats()
   if (now > stats.nextStatisticsTime) {
     float interval = now - stats.previousStatisticsTime;
     stats.rxRate = (uint16_t)(1000.0f * stats.rxCount / interval);
-    stats.rxDroppedRate = (uint16_t)(1000.0f * stats.rxDroppedCount / interval);
     stats.txRate = (uint16_t)(1000.0f * stats.txCount / interval);
 
     clearStats();
@@ -289,6 +280,5 @@ static void updateStats()
 
 LOG_GROUP_START(crtp)
 LOG_ADD(LOG_UINT16, rxRate, &stats.rxRate)
-LOG_ADD(LOG_UINT16, rxDrpRte, &stats.rxDroppedRate)
 LOG_ADD(LOG_UINT16, txRate, &stats.txRate)
 LOG_GROUP_STOP(tdoa)

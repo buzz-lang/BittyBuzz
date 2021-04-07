@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "radiolink.h"
 
 // #include "led.h"
 
@@ -91,7 +92,7 @@ void handleOutgoingRadioMessage() {
         msg = message_tx();
         P2PPacket pk;
         pk.port = BROADCAST_PORT;
-        // Max size possible for a broadcast packet
+        // Max size possible for a broadcast packet: has to be small or equal to 30
         pk.size = PAYLOAD_MAX_SIZE;
         memset(pk.data, 0, PAYLOAD_MAX_SIZE);
         memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE);
@@ -185,7 +186,7 @@ void bbz_init(void (*setup)(void))
   // Initializes the system onboard CF
   systemLaunch();
   
-    vm = &vmObj;
+  vm = &vmObj;
   bbzringbuf_construct(&bbz_payload_buf, bbzmsg_buf, 1, 11);
   
   if (!has_setup) {
@@ -210,7 +211,7 @@ void bbz_init(void (*setup)(void))
 
 void bbzTask(void * param)
 {
-    systemWaitStart();
+    // systemWaitStart();
     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());

@@ -4,7 +4,6 @@
 #include <bittybuzz/bbzvm.h>
 #include <bbzcrazyflie.h>
 #include "led.h"
-#include "motors.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOSConfig.h"

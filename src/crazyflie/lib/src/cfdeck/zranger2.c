@@ -36,22 +36,19 @@
 #include "log.h"
 #include "param.h"
 #include "range.h"
+#include "static_mem.h"
 
 #include "i2cdev.h"
 #include "zranger2.h"
 #include "vl53l1x.h"
 
-#include "stabilizer_types.h"
-
-#include "estimator.h"
-#include "estimator_kalman.h"
 #include "cf_math.h"
 
 // Measurement noise model
-static float expPointA = 2.5f;
-static float expStdA = 0.0025f; // STD at elevation expPointA [m]
-static float expPointB = 4.0f;
-static float expStdB = 0.2f;    // STD at elevation expPointB [m]
+static const float expPointA = 2.5f;
+static const float expStdA = 0.0025f; // STD at elevation expPointA [m]
+static const float expPointB = 4.0f;
+static const float expStdB = 0.2f;    // STD at elevation expPointB [m]
 static float expCoeff;
 
 #define RANGE_OUTLIER_LIMIT 5000 // the measured range is in [mm]
@@ -60,7 +57,7 @@ static uint16_t range_last = 0;
 
 static bool isInit;
 
-static VL53L1_Dev_t dev;
+NO_DMA_CCM_SAFE_ZERO_INIT static VL53L1_Dev_t dev;
 
 static uint16_t zRanger2GetMeasurementAndRestart(VL53L1_Dev_t *dev)
 {
@@ -124,43 +121,28 @@ void zRanger2Task(void* arg)
 
   // Restart sensor
   VL53L1_StopMeasurement(&dev);
+  VL53L1_SetDistanceMode(&dev, VL53L1_DISTANCEMODE_MEDIUM);
+  VL53L1_SetMeasurementTimingBudgetMicroSeconds(&dev, 25000);
+
   VL53L1_StartMeasurement(&dev);
 
   lastWakeTime = xTaskGetTickCount();
 
   while (1) {
-    vTaskDelayUntil(&lastWakeTime, M2T(100));
+    vTaskDelayUntil(&lastWakeTime, M2T(25));
 
     range_last = zRanger2GetMeasurementAndRestart(&dev);
     rangeSet(rangeDown, range_last / 1000.0f);
 
-    // check if range is feasible and push into the kalman filter
+    // check if range is feasible and push into the estimator
     // the sensor should not be able to measure >5 [m], and outliers typically
     // occur as >8 [m] measurements
-    if (getStateEstimator() == kalmanEstimator &&
-        range_last < RANGE_OUTLIER_LIMIT) {
-      // Form measurement
-      tofMeasurement_t tofData;
-      tofData.timestamp = xTaskGetTickCount();
-      tofData.distance = (float)range_last * 0.001f; // Scale from [mm] to [m]
-      tofData.stdDev = expStdA * (1.0f  + expf( expCoeff * ( tofData.distance - expPointA)));
-      estimatorKalmanEnqueueTOF(&tofData);
+    if (range_last < RANGE_OUTLIER_LIMIT) {
+      float distance = (float)range_last * 0.001f; // Scale from [mm] to [m]
+      float stdDev = expStdA * (1.0f  + expf( expCoeff * (distance - expPointA)));
+      rangeEnqueueDownRangeInEstimator(distance, stdDev, xTaskGetTickCount());
     }
   }
-}
-
-bool zRanger2ReadRange(zDistance_t* zrange, const uint32_t tick)
-{
-  bool updated = false;
-
-  if (isInit) {
-    if (range_last != 0 && range_last < RANGE_OUTLIER_LIMIT) {
-      zrange->distance = (float)range_last * 0.001f; // Scale from [mm] to [m]
-      zrange->timestamp = tick;
-      updated = true;
-    }
-  }
-  return updated;
 }
 
 static const DeckDriver zranger2_deck = {
@@ -168,8 +150,6 @@ static const DeckDriver zranger2_deck = {
   .pid = 0x0E,
   .name = "bcZRanger2",
   .usedGpio = 0x0C,
-
-  .requiredEstimator = kalmanEstimator,
 
   .init = zRanger2Init,
   .test = zRanger2Test,

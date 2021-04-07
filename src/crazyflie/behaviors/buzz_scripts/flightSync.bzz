@@ -1,0 +1,21 @@
+# EXPECTED BEHAVIOR :
+#
+# Takeoff on start, hover for about 5 secconds at 30cm, do a little turn and land
+
+
+function init() {
+    neighbors.listen("land",
+        function(vid, value, rid) {
+            if (value == 1) {
+                #land()
+            }
+        }
+    )
+    takeoff()
+    spin()
+    land()
+}
+
+function step() {
+    
+}

@@ -25,6 +25,7 @@
  *
  * This code mainly interfacing the PWM peripheral lib of ST.
  */
+#define DEBUG_MODULE "MTR-DRV"
 
 #include <stdbool.h>
 
@@ -33,6 +34,7 @@
 
 #include "motors.h"
 #include "pm.h"
+#include "debug.h"
 
 //FreeRTOS includes
 #include "task.h"
@@ -47,10 +49,9 @@ static uint16_t motorsConv16ToBits(uint16_t bits);
 
 uint32_t motor_ratios[] = {0, 0, 0, 0};
 
-// Shifted to motors.h
-// void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
-// void motorsPlayMelody(uint16_t *notes);
-// void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
+void motorsPlayTone(uint16_t frequency, uint16_t duration_msec);
+void motorsPlayMelody(uint16_t *notes);
+void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
 
 #include "motors_def_cf2.c"
 
@@ -59,8 +60,6 @@ const MotorPerifDef** motorMap;  /* Current map configuration */
 const uint32_t MOTORS[] = { MOTOR_M1, MOTOR_M2, MOTOR_M3, MOTOR_M4 };
 
 const uint16_t testsound[NBR_OF_MOTORS] = {A4, A5, F5, D5 };
-
-const uint16_t testsoundWJ[NBR_OF_MOTORS] = {G6, D6, G5, A5 };
 
 static bool isInit = false;
 
@@ -105,11 +104,26 @@ void motorsInit(const MotorPerifDef** motorMapSelect)
 
   motorMap = motorMapSelect;
 
+  DEBUG_PRINT("Using %s motor driver\n", motorMap[0]->drvType == BRUSHED ? "brushed" : "brushless");
+
   for (i = 0; i < NBR_OF_MOTORS; i++)
   {
     //Clock the gpio and the timers
     MOTORS_RCC_GPIO_CMD(motorMap[i]->gpioPerif, ENABLE);
+    MOTORS_RCC_GPIO_CMD(motorMap[i]->gpioPowerswitchPerif, ENABLE);
     MOTORS_RCC_TIM_CMD(motorMap[i]->timPerif, ENABLE);
+
+    // If there is a power switch, as on Bolt, enable power to ESC by
+    // switching on mosfet.
+    if (motorMap[i]->gpioPowerswitchPin != 0)
+    {
+      GPIO_StructInit(&GPIO_InitStructure);
+      GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+      GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+      GPIO_InitStructure.GPIO_Pin = motorMap[i]->gpioPowerswitchPin;
+      GPIO_Init(motorMap[i]->gpioPowerswitchPort, &GPIO_InitStructure);
+      GPIO_WriteBit(motorMap[i]->gpioPowerswitchPort, motorMap[i]->gpioPowerswitchPin, 1);
+    }
 
     // Configure the GPIO for the timer output
     GPIO_StructInit(&GPIO_InitStructure);
@@ -153,6 +167,12 @@ void motorsInit(const MotorPerifDef** motorMapSelect)
   }
 
   isInit = true;
+
+  // Output zero power
+  motorsSetRatio(MOTOR_M1, 0);
+  motorsSetRatio(MOTOR_M2, 0);
+  motorsSetRatio(MOTOR_M3, 0);
+  motorsSetRatio(MOTOR_M4, 0);
 }
 
 void motorsDeInit(const MotorPerifDef** motorMapSelect)
@@ -188,12 +208,6 @@ bool motorsTest(void)
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
       motorsBeep(MOTORS[i], false, 0, 0);
       vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-#elif defined ACTIVATE_STARTUP_SOUND2
-      motorsBeep(MOTORS[i], true, testsoundWJ[i], (uint16_t)(MOTORS_TIM_BEEP_CLK_FREQ / A4)/ 20);
-      vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));
-      motorsBeep(MOTORS[i], false, 0, 0);
-      vTaskDelay(M2T(MOTORS_TEST_DELAY_TIME_MS));
-
 #else
       motorsSetRatio(MOTORS[i], MOTORS_TEST_RATIO);
       vTaskDelay(M2T(MOTORS_TEST_ON_TIME_MS));

@@ -5,8 +5,7 @@
 #include "semphr.h"
 #include "queue.h"
 /* ST includes */
-#include "stm32f4xx.h"
-#include "stm32f4xx_dma.h"
+#include "stm32fxxx.h"
 
 #define I2C_NO_INTERNAL_ADDRESS   0xFFFF
 
@@ -71,7 +70,9 @@ typedef struct
   uint32_t messageIndex;                //< Index of bytes sent/received
   uint32_t nbrOfretries;                //< Retries done
   SemaphoreHandle_t isBusFreeSemaphore; //< Semaphore to block during transaction.
-  SemaphoreHandle_t isBusFreeMutex;     //< Mutex to protect buss
+  StaticSemaphore_t isBusFreeSemaphoreBuffer;
+  SemaphoreHandle_t isBusFreeMutex;     //< Mutex to protect bus
+  StaticSemaphore_t isBusFreeMutexBuffer;
   DMA_InitTypeDef DMAStruct;            //< DMA configuration structure used during transfer setup.
 } I2cDrv;
 
@@ -110,7 +111,7 @@ void i2cdrvCreateMessage(I2cMessage *message,
                       uint8_t  slaveAddress,
                       I2cDirection  direction,
                       uint32_t length,
-                      uint8_t  *buffer);
+                      const uint8_t  *buffer);
 
 /**
  * Create a message to transfer with internal "reg" address. Will first do a write
@@ -129,6 +130,6 @@ void i2cdrvCreateMessageIntAddr(I2cMessage *message,
                              uint16_t intAddress,
                              I2cDirection  direction,
                              uint32_t length,
-                             uint8_t  *buffer);
+                             const uint8_t  *buffer);
 
 #endif
