@@ -198,9 +198,9 @@ void handleIncomingRadioMessage() {
       if (message_rx != NULL) {
         Position* rbtp = getRobotPosition();
         memcpy_fast(&msgp, msg.payload+1, sizeof(Position));
-        int16_t dist = qfp_float2uint(qfp_fsqrt(qfp_uint2float((uint32_t)(msgp.x - rbtp->x)*(uint32_t)(msgp.x - rbtp->x) + (uint32_t)(msgp.y - rbtp->y)*(uint32_t)(msgp.y - rbtp->y))));
-        int16_t azimuth = qfp_float2int(qfp_fmul(qfp_fatan2(qfp_int2float(msgp.y - rbtp->y), qfp_int2float(msgp.x - rbtp->x)), 180.0f / PI));
-        message_rx(&msg, CLAMP(dist, 0, 127), azimuth);
+        float dist = qfp_fsqrt(qfp_uint2float((uint32_t)(msgp.x - rbtp->x)*(uint32_t)(msgp.x - rbtp->x) + (uint32_t)(msgp.y - rbtp->y)*(uint32_t)(msgp.y - rbtp->y)));
+        float azimuth = qfp_fatan2(qfp_int2float(msgp.y - rbtp->y), qfp_int2float(msgp.x - rbtp->x));
+        message_rx(&msg, dist, azimuth);
       }
       break;
     case TYPE_REBOOT_ROBOT:

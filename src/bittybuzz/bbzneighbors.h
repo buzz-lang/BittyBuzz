@@ -93,9 +93,15 @@ extern "C" {
 typedef struct PACKED bbzneighbors_elem_t {
 #ifndef BBZ_DISABLE_NEIGHBORS
     bbzrobot_id_t robot;    /**< @brief ID of the robot this entry is for. */
+#ifndef BBZ_NEIGHBORS_USE_FLOATS
     uint8_t distance;       /**< @brief Distance between to the given robot. */
     uint8_t azimuth;        /**< @brief Angle (in rad) on the XY plane. */
     uint8_t elevation;      /**< @brief Angle (in rad) between the XY plane and the robot. */
+#else // !BBZ_NEIGHBORS_USE_FLOATS
+    bbzfloat distance;      /**< @brief Distance between to the given robot. */
+    bbzfloat azimuth;       /**< @brief Angle (in rad) on the XY plane. */
+    bbzfloat elevation;     /**< @brief Angle (in rad) between the XY plane and the robot. */
+#endif // !BBZ_NEIGHBORS_USE_FLOATS
     uint8_t mdata;          /**< @brief Neighbor element metadata @details 7th bit: neighbors data GC marking flag */
 #endif // !BBZ_DISABLE_NEIGHBORS
 } bbzneighbors_elem_t;
