@@ -19,12 +19,21 @@
  */
 static void push_neighbor_data_table(const bbzneighbors_elem_t* elem) {
     bbzvm_pusht();
+#ifndef BBZ_NEIGHBORS_USE_FLOATS
     // Distance
     bbztable_add_data(__BBZSTRID_distance,  bbzint_new(elem->distance));
     // Azimuth
     bbztable_add_data(__BBZSTRID_azimuth,   bbzint_new(elem->azimuth));
     // Elevation
     bbztable_add_data(__BBZSTRID_elevation, bbzint_new(elem->elevation));
+#else // !BBZ_NEIGHBORS_USE_FLOATS
+    // Distance
+    bbztable_add_data(__BBZSTRID_distance,  bbzfloat_new(elem->distance));
+    // Azimuth
+    bbztable_add_data(__BBZSTRID_azimuth,   bbzfloat_new(elem->azimuth));
+    // Elevation
+    bbztable_add_data(__BBZSTRID_elevation, bbzfloat_new(elem->elevation));
+#endif // !BBZ_NEIGHBORS_USE_FLOATS
 }
 
 /**

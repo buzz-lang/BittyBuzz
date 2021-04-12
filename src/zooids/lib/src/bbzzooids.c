@@ -93,7 +93,7 @@ Message* bbzwhich_msg_tx() {
     return 0;
 }
 
-void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
+void bbzprocess_msg_rx(Message* msg_rx, float distance, float azimuth) {
 #ifndef BBZ_DISABLE_MESSAGES
     if (msg_rx->header.type == TYPE_BBZ_MESSAGE) {
         bbzringbuf_clear(&bbz_payload_buf);
@@ -104,10 +104,16 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
 #ifndef BBZ_DISABLE_NEIGHBORS
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
             bbzneighbors_elem_t elem;
+#ifndef BBZ_NEIGHBORS_USE_FLOATS
             elem.azimuth = azimuth;
             elem.elevation = 0;
-            elem.robot = *(uint8_t*)msg_rx->payload;
             elem.distance = distance << 1;
+#else // !BBZ_NEIGHBORS_USE_FLOATS
+            elem.azimuth = bbzfloat_fromfloat(azimuth);
+            elem.elevation = bbzfloat_fromint(0);
+            elem.distance = bbzfloat_fromfloat(distance);
+#endif // !BBZ_NEIGHBORS_USE_FLOATS
+            elem.robot = *(uint8_t*)msg_rx->payload;
             bbzneighbors_add(&elem);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS
