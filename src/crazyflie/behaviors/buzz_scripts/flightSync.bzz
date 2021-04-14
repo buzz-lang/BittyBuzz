@@ -1,21 +1,25 @@
 # EXPECTED BEHAVIOR :
 #
-# Takeoff on start, hover for about 5 secconds at 30cm, do a little turn and land
+# Crazyflies with id:
+# > 0: Takeoff on start and hover at 300 mm (with obstacles avoidance) until it receives a landing message
+# = 0: Takeoff on start, spin 5 times (with obstacles avoidance), broadcats a landing message and land itself.
+#
+# To work properly, the crazyflies need to be equiped with a flow deck and a multiranger (necessary for the obstacles avoidance)
 
+n = 0
+stop = 0
 
 function init() {
     neighbors.listen("land",
         function(vid, value, rid) {
-            if (value == 1) {
-                #land()
-            }
+            land(300, 10)
+            stop = 1
         }
     )
-    takeoff()
-    spin()
-    land()
+    #delay(2000)
+    #takeoff(300, 10)
 }
 
 function step() {
-    
+   
 }
