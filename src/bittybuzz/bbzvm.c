@@ -706,7 +706,7 @@ void bbzvm_unm() {
     bbzvm_pushi(-operand->i.value);
   }
   else if(bbztype_isfloat(*operand)){
-    bbzvm_pushf(-operand->f.value);
+    bbzvm_pushf(bbzfloat_negate(operand->f.value));
   }
   else {
     bbzvm_seterror(BBZVM_ERROR_TYPE);
