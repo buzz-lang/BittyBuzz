@@ -451,7 +451,7 @@ void bbzvm_step() {
 // - Binary arithmetic operators  -
 // --------------------------------
 
-#if !(defined(BBZ_ENABLE_FLOATS_OPERATIONS) && defined(BBZ_USE_FLOAT))
+#if (!defined(BBZ_ENABLE_FLOATS_OPERATIONS) || !defined(BBZ_USE_FLOAT))
 
 /**
  * @brief Type for an arithmetic binary function pointer.
