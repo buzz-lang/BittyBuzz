@@ -49,6 +49,7 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 set(BBZ_ROBOT kilobot)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." ON)
 option(BBZ_NEIGHBORS_USE_FLOATS "Whether to use floats for the neighbor's range and bearing measurments." OFF)
+option(BBZ_ENABLE_FLOATS_OPERATIONS "Whether to enable floats operations" OFF)
 
 #
 # CMake command to compile an executable
