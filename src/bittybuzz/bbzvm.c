@@ -451,7 +451,7 @@ void bbzvm_step() {
 // - Binary arithmetic operators  -
 // --------------------------------
 
-#if (!defined(BBZ_ENABLE_FLOATS_OPERATIONS) || !defined(BBZ_USE_FLOAT))
+#ifndef BBZ_ENABLE_FLOATS_OPERATIONS
 
 /**
  * @brief Type for an arithmetic binary function pointer.
@@ -509,7 +509,7 @@ static int16_t bbzpow(int16_t lhs, int16_t rhs) {
     return ret;
 }
 
-#else // !(defined(BBZ_ENABLE_FLOATS_OPERATIONS) && defined(BBZ_USE_FLOAT))
+#else // BBZ_ENABLE_FLOATS_OPERATIONS
 
 typedef bbzheap_idx_t (*binary_op_arith)(bbzobj_t *lhs, bbzobj_t *rhs);
 
@@ -650,7 +650,6 @@ void bbzvm_mod() { return bbzvm_binary_op_arith(&mod); }
 /****************************************/
 
 void bbzvm_pow() { return bbzvm_binary_op_arith(&bbzpow); }
-
 
 // --------------------------------
 // -         Unary Minus          -
