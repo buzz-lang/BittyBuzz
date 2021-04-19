@@ -143,4 +143,9 @@
  */
 #cmakedefine BBZ_NEIGHBORS_USE_FLOATS
 
+/**
+ * @brief Wether to enable floats operations
+ */
+#cmakedefine BBZ_ENABLE_FLOATS_OPERATIONS
+
 #endif // !CONFIG_H
