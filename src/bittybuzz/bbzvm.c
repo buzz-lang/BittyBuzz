@@ -509,48 +509,6 @@ static int16_t bbzpow(int16_t lhs, int16_t rhs) {
     return ret;
 }
 
-/****************************************/
-/****************************************/
-
-void bbzvm_add() {
-    return bbzvm_binary_op_arith(&add);
-}
-
-/****************************************/
-/****************************************/
-
-void bbzvm_sub() {
-    return bbzvm_binary_op_arith(&sub);
-}
-
-/****************************************/
-/****************************************/
-
-void bbzvm_mul() {
-    return bbzvm_binary_op_arith(&mul);
-}
-
-/****************************************/
-/****************************************/
-
-void bbzvm_div() {
-    return bbzvm_binary_op_arith(&div);
-}
-
-/****************************************/
-/****************************************/
-
-void bbzvm_mod() {
-    return bbzvm_binary_op_arith(&mod);
-}
-
-/****************************************/
-/****************************************/
-
-void bbzvm_pow() {
-    return bbzvm_binary_op_arith(&bbzpow);
-}
-
 #else // !(defined(BBZ_ENABLE_FLOATS_OPERATIONS) && defined(BBZ_USE_FLOAT))
 
 typedef bbzheap_idx_t (*binary_op_arith)(bbzobj_t *lhs, bbzobj_t *rhs);
@@ -692,6 +650,7 @@ void bbzvm_mod() { return bbzvm_binary_op_arith(&mod); }
 /****************************************/
 
 void bbzvm_pow() { return bbzvm_binary_op_arith(&bbzpow); }
+
 
 // --------------------------------
 // -         Unary Minus          -
