@@ -46,7 +46,7 @@ bbzfloat bbzfloat_fromfloat(float f);
 float bbzfloat_tofloat(bbzfloat x);
 
 /**
- * @brief Apply a negation on a float, changin the sign
+ * @brief Apply a negation on a float, changing the sign
  * @param[in] f bbzfloat value.
  * @return The bbzfloat negated.
  */
