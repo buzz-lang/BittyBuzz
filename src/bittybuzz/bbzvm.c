@@ -565,26 +565,28 @@ static void bbzvm_binary_op_arith(binary_op_arith op) {
   bbzvm_push((*op)(lhs, rhs));
 }
 
-#define bbzvm_binary_base_op_arith(lhs, rhs, op)                        \
-  if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {                     \
-    int16_t val = lhs->i.value op rhs->i.value;                         \
-    return bbzint_new(val);                                             \
-  }                                                                     \
-  else if (bbztype_isfloat(*lhs) && bbztype_isint(*rhs)) {              \
-    float val = bbzfloat_tofloat(lhs->f.value) op rhs->i.value;         \
-    return bbzfloat_new(bbzfloat_fromfloat(val));                       \
-  }                                                                     \
-  else if (bbztype_isint(*lhs) && bbztype_isfloat(*rhs)) {              \
-    float val = lhs->i.value op bbzfloat_tofloat(rhs->f.value);         \
-    return bbzfloat_new(bbzfloat_fromfloat(val));                       \
-  }                                                                     \
-  else if (bbztype_isfloat(*lhs) && bbztype_isfloat(*rhs)) {            \
-    float val = bbzfloat_tofloat(lhs->f.value) op bbzfloat_tofloat(rhs->f.value); \
-    return bbzfloat_new(bbzfloat_fromfloat(val));                       \
-  }                                                                     \
-  else {                                                                \
-    bbzvm_seterror(BBZVM_ERROR_MATH)                                    \
-      return vm->nil;                                                   \
+#define bbzvm_binary_base_op_arith(lhs, rhs, op)                               \
+  if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {                            \
+    int16_t val = lhs->i.value op rhs->i.value;                                \
+    return bbzint_new(val);                                                    \
+  }                                                                            \
+  else if (bbztype_isfloat(*lhs) && bbztype_isint(*rhs)) {                     \
+    float val = bbzfloat_tofloat(lhs->f.value) op rhs->i.value;                \
+    return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+  }                                                                            \
+  else if (bbztype_isint(*lhs) && bbztype_isfloat(*rhs)) {                     \
+    float val = lhs->i.value op bbzfloat_tofloat(rhs->f.value);                \
+    return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+  }                                                                            \
+  else if (bbztype_isfloat(*lhs) && bbztype_isfloat(*rhs)) {                   \
+    float val =                                                                \
+        bbzfloat_tofloat(lhs->f.value) op bbzfloat_tofloat(rhs->f.value);      \
+    return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+  }                                                                            \
+  else {                                                                       \
+    /* We don really care about the return value since the vm is in err*/      \
+    bbzvm_seterror(BBZVM_ERROR_MATH);                                          \
+    return vm->nil;                                                            \
   }
 
 static bbzheap_idx_t add(bbzobj_t *lhs, bbzobj_t *rhs) {
