@@ -523,7 +523,7 @@ static void bbzvm_binary_op_arith(binary_op_arith op) {
   bbzvm_push((*op)(lhs, rhs));
 }
 
-#define bbzvm_binary_base_op_arith(lhs, rhs, op)                               \
+#define bbzvm_operator(lhs, rhs, op)                               \
   if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {                            \
     int16_t val = lhs->i.value op rhs->i.value;                                \
     return bbzint_new(val);                                                    \
@@ -548,19 +548,19 @@ static void bbzvm_binary_op_arith(binary_op_arith op) {
   }
 
 static bbzheap_idx_t add(bbzobj_t *lhs, bbzobj_t *rhs) {
-  bbzvm_binary_base_op_arith(lhs, rhs, +);
+  bbzvm_operator(lhs, rhs, +);
 }
 
 static bbzheap_idx_t sub(bbzobj_t *lhs, bbzobj_t *rhs) {
-  bbzvm_binary_base_op_arith(lhs, rhs, -);
+  bbzvm_operator(lhs, rhs, -);
 }
 
 static bbzheap_idx_t mul(bbzobj_t *lhs, bbzobj_t *rhs) {
-  bbzvm_binary_base_op_arith(lhs, rhs, *);
+  bbzvm_operator(lhs, rhs, *);
 }
 
 static bbzheap_idx_t div(bbzobj_t *lhs, bbzobj_t *rhs) {
-  bbzvm_binary_base_op_arith(lhs, rhs, /);
+  bbzvm_operator(lhs, rhs, /);
 }
 
 static bbzheap_idx_t mod(bbzobj_t *lhs, bbzobj_t *rhs) {
