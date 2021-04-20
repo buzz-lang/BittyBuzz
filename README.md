@@ -124,7 +124,7 @@ the likelihood that one will require changing it.
 | `BBZ_DISABLE_MESSAGES`         | Whether to disable Buzz messages                           | <span style="color:#880">Moderate</span> | OFF  | OFF     |
 | `BBZ_DISABLE_PY_BEHAV`         | Whether to disable Python behaviors of closures            | <span style="color:#080">Low</span>      | OFF  | OFF     |
 | `BBZ_NEIGHBORS_USE_FLOATS`     | Whether to use floats for the neighbor's range and bearing | <span style="color:#880">Moderate</span> | ON   | OFF     |
-| `BBZ_ENABLE_FLOATS_OPERATIONS` | Whether to enable floats operations                         | <span style="color:#880></span>          | ON   | OFF     |
+| `BBZ_ENABLE_FLOAT_OPERATIONS` | Whether to enable floats operations                         | <span style="color:#880></span>          | ON   | OFF     |
 
 For example, for a Buzz program requiring larger stack sizes but less heap allocations, you may run cmake as:
 

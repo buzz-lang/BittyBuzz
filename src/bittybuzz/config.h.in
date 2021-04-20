@@ -146,6 +146,6 @@
 /**
  * @brief Whether to enable floats operations
  */
-#cmakedefine BBZ_ENABLE_FLOATS_OPERATIONS
+#cmakedefine BBZ_ENABLE_FLOAT_OPERATIONS
 
 #endif // !CONFIG_H
