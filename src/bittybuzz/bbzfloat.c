@@ -140,7 +140,7 @@ uint8_t bbzfloat_isnan(bbzfloat x) {
 
 
 bbzfloat bbzfloat_negate(bbzfloat f){
-   return (f ^ BBZFLOAT_SIGNMASK);
+    return (f ^ BBZFLOAT_SIGNMASK);
 }
 
 /****************************************/
