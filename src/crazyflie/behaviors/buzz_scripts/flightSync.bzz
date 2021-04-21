@@ -16,10 +16,21 @@ function init() {
             stop = 1
         }
     )
-    #delay(2000)
-    #takeoff(300, 10)
+    delay(2000)
+    takeoff(300, 10)
 }
 
 function step() {
-   
+    if (stop == 0) {
+        hover(300)
+        if (id == 0) {
+            spin(300, 72)
+            n = n + 1
+            if (n == 5) {
+                neighbors.broadcast("land", 1)
+                stop = 1
+                land(300, 10)
+            }
+        }
+    }
 }

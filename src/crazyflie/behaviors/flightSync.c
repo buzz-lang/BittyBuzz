@@ -67,9 +67,9 @@ void bbz_takeoff() {
     idFront = logGetVarId("range", "front");
     idBack = logGetVarId("range", "back");
 
-    idX = logGetVarId("ext_pos", "X");
-    idY = logGetVarId("ext_pos", "Y");
-    idZ = logGetVarId("ext_pos", "Z");
+    idX = logGetVarId("stateEstimate", "x"); // ext_pose, X
+    idY = logGetVarId("stateEstimate", "y");
+    idZ = logGetVarId("stateEstimate", "z");
 
     for (int i = 0; i < nb_of_steps; i++) {
 
@@ -133,7 +133,7 @@ void bbz_spin() {
 #ifndef DEBUG
     bbzvm_assert_lnum(2);
     float curHeight = (int)bbzheap_obj_at(bbzvm_locals_at(1))->i.value / 1000.0;
-    int yaw = (int)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
+    int yaw = (int)bbzheap_obj_at(bbzvm_locals_at(2))->i.value;
     setpoint_t *setpoint = malloc(sizeof(sizeof(setpoint_t)));
     memset(setpoint, 0, sizeof(setpoint_t));
 
