@@ -46,6 +46,13 @@ bbzfloat bbzfloat_fromfloat(float f);
 float bbzfloat_tofloat(bbzfloat x);
 
 /**
+ * @brief Apply a negation on a float, changing the sign
+ * @param[in] f bbzfloat value.
+ * @return The bbzfloat negated.
+ */
+bbzfloat bbzfloat_negate(bbzfloat f);
+
+/**
  * @brief Calculates a binary arithmetic operation on two bbzfloats (x+y).
  * @param[in] x  The first operand.
  * @param[in] y  The second operand.
