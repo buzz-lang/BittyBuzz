@@ -29,6 +29,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "radiolink.h"
+#include "log.h"
+#include <math.h>
+#include "peer_localization.h"
+#include "stabilizer_types.h"
 
 // #include "led.h"
 
@@ -53,6 +57,10 @@ static void bbzTask(void * prm);
 
 static uint8_t has_setup = 0;
 
+uint16_t idX = 0.0;
+uint16_t idY = 0.0;
+uint16_t idZ = 0.0;
+
 
 uint8_t buf[4];
 const uint8_t *bbzcrazyflie_bcodeFetcher(bbzpc_t offset, uint8_t size)
@@ -72,6 +80,17 @@ void setRobotId(uint8_t _id)
 uint8_t getRobotId()
 {
       return myId;
+}
+
+Position getCurrentPosition() {
+    idX = logGetVarId("stateEstimate", "x");
+    idY = logGetVarId("stateEstimate", "y");
+    idZ = logGetVarId("stateEstimate", "z");
+    Position pos = {};
+    pos.x = (uint16_t)(logGetFloat(idX) * 1000);
+    pos.y = (uint16_t)(logGetFloat(idY) * 1000);
+    pos.z = (uint16_t)(logGetFloat(idZ) * 1000);
+    return pos;
 }
 
 void bbz_func_call(uint16_t strid) {
@@ -124,6 +143,20 @@ void bbzcrazyflie_func_call(uint16_t strid) {
     }
 }
 
+float getDistance(Position curPosition, Position neighborPos) {
+    return sqrtf(powf((neighborPos.x - curPosition.x), 2.0) + 
+    powf((neighborPos.y - curPosition.y), 2.0) + 
+    powf((neighborPos.z - curPosition.z), 2.0));
+}
+
+float getAzimuth(Position curPosition, Position neighborPos) {
+    return ((atanf((float)(neighborPos.x - curPosition.x) / (float)(neighborPos.y - curPosition.y))) * (180.0f / M_PI)) + 180.0f;
+}
+
+float getElevation(uint16_t curZ, uint16_t neighborZ, float distance) {
+    return ((asinf((float)(neighborZ - curZ) / distance)) * (180.0f / M_PI)) + 180.0f;
+}
+
 void handleIncomingRadioMessage(P2PPacket *p)
 {
   DEBUG_PRINT("Broadcast listener\n");
@@ -131,7 +164,31 @@ void handleIncomingRadioMessage(P2PPacket *p)
   memset(&msg, 0, sizeof(msg));
   memcpy(&msg, p->data, p->size);
   // No distance or azimuth information
-  message_rx(&msg, 0, 0);
+  if (msg.header.type != TYPE_BBZ_MESSAGE) {
+      message_rx(&msg, 0, 0, 0);
+      return;
+  }
+  Position neighborPos;
+  memset(&neighborPos, 0, sizeof(Position));
+  memcpy(&neighborPos, (msg.payload + sizeof(uint8_t)), sizeof(Position));
+
+  // Tell the neighbor position for the crazyflie built-in collision avoidance
+  positionMeasurement_t neighborPosition = {};
+  neighborPosition.x = (float)(neighborPos.x / 1000.0f);
+  neighborPosition.y = (float)(neighborPos.y / 1000.0f);
+  neighborPosition.z = (float)(neighborPos.z / 1000.0f);
+  DEBUG_PRINT("Sharing peer position: %s\n", peerLocalizationTellPosition(*(uint8_t*)msg.payload, &neighborPosition) ? "Success" : "Failed");
+
+  Position curPos = getCurrentPosition();
+  float distance = getDistance(curPos, neighborPos);
+  int16_t azimuth = (int16_t)getAzimuth(curPos, neighborPos);
+  int16_t elevation = (int16_t)getElevation(curPos.z, neighborPos.z, distance);
+
+//   DEBUG_PRINT("Neighbor X %d Y %d Z %d\n", neighborPos.x, neighborPos.y, neighborPos.z);
+//   DEBUG_PRINT("SELF X %d Y %d Z %d\n", curPos.x, curPos.y, curPos.z);
+//   DEBUG_PRINT("elevation %d", elevation);
+//   DEBUG_PRINT("Distance %d", (uint8_t)(distance/10.0));
+  message_rx(&msg, (uint16_t)(distance/10.0), azimuth, elevation);
 }
 
 Message* bbzwhich_msg_tx() {
@@ -141,7 +198,7 @@ Message* bbzwhich_msg_tx() {
         bbzmsg_tx.header.type = TYPE_BBZ_MESSAGE;
         bbzmsg_tx.header.id = RECEIVER_ID;
         *(uint8_t*)bbzmsg_tx.payload = getRobotId();
-//         *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = *getRobotPosition();
+        *(Position*)(bbzmsg_tx.payload + sizeof(uint8_t)) = getCurrentPosition();
         for (uint8_t i=0;i<9;++i) {
             bbzmsg_tx.payload[i+sizeof(Position)+sizeof(uint8_t)] = *bbzringbuf_at(&bbz_payload_buf, i);
         }
@@ -151,7 +208,7 @@ Message* bbzwhich_msg_tx() {
     return 0;
 }
 
-void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
+void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth, int16_t elevation) {
 #ifndef BBZ_DISABLE_MESSAGES
     if (msg_rx->header.type == TYPE_BBZ_MESSAGE) {
         bbzringbuf_clear(&bbz_payload_buf);
@@ -163,9 +220,9 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth) {
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
             bbzneighbors_elem_t elem;
             elem.azimuth = azimuth;
-            elem.elevation = 0;
+            elem.elevation = elevation;
             elem.robot = *(uint8_t*)msg_rx->payload;
-            elem.distance = distance << 1;
+            elem.distance = distance;
             bbzneighbors_add(&elem);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS

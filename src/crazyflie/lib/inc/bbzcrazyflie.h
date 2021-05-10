@@ -30,7 +30,7 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-typedef void (*message_rx_t)(Message *, uint16_t distance, int16_t azimuth);
+typedef void (*message_rx_t)(Message *, uint16_t distance, int16_t azimuth, int16_t elevation);
 typedef Message *(*message_tx_t)(void);
 typedef void (*message_tx_success_t)(void);
 
