@@ -267,7 +267,7 @@ void collisionAvoidanceUpdateSetpointCore(
 #include "log.h"
 
 
-static uint8_t collisionAvoidanceEnable = 0;
+static uint8_t collisionAvoidanceEnable = 1;
 
 static collision_avoidance_params_t params = {
   .ellipsoidRadii = { .x = 0.3, .y = 0.3, .z = 0.9 },
@@ -335,7 +335,9 @@ void collisionAvoidanceUpdateSetpoint(
     ++nOthers;
   }
 
-  collisionAvoidanceUpdateSetpointCore(&params, &collisionState, nOthers, workspace, workspace, setpoint, sensorData, state);
+  if (nOthers > 0) {
+    collisionAvoidanceUpdateSetpointCore(&params, &collisionState, nOthers, workspace, workspace, setpoint, sensorData, state);
+  }
 
   latency = xTaskGetTickCount() - time;
 }
