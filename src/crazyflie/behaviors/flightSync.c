@@ -19,19 +19,11 @@ uint16_t idRight = 0;
 uint16_t idFront = 0; 
 uint16_t idBack = 0; 
 
-uint16_t idX = 0.0;
-uint16_t idY = 0.0;
-uint16_t idZ = 0.0;
-
 uint16_t up = 0;  
 uint16_t left = 0; 
 uint16_t right = 0; 
 uint16_t front = 0; 
 uint16_t back = 0;
-
-float X = 0.0;
-float Y = 0.0;
-float Z = 0.0;
 
 float VELOCITY = 0.5f;
 uint16_t PROXIMITY_LIMIT = 300;
@@ -67,10 +59,6 @@ void bbz_takeoff() {
     idFront = logGetVarId("range", "front");
     idBack = logGetVarId("range", "back");
 
-    idX = logGetVarId("stateEstimate", "x"); // ext_pose, X
-    idY = logGetVarId("stateEstimate", "y");
-    idZ = logGetVarId("stateEstimate", "z");
-
     for (int i = 0; i < nb_of_steps; i++) {
 
         setpoint-> mode.z = modeAbs;
@@ -101,11 +89,6 @@ void bbz_hover() {
     setpoint_t *setpoint = malloc(sizeof(sizeof(setpoint_t)));
     memset(setpoint, 0, sizeof(setpoint_t));
 
-    X = logGetFloat(idX);
-    Y = logGetFloat(idY);
-    Z = logGetFloat(idZ);
-    DEBUG_PRINT("X = %.2f, Y = %.2f, Z = %.2f\n", X,Y,Z);
-    
     for (int i = 0; i < 5; i++) {
 
         setpoint-> mode.z = modeAbs;
