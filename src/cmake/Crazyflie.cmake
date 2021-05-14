@@ -224,7 +224,9 @@ set(CURRENT_COMPILER "NATIVE" CACHE STRING "Which compiler we are using.")
 #
 set(BBZ_ROBOT crazyflie)
 option(BBZ_XTREME_MEMORY "Whether to enable high memory-optimization." OFF)
-option(BBZ_BYTEWISE_ASSIGNMENT "Wether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" OFF) #Turned ON for Cortex-M0. CF uses Cortex-M4
+option(BBZ_NEIGHBORS_USE_FLOATS "Whether to use floats for the neighbor's range and bearing measurments." ON)
+option(BBZ_ENABLE_FLOAT_OPERATIONS "Whether to enable floats operations" ON)
+option(BBZ_BYTEWISE_ASSIGNMENT "Whether to make assignment byte per byte or directly. (used to ensure compatibility with Cortex-M0)" OFF) #Turned ON for Cortex-M0. CF uses Cortex-M4
 set(BBZHEAP_SIZE 3500)
 set(BBZSTACK_SIZE 128)
 # message("BBZHEAP_SIZE := ${BBZHEAP_SIZE}")

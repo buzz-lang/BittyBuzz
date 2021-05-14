@@ -150,11 +150,11 @@ float getDistance(Position curPosition, Position neighborPos) {
 }
 
 float getAzimuth(Position curPosition, Position neighborPos) {
-    return ((atanf((float)(neighborPos.x - curPosition.x) / (float)(neighborPos.y - curPosition.y))) * (180.0f / M_PI)) + 180.0f;
+    return (atanf((float)(neighborPos.x - curPosition.x) / (float)(neighborPos.y - curPosition.y)));
 }
 
 float getElevation(uint16_t curZ, uint16_t neighborZ, float distance) {
-    return ((asinf((float)(neighborZ - curZ) / distance)) * (180.0f / M_PI)) + 180.0f;
+    return (asinf((float)(neighborZ - curZ) / distance));
 }
 
 void handleIncomingRadioMessage(P2PPacket *p)
@@ -181,14 +181,15 @@ void handleIncomingRadioMessage(P2PPacket *p)
 
   Position curPos = getCurrentPosition();
   float distance = getDistance(curPos, neighborPos);
-  int16_t azimuth = (int16_t)getAzimuth(curPos, neighborPos);
-  int16_t elevation = (int16_t)getElevation(curPos.z, neighborPos.z, distance);
+  float azimuth = getAzimuth(curPos, neighborPos);
+  float elevation = getElevation(curPos.z, neighborPos.z, distance);
 
 //   DEBUG_PRINT("Neighbor X %d Y %d Z %d\n", neighborPos.x, neighborPos.y, neighborPos.z);
 //   DEBUG_PRINT("SELF X %d Y %d Z %d\n", curPos.x, curPos.y, curPos.z);
-//   DEBUG_PRINT("elevation %d", elevation);
-//   DEBUG_PRINT("Distance %d", (uint8_t)(distance/10.0));
-  message_rx(&msg, (uint16_t)(distance/10.0), azimuth, elevation);
+//   DEBUG_PRINT("elevation %f", elevation);
+//   DEBUG_PRINT("azimuth %f", azimuth);
+//   DEBUG_PRINT("Distance %f", (distance));
+  message_rx(&msg, distance, azimuth, elevation);
 }
 
 Message* bbzwhich_msg_tx() {
@@ -208,7 +209,7 @@ Message* bbzwhich_msg_tx() {
     return 0;
 }
 
-void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth, int16_t elevation) {
+void bbzprocess_msg_rx(Message* msg_rx, float distance, float azimuth, float elevation) {
 #ifndef BBZ_DISABLE_MESSAGES
     if (msg_rx->header.type == TYPE_BBZ_MESSAGE) {
         bbzringbuf_clear(&bbz_payload_buf);
@@ -219,10 +220,16 @@ void bbzprocess_msg_rx(Message* msg_rx, uint16_t distance, int16_t azimuth, int1
 #ifndef BBZ_DISABLE_NEIGHBORS
         if (*bbzmsg_buf == BBZMSG_BROADCAST) {
             bbzneighbors_elem_t elem;
+#ifndef BBZ_NEIGHBORS_USE_FLOATS
             elem.azimuth = azimuth;
             elem.elevation = elevation;
-            elem.robot = *(uint8_t*)msg_rx->payload;
             elem.distance = distance;
+#else // !BBZ_NEIGHBORS_USE_FLOATS
+            elem.azimuth = bbzfloat_fromfloat(azimuth);
+            elem.elevation = bbzfloat_fromfloat(elevation);
+            elem.distance = bbzfloat_fromfloat(distance);
+#endif // !BBZ_NEIGHBORS_USE_FLOATS
+            elem.robot = *(uint8_t*)msg_rx->payload;
             bbzneighbors_add(&elem);
         }
 #endif // !BBZ_DISABLE_NEIGHBORS

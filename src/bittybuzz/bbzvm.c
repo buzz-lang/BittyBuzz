@@ -451,6 +451,8 @@ void bbzvm_step() {
 // - Binary arithmetic operators  -
 // --------------------------------
 
+#ifndef BBZ_ENABLE_FLOAT_OPERATIONS
+
 /**
  * @brief Type for an arithmetic binary function pointer.
  * @param[in] lhs Left-hand side of the operation.
@@ -507,62 +509,166 @@ static int16_t bbzpow(int16_t lhs, int16_t rhs) {
     return ret;
 }
 
-/****************************************/
-/****************************************/
+#else // BBZ_ENABLE_FLOAT_OPERATIONS
 
-void bbzvm_add() {
-    return bbzvm_binary_op_arith(&add);
+typedef bbzheap_idx_t (*binary_op_arith)(bbzobj_t *lhs, bbzobj_t *rhs);
+
+static void bbzvm_binary_op_arith(binary_op_arith op) {
+    bbzvm_assert_stack(2);
+    bbzobj_t *rhs = bbzheap_obj_at(bbzvm_stack_at(0));
+    bbzobj_t *lhs = bbzheap_obj_at(bbzvm_stack_at(1));
+    bbzvm_pop();
+    bbzvm_pop();
+    bbzvm_assert_state();
+    bbzvm_push((*op)(lhs, rhs));
 }
 
-/****************************************/
-/****************************************/
+#define bbzvm_operator(lhs, rhs, op)                                           \
+    if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {                            \
+        int16_t val = lhs->i.value op rhs->i.value;                                \
+        return bbzint_new(val);                                                    \
+    }                                                                            \
+    else if (bbztype_isfloat(*lhs) && bbztype_isint(*rhs)) {                     \
+        float val = bbzfloat_tofloat(lhs->f.value) op rhs->i.value;                \
+        return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+    }                                                                            \
+    else if (bbztype_isint(*lhs) && bbztype_isfloat(*rhs)) {                     \
+        float val = lhs->i.value op bbzfloat_tofloat(rhs->f.value);                \
+        return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+    }                                                                            \
+    else if (bbztype_isfloat(*lhs) && bbztype_isfloat(*rhs)) {                   \
+        float val =                                                                \
+            bbzfloat_tofloat(lhs->f.value) op bbzfloat_tofloat(rhs->f.value);      \
+        return bbzfloat_new(bbzfloat_fromfloat(val));                              \
+    }                                                                            \
+    else {                                                                       \
+        /* We don really care about the return value since the vm is in err*/      \
+        bbzvm_seterror(BBZVM_ERROR_MATH);                                          \
+        return vm->nil;                                                            \
+    }
 
-void bbzvm_sub() {
-    return bbzvm_binary_op_arith(&sub);
+static bbzheap_idx_t add(bbzobj_t *lhs, bbzobj_t *rhs) {
+    bbzvm_operator(lhs, rhs, +);
 }
 
-/****************************************/
-/****************************************/
-
-void bbzvm_mul() {
-    return bbzvm_binary_op_arith(&mul);
+static bbzheap_idx_t sub(bbzobj_t *lhs, bbzobj_t *rhs) {
+    bbzvm_operator(lhs, rhs, -);
 }
 
-/****************************************/
-/****************************************/
-
-void bbzvm_div() {
-    return bbzvm_binary_op_arith(&div);
+static bbzheap_idx_t mul(bbzobj_t *lhs, bbzobj_t *rhs) {
+    bbzvm_operator(lhs, rhs, *);
 }
 
-/****************************************/
-/****************************************/
-
-void bbzvm_mod() {
-    return bbzvm_binary_op_arith(&mod);
+static bbzheap_idx_t div(bbzobj_t *lhs, bbzobj_t *rhs) {
+    bbzvm_operator(lhs, rhs, /);
 }
 
-/****************************************/
-/****************************************/
-
-void bbzvm_pow() {
-    return bbzvm_binary_op_arith(&bbzpow);
+static bbzheap_idx_t mod(bbzobj_t *lhs, bbzobj_t *rhs) {
+    if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {
+        int16_t val = lhs->i.value % rhs->i.value;
+        return bbzint_new(val);
+    }
+    else if (bbztype_isfloat(*lhs) && bbztype_isint(*rhs)) {
+        int16_t rhs_val = rhs->i.value;
+        float lhs_val = bbzfloat_tofloat(lhs->f.value);
+        float val = lhs_val - (int16_t)(lhs_val / rhs_val) * rhs_val;
+        return bbzfloat_new(bbzfloat_fromfloat(val));
+    }
+    else if (bbztype_isint(*lhs) && bbztype_isfloat(*rhs)) {
+        float rhs_val = bbzfloat_tofloat(rhs->f.value);
+        uint16_t lhs_val = lhs->i.value;
+        float val = lhs_val - (int16_t)(lhs_val / rhs_val) * rhs_val;
+        return bbzfloat_new(bbzfloat_fromfloat(val));
+    }
+    else if (bbztype_isfloat(*lhs) && bbztype_isfloat(*rhs)) {
+        float rhs_val = bbzfloat_tofloat(rhs->f.value);
+        float lhs_val = bbzfloat_tofloat(lhs->f.value);
+        float val = lhs_val - (int16_t)(lhs_val / rhs_val) * rhs_val;
+        return bbzfloat_new(bbzfloat_fromfloat(val));
+    }
+    else {
+        bbzvm_seterror(BBZVM_ERROR_MATH);
+        return vm->nil;
+    }
 }
 
+static bbzheap_idx_t bbzpow(bbzobj_t *lhs, bbzobj_t *rhs) {
+    if (bbztype_isint(*lhs) && bbztype_isint(*rhs)) {
+        int16_t ret;
+        int16_t rhs_val = rhs->i.value;
+        int16_t lhs_val = lhs->i.value;
+        if (rhs_val >= 0) {
+            int32_t res = 1;
+            while (rhs_val--) {
+                res *= lhs_val;
+            }
+            ret = (int16_t)res;
+        } else if (lhs_val == 1) {
+            ret = 1;
+        } else if (lhs_val == -1) {
+            ret = -1;
+        } else {
+            bbzvm_seterror(BBZVM_ERROR_MATH);
+            return vm->nil;
+        }
+        return bbzint_new(ret);
+    } // TODO: add support for float operations on pow
+    else {
+        bbzvm_seterror(BBZVM_ERROR_MATH);
+        return vm->nil;
+    }
+}
+
+#endif //  BBZ_ENABLE_FLOAT_OPERATIONS
+
+/****************************************/
+/****************************************/
+
+void bbzvm_add() { return bbzvm_binary_op_arith(&add); }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_sub() { return bbzvm_binary_op_arith(&sub); }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_mul() { return bbzvm_binary_op_arith(&mul); }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_div() { return bbzvm_binary_op_arith(&div); }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_mod() { return bbzvm_binary_op_arith(&mod); }
+
+/****************************************/
+/****************************************/
+
+void bbzvm_pow() { return bbzvm_binary_op_arith(&bbzpow); }
 
 // --------------------------------
 // -         Unary Minus          -
 // --------------------------------
 
 void bbzvm_unm() {
-    bbzvm_assert_stack(1);
-    bbzobj_t* operand = bbzheap_obj_at(bbzvm_stack_at(0));
-    bbzvm_assert_type(bbzvm_stack_at(0), BBZTYPE_INT);
-    bbzvm_pop();
+  bbzvm_assert_stack(1);
+  bbzobj_t *operand = bbzheap_obj_at(bbzvm_stack_at(0));
+  bbzvm_pop();
 
-    // We *could* implement the unary minus on a float, but we
-    // disallow it, since we can do nothing with it anyway.
+  if(bbztype_isint(*operand)){
     bbzvm_pushi(-operand->i.value);
+  }
+  else if(bbztype_isfloat(*operand)){
+    bbzvm_pushf(bbzfloat_negate(operand->f.value));
+  }
+  else {
+    bbzvm_seterror(BBZVM_ERROR_TYPE);
+  }
 }
 
 // --------------------------------
