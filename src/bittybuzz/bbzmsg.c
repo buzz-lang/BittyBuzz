@@ -110,7 +110,7 @@ static uint8_t bbzlamport_isnewer(bbzlamport_t lamport, bbzlamport_t old_lamport
     // This function uses a circular Lamport model (0 == 255 + 1).
     // A Lamport clock is 'newer' than an old Lamport clock if its value
     // is less than 'LAMPORT_THRESHOLD' ticks ahead of the old clock.
-    return (uint8_t)(((lamport - old_lamport) & 0xFF) < BBZLAMPORT_THRESHOLD);/**/
+    return (uint8_t)(lamport != old_lamport && ((lamport - old_lamport) & 0xFF) < BBZLAMPORT_THRESHOLD);/**/
 }
 void bbzmsg_process_vstig(bbzmsg_t* msg) {
     // Search the key in the vstig
