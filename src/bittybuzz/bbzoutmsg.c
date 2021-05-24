@@ -26,7 +26,7 @@ uint16_t bbzoutmsg_queue_size() {
 /****************************************/
 
 static bbzmsg_t* outmsg_queue_append_template() {
-    bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_at(&vm->outmsgs.queue, vm->outmsgs.queue.dataend + vm->outmsgs.queue.capacity));
+    bbzmsg_t* m = ((bbzmsg_t*)bbzringbuf_rawat(&vm->outmsgs.queue, vm->outmsgs.queue.dataend));
     if (bbzringbuf_full(&vm->outmsgs.queue)) {
         // If full, replace the message with the lowest priority (the last of the queue) with the new one.
         *((bbzmsg_t*)bbzringbuf_rawat(&vm->outmsgs.queue, vm->outmsgs.queue.dataend - (uint8_t)1 + vm->outmsgs.queue.capacity)) = *m;
