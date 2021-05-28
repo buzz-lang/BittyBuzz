@@ -50,6 +50,7 @@
 #include "quatcompress.h"
 #include "statsCnt.h"
 #include "static_mem.h"
+#include "collision_avoidance.h"
 
 static bool isInit;
 static bool emergencyStop = false;
@@ -165,6 +166,7 @@ void stabilizerInit(StateEstimatorType estimator)
   stateEstimatorInit(estimator);
   controllerInit(ControllerTypeAny);
   powerDistributionInit();
+  collisionAvoidanceInit();
   estimatorType = getStateEstimator();
   controllerType = getControllerType();
 
@@ -181,6 +183,7 @@ bool stabilizerTest(void)
   pass &= stateEstimatorTest();
   pass &= controllerTest();
   pass &= powerDistributionTest();
+  pass &= collisionAvoidanceTest();
 
   return pass;
 }
@@ -247,6 +250,7 @@ static void stabilizerTask(void* param)
 
       commanderGetSetpoint(&setpoint, &state);
       compressSetpoint();
+      collisionAvoidanceUpdateSetpoint(&setpoint, &sensorData, &state, tick);
 
       controller(&control, &setpoint, &sensorData, &state, tick);
 
