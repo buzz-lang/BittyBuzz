@@ -275,7 +275,7 @@ void bbz_init(void (*setup)(void))
 
 void bbzTask(void * param)
 {
-    // systemWaitStart();
+    systemWaitStart();
     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());
