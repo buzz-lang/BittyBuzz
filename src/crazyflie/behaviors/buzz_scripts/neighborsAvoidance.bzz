@@ -1,0 +1,77 @@
+# EXPECTED BEHAVIOR :
+#
+# Crazyflies with id:
+# > 0: Takeoff on start and hover at 300 mm (with obstacles avoidance) until it receives a landing message
+# = 0: Takeoff on start, spin 5 times (with obstacles avoidance), broadcats a landing message and land itself.
+#
+# To work properly, the crazyflies need to be equiped with a flow deck and a multiranger (necessary for the obstacles avoidance)
+
+offset_x = 0
+offset_y = 0
+stop = 0
+done = 0
+HEIGHT = 600
+s_hover = swarm.create(0)
+s_explore = swarm.create(1)
+
+function init() {
+    neighbors.listen("pos",
+        function(vid, value, rid) {
+            stop = 0
+            neighbors.foreach(function(r_id, data) {
+                if (neighbors.get(rid).distance < 500) {
+                    HEIGHT = HEIGHT + 200
+                }
+            })
+        }
+    )
+    neighbors.listen("land",
+        function(vid, value, rid) {
+            land(HEIGHT, 10)
+            done = 1
+        }
+    )
+    s_explore.select(id >= 10)
+    s_hover.select(id < 10)
+    if (id >= 10) {
+        neighbors.ignore("land")
+        stop = 1
+    } else {
+        neighbors.ignore("pos")
+    }
+    takeoff(HEIGHT, 10)
+}
+
+function step() {
+    if (done == 0) {
+        s_hover.exec(hover_behavior)
+        s_explore.exec(move_behavior)
+    }
+}
+
+# ========================================
+# =         CLOSURE DEFINITIONS          =
+# ========================================
+
+function hover_behavior() {
+    hover(HEIGHT)
+    neighbors.broadcast("pos", 1)
+}
+
+function move_behavior() {
+    if (stop == 0) {
+        goTo(3000 + 100 * offset_x, 2000 + 200 * offset_y, HEIGHT)
+        offset_x = offset_x + 1
+        if (offset_x % 2 == 0) {
+            offset_y = offset_y + 1
+        }
+        if (offset_x == 7) {
+            neighbors.broadcast("land", 1)
+            land(HEIGHT, 10)
+            stop = 1
+            done = 1
+        }
+    } else {
+        hover(HEIGHT)
+    }
+}
