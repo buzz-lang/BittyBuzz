@@ -36,10 +36,6 @@
 
 // #include "led.h"
 
-TickType_t t0, t1;
-float meanTimeStep = 0;
-uint32_t accum = 0;
-uint16_t count = 0;
 bbzvm_t vmObj;
 Message bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
@@ -64,7 +60,6 @@ static uint8_t has_setup = 0;
 uint16_t idX = 0.0;
 uint16_t idY = 0.0;
 uint16_t idZ = 0.0;
-int o = 0;
 
 
 uint8_t buf[4];
@@ -113,7 +108,6 @@ void bbz_func_call(uint16_t strid) {
 void handleOutgoingRadioMessage() {
     Message *msg = message_tx();
     while (msg!=NULL) {
-        msg = message_tx();
         P2PPacket pk;
         pk.port = BROADCAST_PORT;
         // Max size possible for a broadcast packet: has to be small or equal to 30
@@ -122,6 +116,7 @@ void handleOutgoingRadioMessage() {
         memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE);
         DEBUG_PRINT("Broadcast: %s\n", radiolinkSendP2PPacketBroadcast(&pk) ? "Success" : "Failed");
         message_tx_success();
+        msg = message_tx();
     }
 }
 
@@ -312,16 +307,10 @@ void bbzTask(void * param)
         }
         else {
             if (vm->state != BBZVM_STATE_ERROR) {
-                TickType_t t0 = xTaskGetTickCount();
                 bbzvm_process_inmsgs();
                 bbzcrazyflie_func_call(__BBZSTRID_step);
                 DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_ step) called.\n");
                 bbzvm_process_outmsgs();
-                t1 = xTaskGetTickCount();
-                count++;
-                accum += (t1 - t0);
-                meanTimeStep = (float)accum / (float)count;
-                DEBUG_PRINT("TIMESTEP : %f\n", meanTimeStep);
             }
             // checkRadio();
             // checkTouch();
