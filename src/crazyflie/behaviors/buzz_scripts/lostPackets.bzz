@@ -1,0 +1,41 @@
+# EXPECTED BEHAVIOR :
+#
+# 
+
+experiment = 2
+counter = 0
+received_packets = 0
+NB_STEPS = 20
+
+function init() {
+    neighbors.listen("toto",
+        function(vid, value, rid) {
+            received_packets = received_packets + 1
+        }
+    )
+    neighbors.listen("rina",
+        function(vid, value, rid) {
+            received_packets = received_packets + 1
+        }
+    )
+}
+
+function step() {
+    if (counter < NB_STEPS and id == 0) {
+        counter = counter + 1
+        if (counter % 2 == 0) {
+            neighbors.broadcast("rina", counter)
+        } else {
+            neighbors.broadcast("toto", counter)
+        }
+        if (experiment == 0){
+            delay(1000)
+        } else if (experiment == 1) {
+            delay(500)
+        } else {
+            
+        }
+    } else {
+        show(received_packets)
+    }
+}
