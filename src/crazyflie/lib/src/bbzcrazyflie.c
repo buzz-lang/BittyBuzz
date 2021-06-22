@@ -36,6 +36,10 @@
 
 // #include "led.h"
 
+TickType_t t0, t1;
+float meanTimeStep = 0;
+uint32_t accum = 0;
+uint16_t count = 0;
 bbzvm_t vmObj;
 Message bbzmsg_tx;
 uint8_t bbzmsg_buf[11];
@@ -60,6 +64,7 @@ static uint8_t has_setup = 0;
 uint16_t idX = 0.0;
 uint16_t idY = 0.0;
 uint16_t idZ = 0.0;
+int o = 0;
 
 
 uint8_t buf[4];
@@ -307,10 +312,16 @@ void bbzTask(void * param)
         }
         else {
             if (vm->state != BBZVM_STATE_ERROR) {
+                TickType_t t0 = xTaskGetTickCount();
                 bbzvm_process_inmsgs();
                 bbzcrazyflie_func_call(__BBZSTRID_step);
                 DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_ step) called.\n");
                 bbzvm_process_outmsgs();
+                t1 = xTaskGetTickCount();
+                count++;
+                accum += (t1 - t0);
+                meanTimeStep = (float)accum / (float)count;
+                DEBUG_PRINT("TIMESTEP : %f\n", meanTimeStep);
             }
             // checkRadio();
             // checkTouch();
