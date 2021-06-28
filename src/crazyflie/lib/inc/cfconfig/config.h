@@ -96,7 +96,7 @@
 #define UART2_TEST_TASK_PRI     1
 #define KALMAN_TASK_PRI         2
 #define LEDSEQCMD_TASK_PRI      1
-#define BBZ_TASK_PRI            4
+#define BBZ_TASK_PRI            1
 
 #define SYSLINK_TASK_PRI        3
 #define USBLINK_TASK_PRI        3

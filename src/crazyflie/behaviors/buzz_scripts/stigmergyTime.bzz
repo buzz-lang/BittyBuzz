@@ -1,0 +1,33 @@
+# EXPECTED BEHAVIOR :
+#
+# 
+
+experiment = 1
+counter = 0
+NB_STEPS = 10
+
+function init() {
+    stig = stigmergy.create(0)
+    if (id == 0) {
+        stig.put("a", 40)
+        stig.put("a", 42)
+    } else if (experiment == 1) {
+        stig.put("a", 20)
+    }
+}
+
+function step() {
+    if (counter < NB_STEPS) {
+        val = stig.get("a")
+        counter = counter + 1
+        if (val == 42) {
+            show(42)
+        } else if (val == 20) {
+            show(20)
+        } else {
+            show(0)
+        }
+    } else {
+        show(90)
+    }
+}

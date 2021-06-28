@@ -108,7 +108,6 @@ void bbz_func_call(uint16_t strid) {
 void handleOutgoingRadioMessage() {
     Message *msg = message_tx();
     while (msg!=NULL) {
-        msg = message_tx();
         P2PPacket pk;
         pk.port = BROADCAST_PORT;
         // Max size possible for a broadcast packet: has to be small or equal to 30
@@ -117,6 +116,7 @@ void handleOutgoingRadioMessage() {
         memcpy(pk.data, (uint8_t *)msg, PAYLOAD_MAX_SIZE);
         DEBUG_PRINT("Broadcast: %s\n", radiolinkSendP2PPacketBroadcast(&pk) ? "Success" : "Failed");
         message_tx_success();
+        msg = message_tx();
     }
 }
 
@@ -275,7 +275,7 @@ void bbz_init(void (*setup)(void))
 
 void bbzTask(void * param)
 {
-    // systemWaitStart();
+    systemWaitStart();
     TickType_t lastWakeTime = xTaskGetTickCount(); //get tick time count
     vTaskSetApplicationTaskTag(0, (void*)TASK_BBZ_ID_NBR);
     DEBUG_PRINT("value of RobotID: %d.\n", getRobotId());
