@@ -6,7 +6,7 @@ This is a documentation on how to setup the development environment to run **Bit
 Prerequisites
 =============
 
-You need the [ST-LINK/V2](http://www.st.com/en/development-tools/st-link-v2.html) programmer to program the Zooids.
+You need the [ST-LINK/V2](http://www.st.com/en/development-tools/st-link-v2.html) programmer to program the Crazyflies.
 
 Programs that need to be installed in your machine:
 * [Buzz](https://github.com/MISTLab/Buzz) (Don't forget to run `sudo ldconfig`
@@ -74,21 +74,21 @@ You will first need to compile your Buzz script as mentioned higher above in the
 Compilation section. This will produce a `.elf` file in the output directory.
 
 Then, plug your _ST-LINK/V2_ programmer to your computer and make sure that its
-pins make contact with the zooid.
+pins make contact with the Crazyflie.
 
 Then, open a terminal window and launch `st-util` to start the debug server. The _ST-LINK/V2_ should blink
 red and green and then turn green to notify that it's ready. If the led turns
 yellow, stop the `st-util` program (with `CTRL-C`) and unplug/plug the
-_ST-LINK/V2_ and make sure that the zooid is turned ON, that it has enough battery
-and that the pins make contact with the board of the zooid.
+_ST-LINK/V2_ and make sure that the Crazyflie is turned ON, that it has enough battery
+and that the pins make contact with the board of the Crazyflie.
 
 You must now run the ARM Debugger and follow these next steps:
 
-1. Run `arm-none-eabi-gdb -q <path to the build directory>/zooids/behaviors/<name of your script>-zooids.elf` 
+1. Run `arm-none-eabi-gdb -q <path to the build directory>/Crazyflie/behaviors/<name of your script>-Crazyflie.elf` 
 2. In the debugger, type `target extended-remote :4242` to connect to the debugger server.
-3. In the debugger, type `load` to load the script in the zooid.
+3. In the debugger, type `load` to load the script in the Crazyflie.
 
-You can now run the ARM Debugger as if it was a normal `gdb` debugger. For example, you can put a breakpoint in the main function (warning, the MCU running on Zooids can only handle a maximum of 4 break points):
+You can now run the ARM Debugger as if it was a normal `gdb` debugger. For example, you can put a breakpoint in the main function (warning, the MCU running on Crazyflie can only handle a maximum of 4 break points):
 
 4. `br main`
 5. `c`
