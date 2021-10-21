@@ -67,6 +67,7 @@ static void add_neighborlike_fields(int16_t count) {
 
     // Add function fields
     bbztable_add_function(__BBZSTRID_foreach, bbzneighbors_foreach);
+    bbztable_add_function(__BBZSTRID_filter,  bbzneighbors_filter);
     bbztable_add_function(__BBZSTRID_map,     bbzneighbors_map);
     bbztable_add_function(__BBZSTRID_get,     bbzneighbors_get);
     bbztable_add_function(__BBZSTRID_reduce,  bbzneighbors_reduce);
