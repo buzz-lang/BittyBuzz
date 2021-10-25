@@ -126,16 +126,17 @@ void bbzneighbors_reset() {
 #ifdef BBZ_XTREME_MEMORY
     // Reset the ring-buffer
     bbzringbuf_clear(&vm->neighbors.rb);
-#else
-    // Reset the count
-    vm->neighbors.count = 0;
-#endif // BBZ_XTREME_MEMORY
 
     // Reset 'neighbor''s count subfield
     bbzvm_pushi(0);
     bbzheap_idx_t cnt = bbzvm_stack_at(0);
     bbzvm_pop();
     bbztable_add_data(INTERNAL_STRID_COUNT, cnt);
+#else
+    // Reset the count
+    vm->neighbors.count = 0;
+#endif // BBZ_XTREME_MEMORY
+
 }
 
 /****************************************/
@@ -474,11 +475,13 @@ void bbzneighbors_data_gc() {
     // Loop through neighbors' data
     bbztable_foreach(tbl, neighborsdata_foreach_fun, &tbl);
 
+#ifdef BBZ_XTREME_MEMORY
     bbzvm_push(tbl);
     // Update the neighbors count
     bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
 
     bbzvm_pop();
+#endif
 }
 
 /****************************************/
@@ -490,8 +493,9 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
+#ifdef BBZ_XTREME_MEMORY
     bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
-
+#endif
     // Set data to the sub-table.
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
