@@ -474,14 +474,6 @@ void bbzneighbors_data_gc() {
     bbzvm_assert_exec(bbztable_get(vm->neighbors.hpos, bbzstring_get(INTERNAL_STRID_SUB_TBL), &tbl), BBZVM_ERROR_MEM);
     // Loop through neighbors' data
     bbztable_foreach(tbl, neighborsdata_foreach_fun, &tbl);
-
-#ifdef BBZ_XTREME_MEMORY
-    bbzvm_push(tbl);
-    // Update the neighbors count
-    bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
-
-    bbzvm_pop();
-#endif
 }
 
 /****************************************/
@@ -493,9 +485,7 @@ void bbzneighbors_add(const bbzneighbors_elem_t* data) {
 
     // Increment the neighbor count (we assume it's a new entry).
     ++vm->neighbors.count;
-#ifdef BBZ_XTREME_MEMORY
-    bbztable_add_data(INTERNAL_STRID_COUNT, bbzint_new(vm->neighbors.count));
-#endif
+
     // Set data to the sub-table.
     bbzvm_pushs(INTERNAL_STRID_SUB_TBL);
     bbzvm_tget();
