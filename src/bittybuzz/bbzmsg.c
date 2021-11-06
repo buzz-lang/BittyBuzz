@@ -98,6 +98,7 @@ void bbzmsg_process_broadcast(bbzmsg_t* msg) {
     x->biggest.value = msg->bc.value.biggest.value;
     bbzvm_pushi(msg->bc.rid);
     bbzvm_closure_call(3);
+    bbzvm_pop(); // Pop self table
     bbzvm_gc();
 }
 #endif
