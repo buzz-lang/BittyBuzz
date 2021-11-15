@@ -14,6 +14,12 @@
 extern "C" {
 #endif // __cplusplus
 
+
+/**
+ * @brief Registers and constructs the VM's table functions.
+ */
+void bbztable_register();
+
 /**
  * @brief Pointer to an element-wise function.
  * @details This function pointer is used in algorithms such as
