@@ -196,14 +196,16 @@ void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     /* Cast params */
     bbzheap_idx_t* closure = params;
 
-    /* Push closure and params (key and value) */
-    bbzvm_push(closure);
+    /* Push self table, closure and params (key and value) */
+    bbzvm_lload(1); // Push self table
+    bbzvm_push(*closure);
     bbzvm_push(key);
     bbzvm_push(value);
 
     /* Call closure */
     bbzvm_closure_call(2);
     bbzvm_assert_state();
+    bbzvm_pop(); // Pop self table
 }
 
 void table_foreach() {
@@ -224,11 +226,11 @@ void table_foreach() {
 }
 
 void bbztable_register() {
-    bbztable_add_function(__BBZSTRID_foreach, table_foreach);
+    bbzvm_function_register(__BBZSTRID_foreach, table_foreach);
     /*
-    bbztable_add_function(__BBZSTRID_filter,  bbztable_filter);
-    bbztable_add_function(__BBZSTRID_map,     bbztable_map);
-    bbztable_add_function(__BBZSTRID_get,     bbztable_get);
-    bbztable_add_function(__BBZSTRID_reduce,  bbztable_reduce);
-    bbztable_add_function(__BBZSTRID_size,    bbztable_size);*/
+    bbzvm_function_register(__BBZSTRID_filter,  bbztable_filter);
+    bbzvm_function_register(__BBZSTRID_map,     bbztable_map);
+    bbzvm_function_register(__BBZSTRID_get,     bbztable_get);
+    bbzvm_function_register(__BBZSTRID_reduce,  bbztable_reduce);
+    bbzvm_function_register(__BBZSTRID_size,    bbztable_size);*/
 }
