@@ -210,7 +210,7 @@ static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* pa
     bbzvm_assert_state();
     bbzvm_pop(); // Pop self table
 }
-
+#include "bbztype.h"
 static void table_foreach() {
     bbzvm_assert_lnum(2);
 
@@ -246,7 +246,7 @@ typedef void (*set_elem_funp)(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v,
 typedef struct PACKED table_map_base_t {
     const bbzheap_idx_t t;  /**< @brief Return table of the map. */
     const bbzheap_idx_t c;  /**< @brief Closure to call. */
-    const set_elem_funp set_elem; /** @brief Function used to set the element. */
+    const set_elem_funp set_elem; /**< @brief Function used to set the element. */
 } table_map_base_t;
 
 static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params){
@@ -265,7 +265,7 @@ static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* p
     // Make sure we returned a value, and get the value.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
     bbzheap_idx_t ret = bbzvm_stack_at(0);
-    bbzvm_pop(); // Pop self
+    bbzvm_pop(); // Pop return value
 
     // Add a value to return table.
     tm->set_elem(tm->t, key, value, ret);
@@ -318,12 +318,83 @@ static void table_filter(){
 /****************************************/
 /****************************************/
 
+/**
+ * @brief Parameter struct to pass to the element-wise function of reduce
+ */
+typedef struct PACKED table_reduce_entry_t {
+    const bbzheap_idx_t c;  /**< @brief Closure to call. */
+    bbzheap_idx_t accum; /** < @brief Function used to set the element. */
+} table_reduce_entry_t;
+
+static void table_reduce_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+    table_reduce_entry_t* tr = (table_reduce_entry_t*)params;
+
+    // Save stack size
+    uint16_t ss = bbzvm_stack_size();
+
+    // Call closure
+    bbzvm_lload(1); // Push self table
+    bbzvm_push(tr->c);
+    bbzvm_push(key);
+    bbzvm_push(value);
+    bbzvm_push(tr->accum);
+    bbzvm_closure_call(3);
+
+    // Make sure we returned a value.
+    bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
+
+    // Remove the return value and assign the accumulator the new value
+    bbzheap_idx_t ret = bbzvm_stack_at(0);
+    bbzvm_pop(); // Pop return value
+    tr->accum = ret;
+}
+
+static void table_reduce(){
+    bbzvm_assert_lnum(3);
+
+    // Get table
+    bbzheap_idx_t t = bbzvm_locals_at(1);
+    bbzvm_assert_type(t, BBZTYPE_TABLE);
+
+    // Get closure
+    bbzheap_idx_t c = bbzvm_locals_at(2);
+    bbzvm_assert_type(c, BBZTYPE_CLOSURE);
+
+    // Get accumulator
+    bbzheap_idx_t a = bbzvm_locals_at(3);
+
+    // Perform foreach and accumulate
+    table_reduce_entry_t tr = {.c = c, .accum = a};
+    bbztable_foreach(t, table_reduce_entry, &tr);
+
+    // Push the accumulator as the return value
+    bbzvm_push(tr.accum); 
+    bbzvm_ret1();
+}
+/****************************************/
+/****************************************/
+static void table_size(){
+    bbzvm_assert_lnum(1);
+
+    // Get table
+    bbzheap_idx_t t = bbzvm_locals_at(1);
+    bbzvm_assert_type(t, BBZTYPE_TABLE);
+
+    // Calculate the size
+    uint8_t sz = bbztable_size(t);
+
+    // Return the size
+    bbzvm_pushi(sz);
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
 void bbztable_register() {
     bbzvm_function_register(__BBZSTRID_foreach, table_foreach);
     bbzvm_function_register(__BBZSTRID_filter,  table_filter);
     bbzvm_function_register(__BBZSTRID_map,     table_map);
-    
-    /*
-    bbzvm_function_register(__BBZSTRID_reduce,  bbztable_reduce);
-    bbzvm_function_register(__BBZSTRID_size,    bbztable_size);*/
+    bbzvm_function_register(__BBZSTRID_reduce,  table_reduce);
+    bbzvm_function_register(__BBZSTRID_size,    table_size);
 }
