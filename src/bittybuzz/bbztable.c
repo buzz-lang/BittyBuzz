@@ -191,8 +191,11 @@ void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
     } while (si != BBZHEAP_SEG_NO_NEXT);
 }
 
+/****************************************/
+/****************************************/
 
-void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+
+static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     /* Cast params */
     bbzheap_idx_t* closure = params;
 
@@ -208,7 +211,7 @@ void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     bbzvm_pop(); // Pop self table
 }
 
-void table_foreach() {
+static void table_foreach() {
     bbzvm_assert_lnum(2);
 
     // Get table
@@ -225,12 +228,71 @@ void table_foreach() {
     bbzvm_ret0();
 }
 
+/****************************************/
+/****************************************/
+
+/**
+ * @brief Parameter struct to pass to the element-wise function of 'map'
+ * and 'filter'.
+ */
+typedef struct PACKED table_map_base_t {
+    const bbzheap_idx_t t;  /**< @brief Return table of the map. */
+    const bbzheap_idx_t c;  /**< @brief Closure to call. */
+} table_map_base_t;
+
+static void table_map_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params){
+    table_map_base_t* tm = (table_map_base_t*)params;
+
+    // Save stack size
+    uint16_t ss = bbzvm_stack_size();
+
+    // Call closure
+    bbzvm_lload(1); // Push self table
+    bbzvm_push(tm->c);
+    bbzvm_push(key);
+    bbzvm_push(value);
+    bbzvm_closure_call(2);
+
+    // Make sure we returned a value, and get the value.
+    bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
+    bbzheap_idx_t ret = bbzvm_stack_at(0);
+    bbzvm_pop(); // Pop self
+
+    // Add a value to return table.
+    bbztable_set(tm->t, key, ret);
+}
+
+static void table_map_base(){
+    bbzvm_assert_lnum(2);
+
+    // Get table
+    bbzheap_idx_t t = bbzvm_locals_at(1);
+    bbzvm_assert_type(t, BBZTYPE_TABLE);
+
+    // Get closure
+    bbzheap_idx_t c = bbzvm_locals_at(1);
+    bbzvm_assert_type(c, BBZTYPE_CLOSURE);
+
+    // Make return table
+    bbzvm_pusht();
+    bbzheap_idx_t ret_tbl = bbzvm_stack_at(0);
+
+    // Perform foreach
+    table_map_base_t tm = { .t = ret_tbl, .c = c};
+    bbztable_foreach(t, table_map_entry, &tm);
+
+    // Table is already stack top. Return.
+    bbzvm_ret1();
+}
+
+/****************************************/
+/****************************************/
+
 void bbztable_register() {
     bbzvm_function_register(__BBZSTRID_foreach, table_foreach);
+    bbzvm_function_register(__BBZSTRID_map,     table_map_base);
     /*
     bbzvm_function_register(__BBZSTRID_filter,  bbztable_filter);
-    bbzvm_function_register(__BBZSTRID_map,     bbztable_map);
-    bbzvm_function_register(__BBZSTRID_get,     bbztable_get);
     bbzvm_function_register(__BBZSTRID_reduce,  bbztable_reduce);
     bbzvm_function_register(__BBZSTRID_size,    bbztable_size);*/
 }
