@@ -194,10 +194,12 @@ void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
 /****************************************/
 /****************************************/
 
-
 static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
     /* Cast params */
     bbzheap_idx_t* closure = params;
+
+    // Save stack size
+    uint16_t ss = bbzvm_stack_size();
 
     /* Push self table, closure and params (key and value) */
     bbzvm_lload(1); // Push self table
@@ -207,10 +209,13 @@ static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* pa
 
     /* Call closure */
     bbzvm_closure_call(2);
+
+    // Make sure we don't return a value in the foreach function.
     bbzvm_assert_state();
+    bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
     bbzvm_pop(); // Pop self table
 }
-#include "bbztype.h"
+
 static void table_foreach() {
     bbzvm_assert_lnum(2);
 
@@ -300,19 +305,20 @@ static void table_map_set(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v, bbz
 }
 
 static void table_map(){
-    table_map_base(table_map_set); // Unconditionnaly add the data
+    table_map_base(table_map_set);
 }
 
 /****************************************/
 /****************************************/
 
 static void table_filter_set(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v, bbzheap_idx_t ret){
+    // Add value only if predicate is true
     if(bbztype_tobool(bbzheap_obj_at(ret))){
-        bbztable_set(t, k, v); // Add value only if predicate is true
+        bbztable_set(t, k, v); 
     }
 }
 static void table_filter(){
-    table_map_base(table_filter_set); // Unconditionnaly add the data
+    table_map_base(table_filter_set);
 }
 
 /****************************************/
