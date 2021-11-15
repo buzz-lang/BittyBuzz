@@ -3,6 +3,7 @@
 
 /****************************************/
 /****************************************/
+
 uint8_t bbztable_get(bbzheap_idx_t t,
                      bbzheap_idx_t k,
                      bbzheap_idx_t* v) {
