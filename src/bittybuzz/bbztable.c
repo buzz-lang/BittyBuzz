@@ -230,6 +230,14 @@ static void table_foreach() {
 
 /****************************************/
 /****************************************/
+/**
+ * @brief Function that puts an element in a table.
+ * @param[in] t the table to push at
+ * @param[in] k the key at the table
+ * @param[in] v the value at the table
+ * @param[in] ret the value returned by the map/filter closure
+ */
+typedef void (*set_elem_funp)(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v, bbzheap_idx_t ret);
 
 /**
  * @brief Parameter struct to pass to the element-wise function of 'map'
@@ -238,9 +246,10 @@ static void table_foreach() {
 typedef struct PACKED table_map_base_t {
     const bbzheap_idx_t t;  /**< @brief Return table of the map. */
     const bbzheap_idx_t c;  /**< @brief Closure to call. */
+    const set_elem_funp set_elem; /** @brief Function used to set the element. */
 } table_map_base_t;
 
-static void table_map_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params){
+static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params){
     table_map_base_t* tm = (table_map_base_t*)params;
 
     // Save stack size
@@ -259,10 +268,10 @@ static void table_map_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params
     bbzvm_pop(); // Pop self
 
     // Add a value to return table.
-    bbztable_set(tm->t, key, ret);
+    tm->set_elem(tm->t, key, value, ret);
 }
 
-static void table_map_base(){
+static void table_map_base(set_elem_funp set_elem){
     bbzvm_assert_lnum(2);
 
     // Get table
@@ -270,7 +279,7 @@ static void table_map_base(){
     bbzvm_assert_type(t, BBZTYPE_TABLE);
 
     // Get closure
-    bbzheap_idx_t c = bbzvm_locals_at(1);
+    bbzheap_idx_t c = bbzvm_locals_at(2);
     bbzvm_assert_type(c, BBZTYPE_CLOSURE);
 
     // Make return table
@@ -278,11 +287,32 @@ static void table_map_base(){
     bbzheap_idx_t ret_tbl = bbzvm_stack_at(0);
 
     // Perform foreach
-    table_map_base_t tm = { .t = ret_tbl, .c = c};
-    bbztable_foreach(t, table_map_entry, &tm);
+    table_map_base_t tm = { .t = ret_tbl, .c = c, .set_elem = set_elem};
+    bbztable_foreach(t, table_map_base_entry, &tm);
 
     // Table is already stack top. Return.
     bbzvm_ret1();
+}
+
+static void table_map_set(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v, bbzheap_idx_t ret){
+    RM_UNUSED_WARN(v);
+    bbztable_set(t, k, ret); // Unconditionnaly add the returned value
+}
+
+static void table_map(){
+    table_map_base(table_map_set); // Unconditionnaly add the data
+}
+
+/****************************************/
+/****************************************/
+
+static void table_filter_set(bbzheap_idx_t t, bbzheap_idx_t k, bbzheap_idx_t v, bbzheap_idx_t ret){
+    if(bbztype_tobool(bbzheap_obj_at(ret))){
+        bbztable_set(t, k, v); // Add value only if predicate is true
+    }
+}
+static void table_filter(){
+    table_map_base(table_filter_set); // Unconditionnaly add the data
 }
 
 /****************************************/
@@ -290,9 +320,10 @@ static void table_map_base(){
 
 void bbztable_register() {
     bbzvm_function_register(__BBZSTRID_foreach, table_foreach);
-    bbzvm_function_register(__BBZSTRID_map,     table_map_base);
+    bbzvm_function_register(__BBZSTRID_filter,  table_filter);
+    bbzvm_function_register(__BBZSTRID_map,     table_map);
+    
     /*
-    bbzvm_function_register(__BBZSTRID_filter,  bbztable_filter);
     bbzvm_function_register(__BBZSTRID_reduce,  bbztable_reduce);
     bbzvm_function_register(__BBZSTRID_size,    bbztable_size);*/
 }
