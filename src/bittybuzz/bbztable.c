@@ -212,7 +212,6 @@ static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* pa
     bbzvm_closure_call(2);
 
     // Make sure we don't return a value in the foreach function.
-    bbzvm_assert_state();
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
     bbzvm_pop(); // Pop self table
 }
@@ -256,7 +255,7 @@ typedef struct PACKED table_map_base_t {
 } table_map_base_t;
 
 static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params){
-    table_map_base_t* tm = (table_map_base_t*)params;
+    table_map_base_t* tm = params;
 
     // Save stack size
     uint16_t ss = bbzvm_stack_size();
@@ -334,7 +333,7 @@ typedef struct PACKED table_reduce_entry_t {
 } table_reduce_entry_t;
 
 static void table_reduce_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
-    table_reduce_entry_t* tr = (table_reduce_entry_t*)params;
+    table_reduce_entry_t* tr = params;
 
     // Save stack size
     uint16_t ss = bbzvm_stack_size();
