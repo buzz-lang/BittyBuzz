@@ -3,49 +3,6 @@
 
 /****************************************/
 /****************************************/
-
-void buzzobj_foreach_entry(const void* key, void* data, void* params) {
-    /* Cast params */
-    struct buzzobj_foreach_params* p = (struct buzzobj_foreach_params*)params;
-    if(p->vm->state != BUZZVM_STATE_READY) return;
-    /* Push closure and params (key and value) */
-    buzzvm_push(p->vm, p->fun);
-    buzzvm_push(p->vm, *(buzzobj_t*)key);
-    buzzvm_push(p->vm, *(buzzobj_t*)data);
-    /* Call closure */
-    p->vm->state = buzzvm_closure_call(p->vm, 2);
-    if(p->vm->state != BUZZVM_STATE_READY) return;
-    /* Get rid of return value */
-    buzzvm_pop(p->vm);
-}
-
-void bbztable_register() {
-    bbztable_add_function(__BBZSTRID_foreach, bbztable_foreach);
-    bbztable_add_function(__BBZSTRID_filter,  bbztable_filter);
-    bbztable_add_function(__BBZSTRID_map,     bbztable_map);
-    bbztable_add_function(__BBZSTRID_get,     bbztable_get);
-    bbztable_add_function(__BBZSTRID_reduce,  bbztable_reduce);
-    bbztable_add_function(__BBZSTRID_size,    bbztable_size);
-}
-
-void bbzneighbors_foreach() {
-    bbzvm_assert_lnum(2);
-
-    // Get table
-    bbzheap_idx_t t = bbzvm_locals_at(1);
-    bbzvm_assert_type(t, BBZTYPE_TABLE);
-
-    // Get closure
-    bbzheap_idx_t c = bbzvm_locals_at(2);
-    bbzvm_assert_type(c, BBZTYPE_CLOSURE);
-
-    // Perform foreach
-    bbztable_foreach(t, &c, NULL);
-
-    bbzvm_ret0();
-}
-
-
 uint8_t bbztable_get(bbzheap_idx_t t,
                      bbzheap_idx_t k,
                      bbzheap_idx_t* v) {
@@ -232,4 +189,46 @@ void bbztable_foreach(bbzheap_idx_t t, bbztable_elem_funp fun, void* params) {
         }
         si = bbzheap_tseg_next_get(tseg);
     } while (si != BBZHEAP_SEG_NO_NEXT);
+}
+
+
+void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* params) {
+    /* Cast params */
+    bbzheap_idx_t* closure = params;
+
+    /* Push closure and params (key and value) */
+    bbzvm_push(closure);
+    bbzvm_push(key);
+    bbzvm_push(value);
+
+    /* Call closure */
+    bbzvm_closure_call(2);
+    bbzvm_assert_state();
+}
+
+void table_foreach() {
+    bbzvm_assert_lnum(2);
+
+    // Get table
+    bbzheap_idx_t t = bbzvm_locals_at(1);
+    bbzvm_assert_type(t, BBZTYPE_TABLE);
+
+    // Get closure
+    bbzheap_idx_t c = bbzvm_locals_at(2);
+    bbzvm_assert_type(c, BBZTYPE_CLOSURE);
+
+    // Perform foreach
+    bbztable_foreach(t, table_foreach_entry, &c);
+
+    bbzvm_ret0();
+}
+
+void bbztable_register() {
+    bbztable_add_function(__BBZSTRID_foreach, table_foreach);
+    /*
+    bbztable_add_function(__BBZSTRID_filter,  bbztable_filter);
+    bbztable_add_function(__BBZSTRID_map,     bbztable_map);
+    bbztable_add_function(__BBZSTRID_get,     bbztable_get);
+    bbztable_add_function(__BBZSTRID_reduce,  bbztable_reduce);
+    bbztable_add_function(__BBZSTRID_size,    bbztable_size);*/
 }
