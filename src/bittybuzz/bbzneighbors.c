@@ -207,6 +207,7 @@ static void neighbor_foreach_fun(bbzheap_idx_t key,
 
     // Call closure
     bbzvm_closure_call(2);
+    bbzvm_pop();
 
     // Garbage-collect to reduce memory usage.
     bbzvm_gc();

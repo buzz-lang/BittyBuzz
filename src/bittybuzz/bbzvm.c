@@ -136,6 +136,7 @@ void bbzvm_construct(bbzrobot_id_t robot) {
     bbzvstig_register();
     bbzswarm_register();
     bbzneighbors_register();
+    bbztable_register();
     
 }
 
