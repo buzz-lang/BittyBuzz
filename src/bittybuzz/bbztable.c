@@ -203,7 +203,7 @@ static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* pa
     uint16_t ss = bbzvm_stack_size();
 
     /* Push self table, closure and params (key and value) */
-    bbzvm_lload(1); // Push self table
+    bbzvm_lload(1); // Push table
     bbzvm_push(*closure);
     bbzvm_push(key);
     bbzvm_push(value);
@@ -213,7 +213,7 @@ static void table_foreach_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* pa
 
     // Make sure we don't return a value in the foreach function.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
-    bbzvm_pop(); // Pop self table
+    bbzvm_pop(); // Pop the nil returned value
 }
 
 static void table_foreach() {
@@ -261,7 +261,7 @@ static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* p
     uint16_t ss = bbzvm_stack_size();
 
     // Call closure
-    bbzvm_lload(1); // Push self table
+    bbzvm_lload(1); // Push table
     bbzvm_push(tm->c);
     bbzvm_push(key);
     bbzvm_push(value);
@@ -270,7 +270,7 @@ static void table_map_base_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* p
     // Make sure we returned a value, and get the value.
     bbzvm_assert_exec(bbzvm_stack_size() > ss, BBZVM_ERROR_RET);
     bbzheap_idx_t ret = bbzvm_stack_at(0);
-    bbzvm_pop(); // Pop return value
+    bbzvm_pop(); // Pop returned value
 
     // Add a value to return table.
     tm->set_elem(tm->t, key, value, ret);
@@ -351,7 +351,7 @@ static void table_reduce_entry(bbzheap_idx_t key, bbzheap_idx_t value, void* par
 
     // Remove the return value and assign the accumulator the new value
     bbzheap_idx_t ret = bbzvm_stack_at(0);
-    bbzvm_pop(); // Pop return value
+    bbzvm_pop(); // Pop returned value
     tr->accum = ret;
 }
 
