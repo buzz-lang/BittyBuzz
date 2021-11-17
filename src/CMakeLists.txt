@@ -22,10 +22,6 @@ link_directories(${CMAKE_BINARY_DIR}/bittybuzz)
 #
 include(${INCLUDE_FILES_CMAKE}/BittyBuzzConfig.cmake)
 
-if (BBZ_USE_FLOAT)
-    add_definitions(-DBBZ_USE_FLOAT=1)
-endif (BBZ_USE_FLOAT)
-
 #
 # Host compiler values
 #

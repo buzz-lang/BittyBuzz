@@ -138,6 +138,11 @@
 #cmakedefine BBZ_BYTEWISE_ASSIGNMENT
 
 /**
+ * @brief Whether to floats
+ */
+#cmakedefine BBZ_USE_FLOAT
+
+/**
  * @brief Whether to use floats for the neighbor's range and bearing
  * measurments.
  */
