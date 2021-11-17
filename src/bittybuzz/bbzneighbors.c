@@ -280,7 +280,10 @@ static void neighbor_map_base(bbzheap_idx_t key,
     bbzvm_pop();
 
     // Add a value to return table.
-    bbzvm_push(nm->t);
+    bbzheap_idx_t sub_tbl = vm->nil;;
+    bbztable_get(nm->t, bbzstring_get(INTERNAL_STRID_SUB_TBL), &sub_tbl);
+    bbzvm_assert_type(sub_tbl, BBZTYPE_TABLE);
+    bbzvm_push(sub_tbl); // push the subtable
     bbzvm_pushi(key);
     nm->put_elem(value, ret);
 
