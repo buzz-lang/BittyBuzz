@@ -35,7 +35,7 @@ void bbz_print() {
 #ifndef DEBUG
     uint16_t d = (uint16_t)bbzheap_obj_at(bbzvm_locals_at(1))->i.value;
     if (t == NULL) {
-        t = xTaskGetTickCount();
+        DEBUG_PRINT("ERROR\n");
     } else if(d == 42 && done == 0) {
         t = xTaskGetTickCount() - t;
         DEBUG_PRINT("CONSENSUS: %d\n", t);
@@ -48,10 +48,19 @@ void bbz_print() {
     bbzvm_ret0();
 }
 
+void bbz_go() {
+    if (t == NULL) {
+        DEBUG_PRINT("START\n");
+        t = xTaskGetTickCount();
+    }
+    bbzvm_ret0();
+}
+
 void setup() {
-    // bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
+    bbzvm_function_register(BBZSTRING_ID(led), bbz_led);
     // bbzvm_function_register(BBZSTRING_ID(delay), bbz_delay);
     bbzvm_function_register(BBZSTRING_ID(show), bbz_print);
+    bbzvm_function_register(BBZSTRING_ID(start), bbz_go);
 }
 
 int main() {

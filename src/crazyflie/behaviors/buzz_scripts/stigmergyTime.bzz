@@ -2,32 +2,49 @@
 #
 # 
 
-experiment = 1
-counter = 0
-NB_STEPS = 10
+go = 0
+val = 0
+consensus = 0
+NB_STEPS = 100
 
 function init() {
+    if (id != 0) {
+        neighbors.listen("start",
+            function(vid, value, rid) {
+                start()
+                go = 1
+                neighbors.ignore("start")
+            }
+        )
+    }
     stig = stigmergy.create(0)
     if (id == 0) {
         stig.put("a", 40)
         stig.put("a", 42)
-    } else if (experiment == 1) {
-        stig.put("a", 20)
     }
 }
 
 function step() {
-    if (counter < NB_STEPS) {
-        val = stig.get("a")
-        counter = counter + 1
+    # Robot 0 starts the experiment
+    if (id == 0) {
+        if (go == 0) {
+            neighbors.broadcast("start", 1)
+            go = 2
+        } else {
+            led(1, 1) # GREEN ON
+        }
+    }
+    # Log whether we have consensus or not
+    if (go == 1) {
+        if (consensus == 0){
+            val = stig.get("a")
+        }
         if (val == 42) {
+            consensus = 1
             show(42)
-        } else if (val == 20) {
-            show(20)
+            led(1, 1) # GREEN ON
         } else {
             show(0)
         }
-    } else {
-        show(90)
     }
 }
