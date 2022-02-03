@@ -137,7 +137,7 @@ void bbzcrazyflie_func_call(uint16_t strid) {
         while(blockptr < vm->blockptr) {
             if(vm->state != BBZVM_STATE_READY) return;
             bbzvm_step();
-            DEBUG_PRINT("VM: Stepping\n");
+            // DEBUG_PRINT("VM: Stepping\n");
             handleOutgoingRadioMessage();
         }
     }
@@ -284,11 +284,11 @@ void bbzTask(void * param)
     uint8_t init_done = 0;
     while (1)
     {
-     vTaskDelayUntil(&lastWakeTime, F2T(1));   //delay some time get next data. Setting to 1 gives max delay.
+        vTaskDelayUntil(&lastWakeTime, F2T(20));   //delay some time get next data. Setting to 1 gives max delay.
      
         if (!init_done) {
             if (vm->state == BBZVM_STATE_READY) {
-                DEBUG_PRINT("VM: stepping now.\n");
+                // DEBUG_PRINT("VM: stepping now.\n");
                 bbzvm_step();
             }
             else {
@@ -311,6 +311,8 @@ void bbzTask(void * param)
                 bbzcrazyflie_func_call(__BBZSTRID_step);
                 DEBUG_PRINT("VM: bbzcrazyflie_func_call(__BBZSTRID_ step) called.\n");
                 bbzvm_process_outmsgs();
+            } else {
+                DEBUG_PRINT("VM: VM error code (%d).\n", vm->error);
             }
             // checkRadio();
             // checkTouch();
