@@ -1,0 +1,143 @@
+# # EXPECTED BEHAVIOR :
+# #
+# # 
+
+# STATE = "IDLE"
+# auction_info = {}
+# cur_best_bid = {.id_bidder = -1, .value = -1}
+# nb_steps = 0
+
+# function init() {
+#     if (id == 0) {
+#         STATE = "AUCTIONEER"
+#         listen_to_bid_value()
+#     } else {
+#         STATE = "IDLE"
+#         listen_to_auction()
+#         listen_to_bid_winner()
+#     }
+# }
+
+# function step() {
+#     if (STATE == "AUCTIONEER") {
+#         led(0, 1) # RED ON
+#         if (nb_steps > 10 and nb_steps < 30) {
+#             neighbors.broadcast("auction", 1)
+#         } else if (nb_steps > 30 and nb_steps < 40) {
+#             print(cur_best_bid.id_bidder)
+#             neighbors.broadcast("bid_winner", cur_best_bid.id_bidder)
+#         }
+#     } else if (STATE == "BID") {
+#         if (nb_steps % 2 == 0) {
+#             neighbors.broadcast("bid_value", id)
+#         }
+#     } else if (STATE == "WINNER") {
+#         led(1, 1) # GREEN ON
+#     }
+#     nb_steps = nb_steps + 1
+# }
+
+# function listen_to_auction() {
+#     neighbors.listen("auction",
+#         function(vid, value, rid) {
+#             auction_info = value
+#             STATE = "BID"
+#         }
+#     )
+# }
+
+# function listen_to_bid_value() {
+#     neighbors.listen("bid_value",
+#         function(vid, value, rid) {
+#             if (cur_best_bid.value < value) {
+#                 cur_best_bid.id_bidder = rid
+#                 cur_best_bid.value = value
+#             }
+#         }
+#     )
+# }
+
+# function listen_to_bid_winner() {
+#     neighbors.listen("bid_winner",
+#         function(vid, value, rid) {
+#             if (value == id) {
+#                 STATE = "WINNER"
+#             } else {
+#                 STATE = "IDLE"
+#             }
+#         }
+#     )
+# }
+STATE = "IDLE"
+NB_BIDDERS = 6
+auction_info = {}
+stop_bid = -1
+cur_best_bid = {.id_bidder = id, .value = id}
+received_ids = {}
+nb_bid_received = 0
+nb_steps = 0
+
+function init() {
+    listen_to_bid_value()
+    if (id == 0) {
+        STATE = "AUCTIONEER"
+    } else {
+        STATE = "IDLE"
+        listen_to_auction()
+    }
+}
+
+function step() {
+    if (STATE == "AUCTIONEER") {
+        led(0, 1) # RED ON
+        if (nb_steps == 5) {
+            neighbors.broadcast("auction", 1)
+        } # else if (nb_steps >= 15) {
+        #     STATE = "BID"
+        #     stop_bid = nb_steps + 15
+        #     led(0, 0)
+        #     go() # Start bid timer
+        # }
+    } else if (STATE == "BID") {
+        if (nb_steps % 2 == 0) {
+            neighbors.broadcast("bid_value", id)
+        }
+        if(nb_bid_received == NB_BIDDERS - 1) {
+            STATE = "END"
+            show(1) # Mark bid end time
+        }
+    } else if (STATE == "END") {
+        show(0) # Show bid duration
+        if (cur_best_bid.value == id) { # Winner
+            led(1, 1) # GREEN ON
+        }
+    }
+    nb_steps = nb_steps + 1
+}
+
+function listen_to_auction() {
+    neighbors.listen("auction",
+        function(vid, value, rid) {
+            auction_info = value
+            stop_bid = nb_steps + 20
+            STATE = "BID"
+            go() # Start bid timer
+        }
+    )
+}
+
+function listen_to_bid_value() {
+    neighbors.listen("bid_value",
+        function(vid, value, rid) {
+            if (received_ids[rid] == nil) {
+                received_ids[rid] = 1
+                nb_bid_received = nb_bid_received + 1
+            }
+            if (cur_best_bid.value < value) {
+                cur_best_bid.id_bidder = rid
+                cur_best_bid.value = value
+            }
+        }
+    )
+}
+
