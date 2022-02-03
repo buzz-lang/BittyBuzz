@@ -1,19 +1,14 @@
 # EXPECTED BEHAVIOR :
-#
-# 
+# Robot 0 broadcast NB_STEPS messages
+# The other robot(s) counts the number of packets received and logs it
 
 experiment = 2
 counter = 0
 received_packets = 0
-NB_STEPS = 20
+NB_STEPS = 200
 
 function init() {
-    neighbors.listen("toto",
-        function(vid, value, rid) {
-            received_packets = received_packets + 1
-        }
-    )
-    neighbors.listen("rina",
+    neighbors.listen("packet",
         function(vid, value, rid) {
             received_packets = received_packets + 1
         }
@@ -23,11 +18,7 @@ function init() {
 function step() {
     if (counter < NB_STEPS and id == 0) {
         counter = counter + 1
-        if (counter % 2 == 0) {
-            neighbors.broadcast("rina", counter)
-        } else {
-            neighbors.broadcast("toto", counter)
-        }
+        neighbors.broadcast("packet", counter)
         if (experiment == 0){
             delay(1000)
         } else if (experiment == 1) {
@@ -35,7 +26,10 @@ function step() {
         } else {
             
         }
-    } else {
+    } else if (id == 0) {
+        show(counter)
+    }
+    else {
         show(received_packets)
     }
 }
