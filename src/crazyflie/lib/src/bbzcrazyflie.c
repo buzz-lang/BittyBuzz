@@ -284,7 +284,7 @@ void bbzTask(void * param)
     uint8_t init_done = 0;
     while (1)
     {
-        vTaskDelayUntil(&lastWakeTime, F2T(20));   //delay some time get next data. Setting to 1 gives max delay.
+        vTaskDelay(F2T(20));   //delay some time get next data. Setting to 1 gives max delay.
      
         if (!init_done) {
             if (vm->state == BBZVM_STATE_READY) {
