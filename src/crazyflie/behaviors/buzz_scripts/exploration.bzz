@@ -1,0 +1,116 @@
+# INFO needed from C++ code:
+# - distances from multiranger Y
+# 
+# - random function
+# - progress in a direction Y
+# - takeoff Y
+# - land Y
+# - spin Y
+# ----------------------------------------
+# States:
+IDLE = 0
+EXPLORING = 1
+HOMING = 2
+
+EXPLORATION_HEIGHT = 300
+GAP_WALL = 400
+DELTA = 50
+
+state = IDLE
+counter = 0
+ranger = {.up = 0, .left = 0, .right = 0, .front = 0, .rear = 0, .z = 0 }
+sample_dir = {.x = 50, .y = 0}
+s_start = swarm.create(0)
+s_explore = swarm.create(1)
+
+function init() {
+    s_explore.select(id >= 10)
+    s_start.select(id < 10)
+    if (id >= 10) {
+        listen_exploration_start()
+        stig_end = stigmergy.create(0)
+        stig_end.put("end", 0)
+    }
+    state = IDLE
+}
+
+function step() {
+    s_start.exec(start_behavior)
+    s_explore.exec(explore_behavior)
+}
+
+function start_behavior() {
+    if (counter >= 20 and counter <= 22) {
+        neighbors.broadcast("start", 1)
+    }
+    counter = counter + 1
+}
+
+function explore_behavior() {
+    update_sensors()
+    if (state == EXPLORING and ranger.z > (EXPLORATION_HEIGHT - DELTA)) {
+        end = stig_end.get("end")
+        if (end == 1) {
+            state = HOMING
+        }
+        # hover(EXPLORATION_HEIGHT)
+        if (counter == 0) {
+            # Sample new direction
+            sample_dir.x = rand_bbz()
+            sample_dir.y = rand_bbz()
+            # Init counter to 10
+            counter = 100
+        }
+        goto(sample_dir)
+        counter = counter - 1
+
+        if (ranger.up < 1000) {
+            state = HOMING
+            stig_end.put("end", 1)
+        }
+    } else if (state == HOMING) {
+        land()
+        state = IDLE
+    }
+}
+
+function update_sensors() {
+    ranger.up = get_up()
+    ranger.left = get_left()
+    ranger.right = get_right()
+    ranger.front = get_front()
+    ranger.rear = get_back()
+    ranger.z = get_z()
+}
+
+function goto(direction) {
+    update_dir = {.x = direction.x, .y = direction.y}
+    if (ranger.front <= GAP_WALL + DELTA and ranger.front > 0) {
+        update_dir.x = update_dir.x - 100
+    }
+    if (ranger.rear <= GAP_WALL + DELTA and ranger.rear > 0) {
+        update_dir.x = update_dir.x + 100
+    }
+    if (ranger.left <= GAP_WALL + DELTA and ranger.left > 0) {
+        update_dir.y = update_dir.y - 100
+    }
+    if (ranger.right <= GAP_WALL + DELTA and ranger.right > 0) {
+        update_dir.y = update_dir.y + 100
+    }
+    move_toward(update_dir.x, update_dir.y)
+}
+
+function listen_exploration_start() {
+    neighbors.listen("start",
+        function(vid, value, rid) {        
+            # Takeoff
+            takeoff(EXPLORATION_HEIGHT)
+            state = EXPLORING
+
+            # Sample a random direction
+            sample_dir.x = rand_bbz()
+            sample_dir.y = rand_bbz()
+            counter = 100
+        }
+    )
+}
